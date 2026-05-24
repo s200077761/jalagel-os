@@ -8,6 +8,15 @@ LABEL org.opencontainers.image.description="Web-based Operating System with 50+ 
 LABEL org.opencontainers.image.source="https://github.com/s200077761/jalagel-os"
 LABEL org.opencontainers.image.author="MOHAMMED SAAD MOHAMMED ALOHAYDIB"
 
+# Install system dependencies for Python packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libffi-dev \
+    libssl-dev \
+    libjpeg-dev \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY requirements.txt .
