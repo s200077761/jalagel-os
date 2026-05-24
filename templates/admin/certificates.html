@@ -1,42 +1,242 @@
 {% extends "base.html" %}
-{% block title %}Certificates - Admin - JALAGEL OS Pro{% endblock %}
+{% block title %}Manage Certificates - Admin - JALAGEL OS Pro{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/certificates.css') }}">
+{% endblock %}
 {% block content %}
-<section class="section">
+
+<section class="cert-admin-page">
     <div class="container">
-        <div class="section-header">
-            <div class="section-label"><i class="fa-solid fa-certificate"></i> Admin</div>
-            <h1 class="gradient-text">Manage Certificates</h1>
+        <!-- Header -->
+        <div class="cert-section-header">
+            <div>
+                <div class="section-label"><i class="fa-solid fa-shield-halved"></i> Admin</div>
+                <h1 class="gradient-text">Certificate Management</h1>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-outline btn-sm" onclick="location.reload()">
+                    <i class="fa-solid fa-rotate"></i> Refresh
+                </button>
+            </div>
         </div>
-        <div class="card" style="overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;">
+
+        <!-- Stats Cards -->
+        <div class="cert-admin-stats">
+            <div class="cert-admin-stat revenue">
+                <div class="cert-admin-stat-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                <div class="cert-admin-stat-value">
+                    {% set total_revenue = certificates|map(attribute='price_paid')|sum %}
+                    ${{ "%.0f"|format(total_revenue) }}
+                </div>
+                <div class="cert-admin-stat-label">Total Revenue</div>
+            </div>
+            <div class="cert-admin-stat issued">
+                <div class="cert-admin-stat-icon"><i class="fa-solid fa-certificate"></i></div>
+                <div class="cert-admin-stat-value">{{ certificates|length }}</div>
+                <div class="cert-admin-stat-label">Total Issued</div>
+            </div>
+            <div class="cert-admin-stat active">
+                <div class="cert-admin-stat-icon"><i class="fa-solid fa-check-circle"></i></div>
+                <div class="cert-admin-stat-value">
+                    {{ certificates|selectattr('status','equalto','active')|list|length }}
+                </div>
+                <div class="cert-admin-stat-label">Active</div>
+            </div>
+            <div class="cert-admin-stat pending">
+                <div class="cert-admin-stat-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+                <div class="cert-admin-stat-value">
+                    {{ certificates|selectattr('status','equalto','pending')|list|length }}
+                </div>
+                <div class="cert-admin-stat-label">Pending</div>
+            </div>
+        </div>
+
+        <!-- Revenue Chart -->
+        {% if revenue_by_month %}
+        <div class="cert-chart-container">
+            <h4 style="margin-bottom: 16px; font-size: 0.9375rem;"><i class="fa-solid fa-chart-line" style="color: var(--color-primary-light);"></i> Revenue (Last 12 Months)</h4>
+            <canvas id="revenueChart" 
+                    data-months='{{ revenue_by_month.months|tojson }}'
+                    data-revenues='{{ revenue_by_month.values|tojson }}'
+                    style="max-height: 240px;"></canvas>
+        </div>
+        {% endif %}
+
+        <!-- Pending Validation Queue -->
+        {% set pending_certs = certificates|selectattr('status','equalto','pending')|list %}
+        {% if pending_certs %}
+        <div class="cert-pending-queue">
+            <h3><i class="fa-solid fa-hourglass-half" style="color: var(--color-warning);"></i> Pending Validation Queue ({{ pending_certs|length }})</h3>
+            <div class="cert-admin-table-wrap">
+                <table class="cert-admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Certificate</th>
+                            <th>User</th>
+                            <th>Domain</th>
+                            <th>Type</th>
+                            <th>Price</th>
+                            <th>Ordered</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cert in pending_certs %}
+                        <tr class="cert-admin-row" data-type="{{ cert.cert_type }}" data-status="pending">
+                            <td>#{{ cert.id }}</td>
+                            <td>
+                                <div class="cert-admin-cert-name">
+                                    <i class="{{ cert.icon if cert.icon else 'fa-solid fa-certificate' }}"></i>
+                                    <div>
+                                        <div class="name">{{ cert.cert_name }}</div>
+                                        <div class="sub">{{ cert.issuer }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if cert.owner %}
+                                <span style="font-weight: 500; color: var(--text-primary);">{{ cert.owner.username }}</span>
+                                <div style="font-size: 0.6875rem; color: var(--text-muted);">{{ cert.owner.email }}</div>
+                                {% else %}
+                                <span style="color: var(--text-muted);">User #{{ cert.user_id }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-size: 0.8125rem; color: var(--text-secondary);">{{ cert.domain or 'Pending' }}</td>
+                            <td><span class="badge badge-accent">{{ cert.cert_type|upper }}</span></td>
+                            <td style="font-weight: 600;">${{ "%.2f"|format(cert.price_paid) }}</td>
+                            <td style="font-size: 0.8125rem; color: var(--text-muted);">{{ cert.created_at|date }}</td>
+                            <td>
+                                <div class="cert-admin-actions">
+                                    <button class="btn btn-success btn-sm" onclick="adminApproveCert({{ cert.id }})">
+                                        <i class="fa-solid fa-check"></i> Approve
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="adminRevokeCert({{ cert.id }})">
+                                        <i class="fa-solid fa-ban"></i> Revoke
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Filters -->
+        <div class="cert-admin-filters">
+            <select id="filterType" class="form-select" style="width: auto; min-width: 150px;" onchange="filterAdminCerts()">
+                <option value="">All Types</option>
+                <option value="ssl">SSL</option>
+                <option value="code">Code Signing</option>
+                <option value="enterprise">Enterprise</option>
+            </select>
+            <select id="filterStatus" class="form-select" style="width: auto; min-width: 150px;" onchange="filterAdminCerts()">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="expired">Expired</option>
+                <option value="revoked">Revoked</option>
+            </select>
+            <input type="text" id="filterSearch" class="form-input" placeholder="Search certificates..." 
+                   style="width: auto; min-width: 250px;" oninput="filterAdminCerts()">
+        </div>
+
+        <!-- All Certificates Table -->
+        <div class="cert-admin-table-wrap">
+            <table class="cert-admin-table">
                 <thead>
-                    <tr style="border-bottom:2px solid var(--border-color);">
-                        <th style="text-align:left;padding:12px;">ID</th>
-                        <th style="text-align:left;padding:12px;">Name</th>
-                        <th style="text-align:left;padding:12px;">Type</th>
-                        <th style="text-align:left;padding:12px;">Domain</th>
-                        <th style="text-align:left;padding:12px;">Status</th>
-                        <th style="text-align:left;padding:12px;">Issued</th>
-                        <th style="text-align:left;padding:12px;">Expires</th>
-                        <th style="text-align:left;padding:12px;">Price</th>
+                    <tr>
+                        <th style="width: 40px;"><input type="checkbox" onchange="toggleSelectAllCerts(this)"></th>
+                        <th>ID</th>
+                        <th>Certificate</th>
+                        <th>User</th>
+                        <th>Domain</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Issued</th>
+                        <th>Expires</th>
+                        <th>Price</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for cert in certificates %}
-                    <tr style="border-bottom:1px solid var(--border-color);">
-                        <td style="padding:12px;font-size:0.8125rem;">{{ cert.id }}</td>
-                        <td style="padding:12px;font-size:0.8125rem;"><strong>{{ cert.cert_name }}</strong></td>
-                        <td style="padding:12px;"><span class="badge badge-accent">{{ cert.cert_type|upper }}</span></td>
-                        <td style="padding:12px;font-size:0.8125rem;color:var(--text-secondary);">{{ cert.domain or 'N/A' }}</td>
-                        <td style="padding:12px;"><span class="badge badge-{{ 'success' if cert.status == 'active' else 'warning' if cert.status == 'pending' else 'error' }}">{{ cert.status|title }}</span></td>
-                        <td style="padding:12px;font-size:0.8125rem;color:var(--text-secondary);">{{ cert.issued_date|date }}</td>
-                        <td style="padding:12px;font-size:0.8125rem;color:var(--text-secondary);">{{ cert.expiry_date|date }}</td>
-                        <td style="padding:12px;font-size:0.8125rem;">${{ "%.2f"|format(cert.price_paid) }}</td>
+                    <tr class="cert-admin-row" data-type="{{ cert.cert_type }}" data-status="{{ cert.status }}">
+                        <td><input type="checkbox" class="cert-select-row" value="{{ cert.id }}"></td>
+                        <td style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">#{{ cert.id }}</td>
+                        <td>
+                            <div class="cert-admin-cert-name">
+                                <i class="fa-solid {% if cert.cert_type == 'code' %}fa-file-signature{% elif cert.cert_type == 'enterprise' %}fa-crown{% else %}fa-lock{% endif %}"></i>
+                                <div>
+                                    <div class="name">{{ cert.cert_name }}</div>
+                                    <div class="sub">{{ cert.issuer }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if cert.owner %}
+                            <span style="font-weight: 500; font-size: 0.8125rem; color: var(--text-primary);">{{ cert.owner.username }}</span>
+                            <div style="font-size: 0.6875rem; color: var(--text-muted);">{{ cert.owner.email }}</div>
+                            {% else %}
+                            <span style="font-size: 0.8125rem; color: var(--text-muted);">User #{{ cert.user_id }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.8125rem; color: var(--text-secondary);">{{ cert.domain or 'N/A' }}</td>
+                        <td><span class="badge badge-accent">{{ cert.cert_type|upper }}</span></td>
+                        <td>
+                            <span class="cert-list-status {{ cert.status }}" style="font-size: 0.625rem;">
+                                {% if cert.status == 'active' %}<i class="fa-solid fa-check-circle"></i> Active
+                                {% elif cert.status == 'pending' %}<i class="fa-solid fa-hourglass-half"></i> Pending
+                                {% elif cert.status == 'expired' %}<i class="fa-solid fa-circle-xmark"></i> Expired
+                                {% elif cert.status == 'revoked' %}<i class="fa-solid fa-ban"></i> Revoked
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td style="font-size: 0.8125rem; color: var(--text-muted);">{{ cert.issued_date|date if cert.issued_date else 'Pending' }}</td>
+                        <td style="font-size: 0.8125rem; color: var(--text-muted);">{{ cert.expiry_date|date }}</td>
+                        <td style="font-weight: 600; font-size: 0.8125rem;">${{ "%.2f"|format(cert.price_paid) }}</td>
+                        <td>
+                            <div class="cert-admin-actions">
+                                <a href="{{ url_for('certificates_verify', cert_id=cert.id) }}" class="btn btn-ghost btn-sm" title="View">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                {% if cert.status == 'pending' %}
+                                <button class="btn btn-success btn-sm" onclick="adminApproveCert({{ cert.id }})" title="Approve">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                                {% endif %}
+                                {% if cert.status in ['active', 'pending'] %}
+                                <button class="btn btn-ghost btn-sm" onclick="adminRenewCert({{ cert.id }})" title="Renew">
+                                    <i class="fa-solid fa-rotate"></i>
+                                </button>
+                                <button class="btn btn-ghost btn-sm" style="color: var(--color-error);" onclick="adminRevokeCert({{ cert.id }})" title="Revoke">
+                                    <i class="fa-solid fa-ban"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        {% if not certificates %}
+        <div class="cert-empty-state" style="padding: 60px 24px;">
+            <div class="empty-icon" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                <i class="fa-solid fa-certificate"></i>
+            </div>
+            <h3>No Certificates Found</h3>
+            <p>No certificates have been issued yet.</p>
+        </div>
+        {% endif %}
     </div>
 </section>
+
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/certificates.js') }}"></script>
 {% endblock %}

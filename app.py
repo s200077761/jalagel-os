@@ -708,6 +708,227 @@ def create_app(config_class=None):
     # Health Check
     # ============================================================
     
+    # ============================================================
+    # Certificate System - Template Filter
+    # ============================================================
+    
+    @app.template_filter('hash_fingerprint')
+    def hash_fingerprint_filter(data):
+        """Generate a SHA-256 fingerprint for certificate display."""
+        import hashlib
+        if not data:
+            return 'N/A'
+        return hashlib.sha256(data.encode()).hexdigest()[:64]
+
+    # ============================================================
+    # Certificate Purchase & Checkout Routes
+    # ============================================================
+    
+    @app.route('/certificates/purchase')
+    @login_required
+    def certificates_purchase():
+        """Multi-step certificate purchase flow."""
+        templates = CertificateTemplate.query.filter_by(is_active=True).order_by(
+            CertificateTemplate.sort_order).all()
+        preselected = request.args.get('template', type=int)
+        period = request.args.get('period', 'yearly')
+        selected_template = CertificateTemplate.query.get(preselected) if preselected else None
+        return render_template('certificates/purchase.html',
+                               templates=templates,
+                               preselected=preselected,
+                               template_type=selected_template.cert_type if selected_template else 'ssl',
+                               prefill_domain=request.args.get('domain', ''))
+
+    @app.route('/certificates/checkout', methods=['GET', 'POST'])
+    @login_required
+    def certificates_checkout():
+        """Checkout page for certificate orders."""
+        template_id = request.args.get('template', type=int) or request.form.get('template_id', type=int)
+        template = CertificateTemplate.query.get_or_404(template_id)
+        domain = request.args.get('domain', '') or request.form.get('domain', '')
+        validation_method = request.args.get('validation', 'email') or request.form.get('validation_method', 'email')
+        billing = request.args.get('billing', 'yearly') or request.form.get('billing', 'yearly')
+        
+        return render_template('certificates/checkout.html',
+                               template=template,
+                               domain=domain,
+                               validation_method=validation_method,
+                               billing=billing)
+
+    # ============================================================
+    # Certificate Generation API
+    # ============================================================
+    
+    @app.route('/api/certificates/purchase', methods=['POST'])
+    @login_required
+    def api_cert_purchase():
+        """Purchase a new certificate."""
+        data = request.get_json() or {}
+        template_id = data.get('template_id')
+        template = CertificateTemplate.query.get_or_404(template_id)
+        
+        billing_period = data.get('billing', 'yearly')
+        price = template.price_yearly if billing_period == 'yearly' else template.price_monthly
+        
+        cert = Certificate(
+            user_id=current_user.id,
+            cert_type=template.cert_type,
+            cert_name=template.name,
+            domain=data.get('domain', ''),
+            issuer='JALAGEL CA',
+            expiry_date=datetime.utcnow() + timedelta(days=365),
+            status='pending',
+            price_paid=price,
+        )
+        db.session.add(cert)
+        db.session.commit()
+        return jsonify({'success': True, 'certificate': cert.to_dict()}), 201
+    
+    @app.route('/api/certificates/generate', methods=['POST'])
+    @login_required
+    def api_cert_generate():
+        """Generate a self-signed certificate using cryptography library."""
+        data = request.get_json() or {}
+        cert_id = data.get('certificate_id')
+        cert = Certificate.query.get_or_404(cert_id)
+        
+        # Allow admin to generate any cert, users only their own
+        if not current_user.is_admin() and cert.user_id != current_user.id:
+            return jsonify({'error': 'Access denied'}), 403
+        
+        try:
+            cert.generate_self_signed(
+                domain=cert.domain or cert.cert_name,
+                validity_days=365
+            )
+            cert.status = 'active'
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'certificate': cert.to_dict(),
+                'message': 'Certificate generated with RSA 2048-bit encryption'
+            })
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+    
+    @app.route('/api/certificates/renew', methods=['POST'])
+    @login_required
+    def api_cert_renew():
+        """Renew an existing certificate."""
+        data = request.get_json() or {}
+        cert_id = data.get('certificate_id')
+        cert = Certificate.query.get_or_404(cert_id)
+        
+        if not current_user.is_admin() and cert.user_id != current_user.id:
+            return jsonify({'error': 'Access denied'}), 403
+        
+        if cert.status == 'revoked':
+            return jsonify({'error': 'Cannot renew a revoked certificate'}), 400
+        
+        cert.renew(days=365)
+        db.session.commit()
+        return jsonify({'success': True, 'certificate': cert.to_dict()})
+    
+    @app.route('/api/certificates/revoke', methods=['POST'])
+    @login_required
+    def api_cert_revoke():
+        """Revoke a certificate."""
+        data = request.get_json() or {}
+        cert_id = data.get('certificate_id')
+        cert = Certificate.query.get_or_404(cert_id)
+        
+        if not current_user.is_admin() and cert.user_id != current_user.id:
+            return jsonify({'error': 'Access denied'}), 403
+        
+        cert.revoke()
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Certificate revoked'})
+    
+    @app.route('/api/certificates/validate', methods=['POST'])
+    @login_required
+    def api_cert_validate():
+        """Validate domain ownership and activate certificate."""
+        data = request.get_json() or {}
+        cert_id = data.get('certificate_id')
+        cert = Certificate.query.get_or_404(cert_id)
+        
+        if not current_user.is_admin() and cert.user_id != current_user.id:
+            return jsonify({'error': 'Access denied'}), 403
+        
+        if cert.status != 'pending':
+            return jsonify({'error': 'Certificate is not pending validation'}), 400
+        
+        # Simulate domain validation
+        cert.generate_self_signed(domain=cert.domain or cert.cert_name, validity_days=365)
+        cert.status = 'active'
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': 'Domain validation successful. Certificate activated.',
+            'certificate': cert.to_dict()
+        })
+    
+    @app.route('/api/certificates/download/<int:cert_id>')
+    @login_required
+    def api_cert_download(cert_id):
+        """Download certificate as PEM file."""
+        cert = Certificate.query.get_or_404(cert_id)
+        
+        if not current_user.is_admin() and cert.user_id != current_user.id:
+            return jsonify({'error': 'Access denied'}), 403
+        
+        if not cert.cert_data:
+            return jsonify({'error': 'Certificate not generated yet'}), 400
+        
+        from flask import Response
+        filename = f"{cert.domain or 'certificate'}_{cert.id}.pem"
+        return Response(
+            cert.cert_data,
+            mimetype='application/x-pem-file',
+            headers={'Content-Disposition': f'attachment; filename="{filename}"'}
+        )
+
+    # ============================================================
+    # Admin Certificate Management - Enhanced
+    # ============================================================
+    
+    @app.route('/admin/certificates')
+    @login_required
+    def admin_certificates():
+        """Admin certificate management with stats and filtering."""
+        if not current_user.is_admin():
+            flash('Access denied.', 'error')
+            return redirect(url_for('os_desktop'))
+        
+        certs = Certificate.query.order_by(Certificate.created_at.desc()).all()
+        
+        # Calculate revenue by month for chart
+        import calendar
+        from collections import defaultdict
+        revenue_by_month = defaultdict(float)
+        for cert in certs:
+            if cert.created_at:
+                month_key = cert.created_at.strftime('%b %Y')
+                revenue_by_month[month_key] += cert.price_paid
+        
+        # Get last 12 months
+        months = []
+        revenues = []
+        for i in range(11, -1, -1):
+            d = datetime.utcnow() - timedelta(days=i * 30)
+            month_key = d.strftime('%b %Y')
+            months.append(month_key)
+            revenues.append(round(revenue_by_month.get(month_key, 0), 2))
+        
+        return render_template('admin/certificates.html',
+                               certificates=certs,
+                               revenue_by_month={'months': months, 'values': revenues})
+    
+    # ============================================================
+    # Health Check
+    # ============================================================
+    
     @app.route('/health')
     def health_check():
         return jsonify({

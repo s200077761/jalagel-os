@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}Checkout - Certificate Order{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/certificates.css') }}">
+{% endblock %}
+{% block content %}
+
+<section class="cert-purchase-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="section-header text-center" style="margin-bottom: 32px;">
+            <div class="section-label"><i class="fa-solid fa-credit-card"></i> Checkout</div>
+            <h1 class="gradient-text">Complete Your Order</h1>
+        </div>
+
+        <div style="max-width: 600px; margin: 0 auto;">
+            <!-- Order Summary -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                    <div class="card-icon primary"><i class="{{ template.icon if template else 'fa-solid fa-certificate' }}"></i></div>
+                    <div>
+                        <h3 style="font-size: 1.125rem; margin: 0;">{{ template.name if template else 'Certificate' }}</h3>
+                        <p style="font-size: 0.8125rem; color: var(--text-muted); margin: 0;">
+                            {% if template %}
+                            {% if 'DV' in template.name %}Domain Validated
+                            {% elif 'OV' in template.name %}Organization Validated
+                            {% elif 'EV' in template.name %}Extended Validation
+                            {% elif 'Wildcard' in template.name %}Unlimited Subdomains
+                            {% elif 'Multi' in template.name %}Up to 250 Domains
+                            {% elif 'Code' in template.name %}Software Trust
+                            {% elif 'Enterprise' in template.name %}Private CA
+                            {% elif 'JALAGEL' in template.name %}Branded Trust Seal
+                            {% endif %}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="divider" style="border-top: 1px solid var(--border-color); margin-bottom: 20px;"></div>
+
+                <div class="cert-order-item">
+                    <span class="label">Certificate</span>
+                    <span class="value">{{ template.name if template else '-' }}</span>
+                </div>
+                <div class="cert-order-item">
+                    <span class="label">Domain</span>
+                    <span class="value">{{ domain or '-' }}</span>
+                </div>
+                <div class="cert-order-item">
+                    <span class="label">Validation</span>
+                    <span class="value">{{ validation_method|title if validation_method else 'Email' }}</span>
+                </div>
+                <div class="cert-order-item">
+                    <span class="label">Period</span>
+                    <span class="value">{{ '1 Year' if billing == 'yearly' else '1 Month' }}</span>
+                </div>
+                <div class="cert-order-item">
+                    <span class="label">Issuance Time</span>
+                    <span class="value">
+                        {% if template %}
+                        {% if 'DV' in template.name or 'Wildcard' in template.name %}Minutes
+                        {% elif 'EV' in template.name %}1-5 Days
+                        {% else %}1-2 Days
+                        {% endif %}
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="divider" style="border-top: 2px solid var(--border-color); margin: 16px 0;"></div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.9375rem; font-weight: 600; color: var(--text-primary);">Total</span>
+                    <span style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        {% if template %}
+                        ${{ "%.2f"|format(template.price_yearly if billing == 'yearly' else template.price_monthly) }}
+                        {% else %}$0.00{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Payment Form -->
+            <div class="card" style="margin-bottom: 24px;">
+                <h4 style="margin-bottom: 20px; font-size: 0.9375rem;"><i class="fa-solid fa-credit-card" style="color: var(--color-primary-light);"></i> Payment Details</h4>
+
+                <div class="cert-payment-methods" style="margin-bottom: 20px;">
+                    <div class="cert-payment-method selected" onclick="selectPayment(this)">
+                        <i class="fa-brands fa-cc-visa" style="color: var(--color-info); font-size: 1.5rem;"></i>
+                        <span>Credit Card</span>
+                    </div>
+                    <div class="cert-payment-method" onclick="selectPayment(this)">
+                        <i class="fa-brands fa-cc-paypal" style="color: #00457C; font-size: 1.5rem;"></i>
+                        <span>PayPal</span>
+                    </div>
+                    <div class="cert-payment-method" onclick="selectPayment(this)">
+                        <i class="fa-brands fa-bitcoin" style="color: #F7931A; font-size: 1.5rem;"></i>
+                        <span>Crypto</span>
+                    </div>
+                </div>
+
+                <div id="creditCardForm">
+                    <div class="form-group">
+                        <label class="form-label">Cardholder Name</label>
+                        <input type="text" class="form-input" placeholder="John Doe" value="{{ current_user.full_name if current_user.is_authenticated else '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" class="form-input" placeholder="4242 4242 4242 4242">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="text" class="form-input" placeholder="MM / YY">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">CVC</label>
+                            <input type="text" class="form-input" placeholder="123">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms -->
+            <div style="margin-bottom: 24px;">
+                <label class="form-checkbox" style="font-size: 0.8125rem; margin-bottom: 12px;">
+                    <input type="checkbox" id="termsAgree" checked>
+                    I agree to the <a href="#">Terms of Service</a>, <a href="#">Certificate Policy</a>, and <a href="#">Refund Policy</a>.
+                </label>
+                <label class="form-checkbox" style="font-size: 0.8125rem;">
+                    <input type="checkbox" checked>
+                    Send me certificate expiry reminders and security updates.
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button class="btn btn-primary btn-lg" style="width: 100%;" onclick="processCheckout()">
+                <i class="fa-solid fa-lock"></i> Place Secure Order - 
+                {% if template %}
+                ${{ "%.2f"|format(template.price_yearly if billing == 'yearly' else template.price_monthly) }}
+                {% else %}$0.00{% endif %}
+            </button>
+
+            <div class="cert-trust-seals" style="margin-top: 24px; justify-content: center;">
+                <div class="cert-trust-seal" style="font-size: 0.6875rem;">
+                    <i class="fa-solid fa-lock" style="font-size: 0.875rem;"></i>
+                    <span>256-bit SSL Secure</span>
+                </div>
+                <div class="cert-trust-seal" style="font-size: 0.6875rem;">
+                    <i class="fa-solid fa-shield-halved" style="font-size: 0.875rem;"></i>
+                    <span>Fraud Protected</span>
+                </div>
+                <div class="cert-trust-seal" style="font-size: 0.6875rem;">
+                    <i class="fa-solid fa-rotate-left" style="font-size: 0.875rem;"></i>
+                    <span>30-Day Refund</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/certificates.js') }}"></script>
+<script>
+function processCheckout() {
+    const btn = document.querySelector('.btn-primary.btn-lg');
+    const terms = document.getElementById('termsAgree');
+    if (terms && !terms.checked) {
+        showNotification('Please agree to the Terms of Service', 'error');
+        return;
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+
+    const data = {
+        template_id: {{ template.id if template else 'null' }},
+        domain: {{ domain|tojson if domain else 'null' }},
+        validation_method: {{ validation_method|tojson if validation_method else '"email"' }},
+        billing: {{ billing|tojson if billing else '"yearly"' }}
+    };
+
+    fetch('/api/certificates/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Order Placed!';
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-success');
+            setTimeout(() => {
+                window.location.href = '/certificates/my';
+            }, 1200);
+        } else {
+            throw new Error(data.error || 'Checkout failed');
+        }
+    })
+    .catch(err => {
+        showNotification(err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-lock"></i> Place Secure Order';
+    });
+}
+</script>
+{% endblock %}

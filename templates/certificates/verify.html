@@ -1,32 +1,237 @@
 {% extends "base.html" %}
-{% block title %}Verify Certificate - {{ certificate.cert_name }}{% endblock %}
+{% block title %}Verify Certificate - {{ certificate.domain or certificate.cert_name }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/certificates.css') }}">
+{% endblock %}
 {% block content %}
-<section class="section">
-    <div class="container-narrow">
-        <div class="section-header">
-            <div class="section-label"><i class="fa-solid fa-shield-halved"></i> Certificate Verification</div>
-            <h1 class="gradient-text">Verify Certificate</h1>
+
+<section class="cert-verify-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="section-header text-center" style="margin-bottom: 32px;">
+            <div class="section-label"><i class="fa-solid fa-shield-halved"></i> Verification</div>
+            <h1 class="gradient-text">Certificate Details</h1>
         </div>
-        <div class="card">
-            <div class="text-center" style="margin-bottom:24px;">
-                <div style="width:64px;height:64px;background:{% if certificate.status == 'active' %}rgba(16,185,129,0.15){% else %}rgba(239,68,68,0.15){% endif %};border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.75rem;color:{% if certificate.status == 'active' %}var(--color-success){% else %}var(--color-error){% endif %};">
-                    <i class="fa-solid {% if certificate.status == 'active' %}fa-check{% else %}fa-xmark{% endif %}"></i>
+
+        <!-- Certificate Search -->
+        <div class="cert-verify-search">
+            <input type="text" id="verifyCertId" class="form-input" placeholder="Enter certificate ID to verify..." value="{{ certificate.id }}">
+            <button class="btn btn-primary" onclick="verifyCertSearch()">
+                <i class="fa-solid fa-magnifying-glass"></i> Verify
+            </button>
+        </div>
+
+        <!-- Certificate Card -->
+        <div class="cert-verify-card">
+            <!-- Header with status -->
+            <div class="cert-verify-header">
+                {% if certificate.status == 'active' and not certificate.is_expired() %}
+                <div class="cert-verify-status-ring trusted">
+                    <i class="fa-solid fa-check"></i>
                 </div>
-                <h2>{{ certificate.cert_name }}</h2>
-                <span class="badge badge-{{ 'success' if certificate.status == 'active' else 'warning' if certificate.status == 'pending' else 'error' }}">
-                    {{ certificate.status|title }}
-                </span>
+                {% elif certificate.status == 'pending' %}
+                <div class="cert-verify-status-ring pending">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+                {% else %}
+                <div class="cert-verify-status-ring untrusted">
+                    <i class="fa-solid fa-xmark"></i>
+                </div>
+                {% endif %}
+
+                <div class="cert-verify-domain">{{ certificate.domain or certificate.cert_name }}</div>
+                
+                {% if certificate.status == 'active' and not certificate.is_expired() %}
+                <div class="cert-verify-status-badge trusted">
+                    <i class="fa-solid fa-shield-halved"></i> This Certificate is Trusted
+                </div>
+                {% elif certificate.status == 'pending' %}
+                <div class="cert-verify-status-badge pending">
+                    <i class="fa-solid fa-clock"></i> Validation Pending
+                </div>
+                {% elif certificate.status == 'expired' %}
+                <div class="cert-verify-status-badge untrusted">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Certificate Expired
+                </div>
+                {% elif certificate.status == 'revoked' %}
+                <div class="cert-verify-status-badge untrusted">
+                    <i class="fa-solid fa-ban"></i> Certificate Revoked
+                </div>
+                {% else %}
+                <div class="cert-verify-status-badge untrusted">
+                    <i class="fa-solid fa-xmark"></i> Not Trusted
+                </div>
+                {% endif %}
+
+                <div style="margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                    <span class="badge badge-primary"><i class="{{ certificate.icon or 'fa-solid fa-lock' }}"></i> {{ certificate.cert_type|upper }}</span>
+                    <span class="badge badge-accent">{{ certificate.issuer }}</span>
+                    {% if certificate.price_paid > 0 %}
+                    <span class="badge badge-success">${{ "%.2f"|format(certificate.price_paid) }}</span>
+                    {% endif %}
+                </div>
             </div>
-            <div class="divider"></div>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
-                <div><strong>Domain:</strong><br><span style="color:var(--text-secondary);">{{ certificate.domain or 'N/A' }}</span></div>
-                <div><strong>Issuer:</strong><br><span style="color:var(--text-secondary);">{{ certificate.issuer }}</span></div>
-                <div><strong>Issued:</strong><br><span style="color:var(--text-secondary);">{{ certificate.issued_date|date }}</span></div>
-                <div><strong>Expires:</strong><br><span style="color:var(--text-secondary);">{{ certificate.expiry_date|date }}</span></div>
-                <div><strong>Type:</strong><br><span style="color:var(--text-secondary);">{{ certificate.cert_type|upper }}</span></div>
-                <div><strong>Days Left:</strong><br><span style="color:var(--text-secondary);">{{ certificate.days_until_expiry() }}</span></div>
+
+            <!-- Certificate Details -->
+            <div class="cert-verify-body">
+                <!-- General Info -->
+                <div class="cert-verify-section">
+                    <div class="cert-verify-section-title"><i class="fa-solid fa-circle-info"></i> General Information</div>
+                    <div class="cert-verify-details">
+                        <div class="cert-verify-detail">
+                            <div class="cert-verify-detail-label">Certificate Name</div>
+                            <div class="cert-verify-detail-value">{{ certificate.cert_name }}</div>
+                        </div>
+                        <div class="cert-verify-detail">
+                            <div class="cert-verify-detail-label">Certificate Type</div>
+                            <div class="cert-verify-detail-value">{{ certificate.cert_type|upper }}</div>
+                        </div>
+                        <div class="cert-verify-detail">
+                            <div class="cert-verify-detail-label">Issued By</div>
+                            <div class="cert-verify-detail-value">{{ certificate.issuer }}</div>
+                        </div>
+                        <div class="cert-verify-detail">
+                            <div class="cert-verify-detail-label">Issued To</div>
+                            <div class="cert-verify-detail-value">{{ certificate.domain or 'Pending' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validity Period -->
+                <div class="cert-verify-section">
+                    <div class="cert-verify-section-title"><i class="fa-solid fa-calendar-days"></i> Validity Period</div>
+                    <div class="cert-verify-details">
+                        <div class="cert-verify-detail">
+                            <div class="cert-verify-detail-label">Valid From</div>
+                            <div class="cert-verify-detail-value {{ 'text-green' if certificate.issued_date else 'text-red' }}">
+                                {{ certificate.issued_date|datetime if certificate.issued_date else 'Not yet issued' }}
+                            </div>
+                        </div>
+                        <div class="cert-verify-detail">
+                            <div class="cert-verify-detail-label">Valid Until</div>
+                            <div class="cert-verify-detail-value">
+                                {{ certificate.expiry_date|datetime }}
+                            </div>
+                        </div>
+                        <div class="cert-verify-detail">
+                            <div class="cert-verify-detail-label">Days Remaining</div>
+                            <div class="cert-verify-detail-value {{ 'text-green' if certificate.days_until_expiry() > 90 else 'text-red' if certificate.days_until_expiry() == 0 else '' }}">
+                                {{ certificate.days_until_expiry() }} days
+                            </div>
+                        </div>
+                        <div class="cert-verify-detail">
+                            <div class="cert-verify-detail-label">Status</div>
+                            <div class="cert-verify-detail-value {{ 'text-green' if certificate.status == 'active' else 'text-red' }}">
+                                {{ certificate.status|title }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Certificate Data -->
+                {% if certificate.cert_data %}
+                <div class="cert-verify-section">
+                    <div class="cert-verify-section-title"><i class="fa-solid fa-fingerprint"></i> Certificate Data</div>
+                    <div class="cert-verify-details">
+                        <div class="cert-verify-detail full-width">
+                            <div class="cert-verify-detail-label">Serial Number</div>
+                            <div class="cert-verify-detail-value">{{ "%.0f"|format(certificate.id * 1000000000000 + 123456789) }}</div>
+                        </div>
+                        <div class="cert-verify-detail full-width">
+                            <div class="cert-verify-detail-label">SHA-256 Fingerprint</div>
+                            <div class="cert-verify-detail-value">{{ certificate.cert_data|hash_fingerprint if certificate.cert_data else 'N/A' }}</div>
+                        </div>
+                        <div class="cert-verify-detail full-width">
+                            <div class="cert-verify-detail-label">Signature Algorithm</div>
+                            <div class="cert-verify-detail-value">sha256WithRSAEncryption</div>
+                        </div>
+                        <div class="cert-verify-detail full-width">
+                            <div class="cert-verify-detail-label">Public Key Algorithm</div>
+                            <div class="cert-verify-detail-value">RSA Encryption (2048 bit)</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Trust Chain -->
+                {% if certificate.status == 'active' %}
+                <div class="cert-verify-section">
+                    <div class="cert-verify-section-title"><i class="fa-solid fa-link"></i> Trust Chain</div>
+                    <div class="cert-trust-chain">
+                        <div class="cert-chain-item">
+                            <div class="cert-chain-icon root">
+                                <i class="fa-solid fa-certificate"></i>
+                            </div>
+                            <div class="cert-chain-info">
+                                <div class="name">JALAGEL Root CA</div>
+                                <div class="org">JALAGEL Certificate Authority</div>
+                            </div>
+                            <div class="cert-chain-valid"><i class="fa-solid fa-check-circle"></i></div>
+                        </div>
+                        <div class="cert-chain-item">
+                            <div class="cert-chain-icon intermediate">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div class="cert-chain-info">
+                                <div class="name">JALAGEL {{ certificate.cert_type|upper }} Intermediate CA</div>
+                                <div class="org">JALAGEL Certificate Authority</div>
+                            </div>
+                            <div class="cert-chain-valid"><i class="fa-solid fa-check-circle"></i></div>
+                        </div>
+                        <div class="cert-chain-item">
+                            <div class="cert-chain-icon leaf">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                            <div class="cert-chain-info">
+                                <div class="name">{{ certificate.cert_name }}</div>
+                                <div class="org">{{ certificate.domain or 'Pending Domain' }}</div>
+                            </div>
+                            <div class="cert-chain-valid"><i class="fa-solid fa-check-circle"></i></div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- PEM Data -->
+                {% if certificate.cert_data %}
+                <div class="cert-verify-section">
+                    <div class="cert-verify-section-title"><i class="fa-solid fa-file-code"></i> PEM Certificate Data</div>
+                    <div class="cert-verify-detail full-width" style="padding: 0; overflow: hidden;">
+                        <pre style="padding: 16px; font-size: 0.6875rem; color: var(--text-secondary); overflow-x: auto; max-height: 200px; overflow-y: auto;"><code>{{ certificate.cert_data[:500] }}...</code></pre>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="cert-verify-footer">
+                {% if certificate.cert_data %}
+                <button class="btn btn-primary" onclick="downloadCert({{ certificate.id }})">
+                    <i class="fa-solid fa-download"></i> Download Certificate
+                </button>
+                {% endif %}
+                {% if certificate.status == 'active' %}
+                <button class="btn btn-outline" onclick="renewCert({{ certificate.id }})">
+                    <i class="fa-solid fa-rotate"></i> Renew
+                </button>
+                {% endif %}
+                {% if certificate.status in ['active', 'pending'] %}
+                <button class="btn btn-ghost" style="color: var(--color-error);" onclick="revokeCert({{ certificate.id }})">
+                    <i class="fa-solid fa-ban"></i> Revoke
+                </button>
+                {% endif %}
+                <a href="{{ url_for('certificates_my') }}" class="btn btn-ghost">
+                    <i class="fa-solid fa-arrow-left"></i> Back to My Certificates
+                </a>
             </div>
         </div>
     </div>
 </section>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+    window.currentUser = {{ current_user.is_authenticated|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/certificates.js') }}"></script>
 {% endblock %}

@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+{% block title %}Purchase Certificate - JALAGEL OS Pro{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/certificates.css') }}">
+{% endblock %}
+{% block content %}
+
+<section class="cert-purchase-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="section-header text-center" style="margin-bottom: 32px;">
+            <div class="section-label"><i class="fa-solid fa-cart-shopping"></i> Purchase</div>
+            <h1 class="gradient-text">Purchase Certificate</h1>
+        </div>
+
+        <!-- Stepper -->
+        <div class="cert-stepper">
+            <div class="cert-step active" data-step="1">
+                <div class="cert-step-number">1</div>
+                <div class="cert-step-label">Type</div>
+            </div>
+            <div class="cert-step-connector"></div>
+            <div class="cert-step" data-step="2">
+                <div class="cert-step-number">2</div>
+                <div class="cert-step-label">Domain</div>
+            </div>
+            <div class="cert-step-connector"></div>
+            <div class="cert-step" data-step="3">
+                <div class="cert-step-number">3</div>
+                <div class="cert-step-label">Validate</div>
+            </div>
+            <div class="cert-step-connector"></div>
+            <div class="cert-step" data-step="4">
+                <div class="cert-step-number">4</div>
+                <div class="cert-step-label">Review</div>
+            </div>
+            <div class="cert-step-connector"></div>
+            <div class="cert-step" data-step="5">
+                <div class="cert-step-number"><i class="fa-solid fa-check"></i></div>
+                <div class="cert-step-label">Done</div>
+            </div>
+        </div>
+
+        <!-- Purchase Flow Container -->
+        <div id="purchaseFlow">
+            <!-- Step 1: Select Certificate Type -->
+            <div id="purchaseStep1" class="cert-step-content">
+                <h2 class="cert-step-title">Select Certificate Type</h2>
+                <p class="cert-step-desc">Choose the certificate that best fits your needs.</p>
+                <div class="cert-store-grid" style="margin-top: 32px;">
+                    {% for template in templates %}
+                    {% set icon_class = 'dv' if 'DV' in template.name else 'ov' if 'OV' in template.name else 'ev' if 'EV' in template.name else 'wc' if 'Wildcard' in template.name else 'san' if 'Multi' in template.name else 'cs' if 'Code' in template.name else 'ea' if 'Enterprise' in template.name else 'jp' %}
+                    <div class="cert-product-card cert-purchase-template {% if preselected == template.id %}selected{% endif %}" 
+                         onclick="selectPurchaseTemplate({{ template.id }}, this)"
+                         data-template-id="{{ template.id }}">
+                        <div class="cert-card-icon {{ icon_class }}">
+                            <i class="{{ template.icon }}"></i>
+                        </div>
+                        <h3 class="cert-card-title">{{ template.name }}</h3>
+                        <div class="cert-card-type">
+                            {% if 'DV' in template.name %}Domain Validated
+                            {% elif 'OV' in template.name %}Organization Validated
+                            {% elif 'EV' in template.name %}Extended Validation
+                            {% elif 'Wildcard' in template.name %}Unlimited Subdomains
+                            {% elif 'Multi' in template.name %}Up to 250 Domains
+                            {% elif 'Code' in template.name %}Software Trust
+                            {% elif 'Enterprise' in template.name %}Private CA
+                            {% elif 'JALAGEL' in template.name %}Branded Trust Seal
+                            {% endif %}
+                        </div>
+                        <p class="cert-card-desc">{{ template.description|truncate_words(15) }}</p>
+                        <div class="cert-card-price">
+                            <span class="price">${{ "%.2f"|format(template.price_yearly) }}</span>
+                            <span class="period">/year</span>
+                        </div>
+                        <input type="radio" name="template_id" value="{{ template.id }}" style="position: absolute; opacity: 0;"
+                               {% if preselected == template.id %}checked{% endif %}>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Step 2: Enter Domain -->
+            <div id="purchaseStep2" class="cert-step-content hidden">
+                <h2 class="cert-step-title">Enter Domain Name</h2>
+                <p class="cert-step-desc">Enter the domain name you want to secure with this certificate.</p>
+                <div style="max-width: 500px; margin: 32px auto;">
+                    <div class="form-group">
+                        <label class="form-label">Primary Domain *</label>
+                        <input type="text" id="domainInput" class="form-input" placeholder="example.com" 
+                               value="{{ prefill_domain or '' }}">
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">
+                            <i class="fa-solid fa-circle-info"></i> 
+                            {% if template_type == 'wildcard' %}
+                            Enter your root domain. We'll cover *.domain.com automatically.
+                            {% elif template_type == 'san' %}
+                            Enter your primary domain. You'll add more domains on the next step.
+                            {% else %}
+                            Enter the exact domain you want to secure (e.g., example.com or www.example.com)
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if template_type == 'san' %}
+                    <div class="form-group">
+                        <label class="form-label">Additional Domains (SAN)</label>
+                        <textarea id="sanDomains" class="form-input" rows="3" placeholder="www.example.com&#10;shop.example.com&#10;blog.example.com"></textarea>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Enter one domain per line. Up to 250 domains supported.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Step 3: Choose Validation Method -->
+            <div id="purchaseStep3" class="cert-step-content hidden">
+                <h2 class="cert-step-title">Domain Validation Method</h2>
+                <p class="cert-step-desc">Choose how you want to prove ownership of your domain.</p>
+                <div class="cert-validation-options" style="margin-top: 32px;">
+                    <div class="cert-validation-option" onclick="selectValidation(this)">
+                        <input type="radio" name="validation_method" value="email" id="valEmail">
+                        <div class="cert-validation-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--color-info);">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                        <h4>Email Validation</h4>
+                        <p>We'll send a verification email to admin@, webmaster@, or hostmaster@ your domain</p>
+                    </div>
+                    <div class="cert-validation-option" onclick="selectValidation(this)">
+                        <input type="radio" name="validation_method" value="dns" id="valDns">
+                        <div class="cert-validation-icon" style="background: rgba(124, 58, 237, 0.15); color: var(--color-primary-light);">
+                            <i class="fa-solid fa-globe"></i>
+                        </div>
+                        <h4>DNS Validation</h4>
+                        <p>Add a TXT record to your domain's DNS. Best for automation.</p>
+                    </div>
+                    <div class="cert-validation-option" onclick="selectValidation(this)">
+                        <input type="radio" name="validation_method" value="file" id="valFile">
+                        <div class="cert-validation-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--color-accent-light);">
+                            <i class="fa-solid fa-file-code"></i>
+                        </div>
+                        <h4>File Upload</h4>
+                        <p>Upload a verification file to your web server's root directory</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Review & Payment -->
+            <div id="purchaseStep4" class="cert-step-content hidden">
+                <h2 class="cert-step-title">Review Your Order</h2>
+                <p class="cert-step-desc">Please review your order details before placing it.</p>
+                <div style="max-width: 500px; margin: 32px auto;">
+                    <div class="cert-order-summary">
+                        <div class="cert-order-item">
+                            <span class="label"><i class="fa-solid fa-certificate" style="color: var(--color-primary-light);"></i> Certificate Type</span>
+                            <span class="value" id="reviewType">-</span>
+                        </div>
+                        <div class="cert-order-item">
+                            <span class="label"><i class="fa-solid fa-globe" style="color: var(--color-accent-light);"></i> Domain</span>
+                            <span class="value" id="reviewDomain">-</span>
+                        </div>
+                        <div class="cert-order-item">
+                            <span class="label"><i class="fa-solid fa-shield-halved" style="color: var(--color-success);"></i> Validation</span>
+                            <span class="value" id="reviewValidation">-</span>
+                        </div>
+                        <div class="cert-order-item">
+                            <span class="label"><i class="fa-solid fa-calendar" style="color: var(--color-warning);"></i> Period</span>
+                            <span class="value">1 Year</span>
+                        </div>
+                        <div class="cert-order-item total">
+                            <span class="label">Total</span>
+                            <span class="value" id="reviewTotal">-</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px;">
+                        <h4 style="margin-bottom: 12px; font-size: 0.9375rem;"><i class="fa-solid fa-credit-card"></i> Payment Method</h4>
+                        <div class="cert-payment-methods">
+                            <div class="cert-payment-method selected" onclick="selectPayment(this)">
+                                <i class="fa-brands fa-cc-visa" style="color: var(--color-info);"></i>
+                                <span>Credit Card</span>
+                            </div>
+                            <div class="cert-payment-method" onclick="selectPayment(this)">
+                                <i class="fa-brands fa-cc-paypal" style="color: #00457C;"></i>
+                                <span>PayPal</span>
+                            </div>
+                            <div class="cert-payment-method" onclick="selectPayment(this)">
+                                <i class="fa-brands fa-bitcoin" style="color: #F7931A;"></i>
+                                <span>Crypto</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 16px;">
+                        <label class="form-checkbox" style="font-size: 0.8125rem;">
+                            <input type="checkbox" checked>
+                            I agree to the <a href="#">Terms of Service</a> and <a href="#">Certificate Policy</a>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Confirmation -->
+            <div id="purchaseStep5" class="cert-step-content hidden">
+                <div class="text-center" style="padding: 40px 0;">
+                    <div class="cert-confirm-icon">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <h2 style="margin-bottom: 8px;">Order Confirmed!</h2>
+                    <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 32px;">
+                        Your certificate order has been placed successfully. Follow the steps below to complete the validation process.
+                    </p>
+                    <div style="display: inline-flex; gap: 12px;">
+                        <a href="{{ url_for('certificates_my') }}" class="btn btn-primary">
+                            <i class="fa-solid fa-list"></i> My Certificates
+                        </a>
+                        <a href="{{ url_for('certificates_store') }}" class="btn btn-outline">
+                            <i class="fa-solid fa-cart-shopping"></i> Store
+                        </a>
+                    </div>
+                </div>
+
+                <div class="cert-next-steps" style="max-width: 600px; margin: 0 auto;">
+                    <h3 style="text-align: center; margin-bottom: 20px;">Next Steps</h3>
+                    <div class="cert-next-step">
+                        <div class="cert-next-step-number">1</div>
+                        <div class="cert-next-step-content">
+                            <h4>Complete Domain Validation</h4>
+                            <p>Follow the instructions sent to your email to validate domain ownership.</p>
+                        </div>
+                    </div>
+                    <div class="cert-next-step">
+                        <div class="cert-next-step-number">2</div>
+                        <div class="cert-next-step-content">
+                            <h4>Certificate Generation</h4>
+                            <p>Once validated, your certificate will be generated automatically.</p>
+                        </div>
+                    </div>
+                    <div class="cert-next-step">
+                        <div class="cert-next-step-number">3</div>
+                        <div class="cert-next-step-content">
+                            <h4>Install on Your Server</h4>
+                            <p>Download your certificate and install it on your web server.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="cert-step-nav" id="stepNav">
+                <button class="btn btn-ghost hidden" id="purchasePrev" onclick="purchasePrev()">
+                    <i class="fa-solid fa-arrow-left"></i> Back
+                </button>
+                <div></div>
+                <button class="btn btn-primary" id="purchaseNext" onclick="purchaseNext()">
+                    Continue <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+    window.currentUser = {{ current_user.is_authenticated|tojson }};
+    window.certTemplates = {};
+    {% for t in templates %}
+    window.certTemplates[{{ t.id }}] = {
+        name: {{ t.name|tojson }},
+        price_yearly: {{ t.price_yearly }},
+        price_monthly: {{ t.price_monthly }}
+    };
+    {% endfor %}
+</script>
+<script src="{{ url_for('static', filename='js/certificates.js') }}"></script>
+<script>
+// Override purchaseNext for review step
+(function() {
+    const origNext = window.purchaseNext;
+    window.purchaseNext = function() {
+        // If moving to step 4, populate review data
+        const currentStep = window.purchaseState ? window.purchaseState.step : 1;
+        if (currentStep === 3) {
+            const templateId = window.purchaseState.templateId;
+            const template = window.certTemplates[templateId];
+            const domain = document.getElementById('domainInput');
+            const valMethod = document.querySelector('input[name="validation_method"]:checked');
+            
+            if (template) {
+                document.getElementById('reviewType').textContent = template.name;
+                document.getElementById('reviewTotal').textContent = '$' + template.price_yearly.toFixed(2);
+            }
+            if (domain) document.getElementById('reviewDomain').textContent = domain.value || '-';
+            if (valMethod) {
+                const labels = { email: 'Email Validation', dns: 'DNS Validation', file: 'File Upload' };
+                document.getElementById('reviewValidation').textContent = labels[valMethod.value] || valMethod.value;
+            }
+        }
+        return origNext.call(this);
+    };
+})();
+</script>
+{% endblock %}
