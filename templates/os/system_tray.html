@@ -1,0 +1,119 @@
+{# JALAGEL OS Pro - System Tray Component #}
+<div class="system-tray" id="systemTray">
+    <!-- Tray Icons -->
+    <div class="tray-icons-group">
+        <!-- Network -->
+        <button class="tray-icon tray-network" id="trayNetwork" title="Network: Connected">
+            <i class="fa-solid fa-wifi" id="trayNetworkIcon"></i>
+            <span class="tray-status-dot online" id="trayNetworkDot"></span>
+        </button>
+
+        <!-- Volume -->
+        <div class="tray-volume-wrapper" id="trayVolumeWrapper">
+            <button class="tray-icon tray-volume" id="trayVolume" title="Volume: 80%">
+                <i class="fa-solid fa-volume-high" id="trayVolumeIcon"></i>
+            </button>
+            <div class="volume-popup" id="volumePopup">
+                <div class="volume-control">
+                    <button class="vol-mute-btn" id="volMuteBtn">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                    <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="80">
+                    <span class="vol-value" id="volValue">80%</span>
+                </div>
+                <div class="volume-output">
+                    <i class="fa-solid fa-headphones"></i>
+                    <span>Speakers</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Battery -->
+        <button class="tray-icon tray-battery" id="trayBattery" title="Battery: 85%">
+            <div class="battery-icon">
+                <i class="fa-solid fa-battery-three-quarters" id="trayBatteryIcon"></i>
+                <span class="battery-percent" id="trayBatteryPercent">85</span>
+            </div>
+        </button>
+
+        <!-- Language -->
+        <button class="tray-icon tray-lang" id="trayLang" title="Input: English (US)">
+            <span class="lang-code" id="trayLangCode">EN</span>
+        </button>
+    </div>
+
+    <!-- Clock -->
+    <div class="tray-clock-wrapper" id="trayClockWrapper">
+        <button class="tray-clock" id="trayClock" title="Click for calendar">
+            <span class="tray-time" id="trayTime">12:00 PM</span>
+            <span class="tray-date" id="trayDate">Jan 1, 2024</span>
+        </button>
+
+        <!-- Calendar Popup -->
+        <div class="calendar-popup" id="calendarPopup">
+            <div class="calendar-header">
+                <button class="cal-nav" id="calPrevMonth"><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="cal-title" id="calTitle">January 2024</div>
+                <button class="cal-nav" id="calNextMonth"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="cal-weekdays">
+                <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+            </div>
+            <div class="cal-days" id="calDays"></div>
+            <div class="cal-footer">
+                <button class="cal-today-btn" id="calTodayBtn">Today</button>
+                <button class="cal-events-btn" id="calEventsBtn">
+                    <i class="fa-solid fa-calendar-day"></i> Events
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Toggle -->
+    <button class="tray-notifications" id="trayNotifications" title="Notifications">
+        <i class="fa-solid fa-bell" id="trayNotifIcon"></i>
+        <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+    </button>
+
+    <!-- Show Desktop -->
+    <button class="tray-show-desktop" id="trayShowDesktop" title="Show Desktop"></button>
+</div>
+
+{# Language Selector Popup #}
+<div class="lang-popup" id="langPopup">
+    <div class="lang-popup-header">
+        <span>Input Language</span>
+    </div>
+    <div class="lang-list" id="langList">
+        <div class="lang-item active" data-lang="en" data-code="EN">
+            <span class="lang-flag">&#x1F1FA;&#x1F1F8;</span>
+            <span class="lang-name">English (US)</span>
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div class="lang-item" data-lang="es" data-code="ES">
+            <span class="lang-flag">&#x1F1EA;&#x1F1F8;</span>
+            <span class="lang-name">Espanol</span>
+        </div>
+        <div class="lang-item" data-lang="fr" data-code="FR">
+            <span class="lang-flag">&#x1F1EB;&#x1F1F7;</span>
+            <span class="lang-name">Francais</span>
+        </div>
+        <div class="lang-item" data-lang="de" data-code="DE">
+            <span class="lang-flag">&#x1F1E9;&#x1F1EA;</span>
+            <span class="lang-name">Deutsch</span>
+        </div>
+        <div class="lang-item" data-lang="zh" data-code="ZH">
+            <span class="lang-flag">&#x1F1E8;&#x1F1F3;</span>
+            <span class="lang-name">Chinese</span>
+        </div>
+        <div class="lang-item" data-lang="ja" data-code="JA">
+            <span class="lang-flag">&#x1F1EF;&#x1F1F5;</span>
+            <span class="lang-name">Japanese</span>
+        </div>
+    </div>
+    <div class="lang-popup-footer">
+        <button class="lang-settings-btn" id="langSettingsBtn">
+            <i class="fa-solid fa-gear"></i> Language Settings
+        </button>
+    </div>
+</div>

@@ -1,0 +1,88 @@
+{# JALAGEL OS Pro - Notification Center Component #}
+<div class="notification-center-overlay" id="notificationCenterOverlay"></div>
+
+<div class="notification-center" id="notificationCenter">
+    <!-- Header -->
+    <div class="nc-header">
+        <div class="nc-header-top">
+            <h3><i class="fa-solid fa-bell"></i> Notifications</h3>
+            <div class="nc-header-actions">
+                <button class="nc-btn" id="ncDndToggle" title="Do Not Disturb">
+                    <i class="fa-solid fa-moon"></i>
+                    <span class="dnd-label">Focus</span>
+                </button>
+                <button class="nc-btn" id="ncSettingsBtn" title="Notification Settings">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+                <button class="nc-btn nc-close" id="ncCloseBtn" title="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+        <div class="nc-header-bottom">
+            <span class="nc-count" id="ncCount">No new notifications</span>
+            <button class="nc-clear-all" id="ncClearAll">Clear all</button>
+        </div>
+    </div>
+
+    <!-- Notification List -->
+    <div class="nc-body">
+        <div class="nc-list" id="ncList">
+            <!-- Empty state -->
+            <div class="nc-empty" id="ncEmpty">
+                <div class="nc-empty-icon">
+                    <i class="fa-solid fa-bell-slash"></i>
+                </div>
+                <p>No notifications</p>
+                <span>We'll let you know when something arrives</span>
+            </div>
+            <!-- Notifications rendered by JS -->
+        </div>
+
+        <!-- System Notifications Section -->
+        <div class="nc-system-section" id="ncSystemSection" style="display:none;">
+            <div class="nc-section-title">
+                <i class="fa-solid fa-server"></i> System
+            </div>
+            <div class="nc-system-list" id="ncSystemList">
+                <!-- System notifications rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="nc-footer">
+        <button class="nc-footer-btn" id="ncHistoryBtn">
+            <i class="fa-solid fa-clock-rotate-left"></i> History
+        </button>
+        <button class="nc-footer-btn" id="ncMarkAllRead">
+            <i class="fa-solid fa-check-double"></i> Mark all read
+        </button>
+    </div>
+</div>
+
+{# Do Not Disturb Indicator #}
+<div class="dnd-indicator" id="dndIndicator" style="display:none;">
+    <i class="fa-solid fa-moon"></i>
+    <span>Focus mode is on</span>
+</div>
+
+{# Notification Toast Template #}
+<template id="toastTemplate">
+    <div class="os-toast" data-toast-id="">
+        <div class="toast-icon">
+            <i class="fa-solid"></i>
+        </div>
+        <div class="toast-content">
+            <div class="toast-title"></div>
+            <div class="toast-message"></div>
+        </div>
+        <div class="toast-actions">
+            <button class="toast-action-btn" data-action="primary"></button>
+            <button class="toast-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+</template>
+
+{# Toast Container #}
+<div class="toast-container" id="toastContainer"></div>

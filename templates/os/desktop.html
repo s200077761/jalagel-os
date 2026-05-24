@@ -1,2 +1,123 @@
 {% extends "os_base.html" %}
 {% block title %}JALAGEL OS Pro - Desktop{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Desktop layout: icons on left, widgets on right */
+    .desktop-layout {
+        position: absolute;
+        inset: 0;
+        bottom: 48px;
+        display: flex;
+        justify-content: space-between;
+        z-index: 5;
+        pointer-events: none;
+    }
+    .desktop-layout > * {
+        pointer-events: all;
+    }
+    .desktop-icons-grid {
+        position: relative;
+        top: 0;
+        left: 0;
+    }
+    .desktop-widgets-area {
+        padding: 16px;
+        overflow-y: auto;
+        max-height: calc(100vh - 64px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{# Include all OS interface components #}
+
+{# 1. Desktop Widgets (right side panel) #}
+{% include "os/desktop_widgets.html" %}
+
+{# 2. Window Component Templates #}
+{% include "os/window.html" %}
+
+{# 3. Context Menu (replaces base context menu) #}
+{% include "os/context_menu.html" %}
+
+{# 4. Start Menu (replaces base start menu) #}
+{% include "os/start_menu.html" %}
+
+{# 5. Notification Center (replaces base notification panel) #}
+{% include "os/notification_center.html" %}
+
+{# 6. System Tray (replaces base tray) #}
+{% include "os/system_tray.html" %}
+
+{# Virtual Desktop Switcher #}
+<div class="virtual-desktop-switcher" id="virtualDesktopSwitcher">
+    <div class="vd-desktop-list" id="vdDesktopList">
+        <div class="vd-thumb active" data-desktop="0">
+            <div class="vd-thumb-content">
+                <div class="vd-thumb-window" style="left:10%;top:10%;width:40%;height:35%"></div>
+                <div class="vd-thumb-window" style="left:55%;top:20%;width:35%;height:40%"></div>
+            </div>
+            <span class="vd-thumb-label">1</span>
+        </div>
+        <div class="vd-thumb" data-desktop="1">
+            <div class="vd-thumb-content"></div>
+            <span class="vd-thumb-label">2</span>
+        </div>
+        <div class="vd-thumb" data-desktop="2">
+            <div class="vd-thumb-content"></div>
+            <span class="vd-thumb-label">3</span>
+        </div>
+        <div class="vd-thumb" data-desktop="3">
+            <div class="vd-thumb-content"></div>
+            <span class="vd-thumb-label">4</span>
+        </div>
+    </div>
+    <div class="vd-controls">
+        <button class="vd-btn vd-prev" id="vdPrev" title="Previous Desktop (Win+Shift+Left)">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <div class="vd-dots" id="vdDots">
+            <span class="vd-dot active" data-desktop="0"></span>
+            <span class="vd-dot" data-desktop="1"></span>
+            <span class="vd-dot" data-desktop="2"></span>
+            <span class="vd-dot" data-desktop="3"></span>
+        </div>
+        <button class="vd-btn vd-next" id="vdNext" title="Next Desktop (Win+Shift+Right)">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <button class="vd-btn vd-new" id="vdNewDesktop" title="New Desktop (Win+Ctrl+D)">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+    </div>
+</div>
+
+{# Desktop Grid View (Win+Tab) #}
+<div class="desktop-grid-view" id="desktopGridView">
+    <div class="dgv-header">
+        <h2>Virtual Desktops</h2>
+        <button class="dgv-close" id="dgvClose"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="dgv-desktops" id="dgvDesktops">
+        <!-- Desktop thumbnails rendered by JS -->
+    </div>
+</div>
+
+{# Window Tiling Controls (accessible via window menu) #}
+<div class="tiling-overlay" id="tilingOverlay">
+    <div class="tiling-presets">
+        <button class="tiling-preset" data-tile="cascade" title="Cascade">
+            <i class="fa-solid fa-layer-group"></i> Cascade
+        </button>
+        <button class="tiling-preset" data-tile="horizontal" title="Tile Horizontally">
+            <i class="fa-solid fa-columns"></i> Tile Horizontally
+        </button>
+        <button class="tiling-preset" data-tile="vertical" title="Tile Vertically">
+            <i class="fa-solid fa-table-columns"></i> Tile Vertically
+        </button>
+        <button class="tiling-preset" data-tile="grid" title="Grid Layout">
+            <i class="fa-solid fa-table-cells"></i> Grid
+        </button>
+    </div>
+</div>
+{% endblock %}

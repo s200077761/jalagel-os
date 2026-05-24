@@ -1,0 +1,124 @@
+{# JALAGEL OS Pro - Desktop Context Menu Component #}
+<div class="context-menu context-menu-desktop" id="contextMenu">
+    <!-- View Options Submenu -->
+    <div class="context-submenu-trigger" data-submenu="view">
+        <div class="context-item">
+            <i class="fa-solid fa-eye"></i> View
+            <i class="fa-solid fa-chevron-right context-arrow"></i>
+        </div>
+        <div class="context-submenu" id="submenu-view">
+            <div class="context-item {% if desktop_view == 'large' %}active{% endif %}" data-action="view-large">
+                <i class="fa-solid fa-expand"></i> Large Icons
+                {% if desktop_view == 'large' %}<i class="fa-solid fa-check context-check"></i>{% endif %}
+            </div>
+            <div class="context-item {% if desktop_view == 'small' %}active{% endif %}" data-action="view-small">
+                <i class="fa-solid fa-compress"></i> Small Icons
+                {% if desktop_view == 'small' %}<i class="fa-solid fa-check context-check"></i>{% endif %}
+            </div>
+            <div class="context-item {% if desktop_view == 'list' %}active{% endif %}" data-action="view-list">
+                <i class="fa-solid fa-list"></i> List
+                {% if desktop_view == 'list' %}<i class="fa-solid fa-check context-check"></i>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sort By Submenu -->
+    <div class="context-submenu-trigger" data-submenu="sort">
+        <div class="context-item">
+            <i class="fa-solid fa-arrow-down-wide-short"></i> Sort by
+            <i class="fa-solid fa-chevron-right context-arrow"></i>
+        </div>
+        <div class="context-submenu" id="submenu-sort">
+            <div class="context-item active" data-action="sort-name">
+                <i class="fa-solid fa-font"></i> Name
+                <i class="fa-solid fa-check context-check"></i>
+            </div>
+            <div class="context-item" data-action="sort-size">
+                <i class="fa-solid fa-weight-hanging"></i> Size
+            </div>
+            <div class="context-item" data-action="sort-type">
+                <i class="fa-solid fa-file"></i> Type
+            </div>
+            <div class="context-item" data-action="sort-date">
+                <i class="fa-solid fa-calendar"></i> Date Modified
+            </div>
+            <div class="context-divider"></div>
+            <div class="context-item" data-action="sort-asc">
+                <i class="fa-solid fa-arrow-up-a-z"></i> Ascending
+            </div>
+            <div class="context-item" data-action="sort-desc">
+                <i class="fa-solid fa-arrow-down-z-a"></i> Descending
+            </div>
+        </div>
+    </div>
+
+    <div class="context-divider"></div>
+
+    <!-- New Submenu -->
+    <div class="context-submenu-trigger" data-submenu="new">
+        <div class="context-item">
+            <i class="fa-solid fa-plus"></i> New
+            <i class="fa-solid fa-chevron-right context-arrow"></i>
+        </div>
+        <div class="context-submenu" id="submenu-new">
+            <div class="context-item" data-action="new-folder">
+                <i class="fa-solid fa-folder"></i> Folder
+            </div>
+            <div class="context-item" data-action="new-text">
+                <i class="fa-solid fa-file-lines"></i> Text Document
+            </div>
+            <div class="context-item" data-action="new-shortcut">
+                <i class="fa-solid fa-link"></i> Shortcut
+            </div>
+            <div class="context-divider"></div>
+            <div class="context-item" data-action="new-note">
+                <i class="fa-solid fa-note-sticky"></i> Sticky Note
+            </div>
+        </div>
+    </div>
+
+    <div class="context-item" data-action="refresh">
+        <i class="fa-solid fa-rotate"></i> Refresh
+        <kbd class="context-shortcut">F5</kbd>
+    </div>
+
+    <div class="context-divider"></div>
+
+    <!-- Personalize Submenu -->
+    <div class="context-submenu-trigger" data-submenu="personalize">
+        <div class="context-item">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Personalize
+            <i class="fa-solid fa-chevron-right context-arrow"></i>
+        </div>
+        <div class="context-submenu" id="submenu-personalize">
+            <div class="context-item" data-action="wallpaper">
+                <i class="fa-solid fa-image"></i> Change Wallpaper
+            </div>
+            <div class="context-item" data-action="theme">
+                <i class="fa-solid fa-circle-half-stroke"></i> Theme Settings
+            </div>
+            <div class="context-item" data-action="accent-color">
+                <i class="fa-solid fa-palette"></i> Accent Color
+                <div class="accent-color-dots">
+                    <span class="accent-dot" style="background:#7C3AED" data-color="#7C3AED"></span>
+                    <span class="accent-dot" style="background:#EC4899" data-color="#EC4899"></span>
+                    <span class="accent-dot" style="background:#06B6D4" data-color="#06B6D4"></span>
+                    <span class="accent-dot" style="background:#10B981" data-color="#10B981"></span>
+                    <span class="accent-dot" style="background:#F59E0B" data-color="#F59E0B"></span>
+                    <span class="accent-dot" style="background:#EF4444" data-color="#EF4444"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="context-item" data-action="terminal">
+        <i class="fa-solid fa-terminal"></i> Open Terminal here
+        <kbd class="context-shortcut">Ctrl+Alt+T</kbd>
+    </div>
+
+    <div class="context-divider"></div>
+
+    <div class="context-item" data-action="properties">
+        <i class="fa-solid fa-circle-info"></i> Properties
+    </div>
+</div>

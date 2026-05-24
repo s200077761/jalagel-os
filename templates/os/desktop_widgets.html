@@ -1,0 +1,219 @@
+{# JALAGEL OS Pro - Desktop Widgets Component #}
+<div class="desktop-widgets" id="desktopWidgets">
+
+    <!-- Clock Widget (Analog + Digital) -->
+    <div class="widget widget-clock" id="widgetClock" data-widget="clock">
+        <div class="widget-header">
+            <span class="widget-title"><i class="fa-solid fa-clock"></i> Clock</span>
+            <button class="widget-menu-btn" data-widget="clock"><i class="fa-solid fa-ellipsis"></i></button>
+        </div>
+        <div class="widget-body">
+            <div class="clock-analog">
+                <svg viewBox="0 0 100 100" class="clock-face">
+                    <circle class="clock-ring" cx="50" cy="50" r="46"/>
+                    <g class="clock-ticks" id="clockTicks"></g>
+                    <line class="clock-hand hour-hand" id="hourHand" x1="50" y1="50" x2="50" y2="28"/>
+                    <line class="clock-hand minute-hand" id="minuteHand" x1="50" y1="50" x2="50" y2="18"/>
+                    <line class="clock-hand second-hand" id="secondHand" x1="50" y1="50" x2="50" y2="14"/>
+                    <circle class="clock-center" cx="50" cy="50" r="3"/>
+                </svg>
+            </div>
+            <div class="clock-digital" id="clockDigital">12:00:00 PM</div>
+            <div class="clock-date" id="clockDate">Monday, January 1, 2024</div>
+        </div>
+    </div>
+
+    <!-- Weather Widget -->
+    <div class="widget widget-weather" id="widgetWeather" data-widget="weather">
+        <div class="widget-header">
+            <span class="widget-title"><i class="fa-solid fa-cloud-sun"></i> Weather</span>
+            <button class="widget-menu-btn" data-widget="weather"><i class="fa-solid fa-ellipsis"></i></button>
+        </div>
+        <div class="widget-body">
+            <div class="weather-main">
+                <div class="weather-icon-temp">
+                    <i class="fa-solid fa-cloud-sun" id="weatherIcon"></i>
+                    <span class="weather-temp" id="weatherTemp">72&deg;</span>
+                </div>
+                <div class="weather-condition" id="weatherCondition">Partly Cloudy</div>
+                <div class="weather-location" id="weatherLocation">
+                    <i class="fa-solid fa-location-dot"></i> San Francisco, CA
+                </div>
+            </div>
+            <div class="weather-details">
+                <div class="weather-stat">
+                    <i class="fa-solid fa-droplet"></i>
+                    <span id="weatherHumidity">45%</span>
+                </div>
+                <div class="weather-stat">
+                    <i class="fa-solid fa-wind"></i>
+                    <span id="weatherWind">8 mph</span>
+                </div>
+                <div class="weather-stat">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    <span id="weatherPressure">1013 hPa</span>
+                </div>
+            </div>
+            <div class="weather-forecast" id="weatherForecast">
+                <!-- 3-day forecast populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Widget (Mini Month View) -->
+    <div class="widget widget-calendar" id="widgetCalendar" data-widget="calendar">
+        <div class="widget-header">
+            <span class="widget-title"><i class="fa-solid fa-calendar-days"></i> Calendar</span>
+            <button class="widget-menu-btn" data-widget="calendar"><i class="fa-solid fa-ellipsis"></i></button>
+        </div>
+        <div class="widget-body">
+            <div class="wcal-nav">
+                <button class="wcal-nav-btn" id="wcalPrev"><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="wcal-month-year" id="wcalMonthYear">January 2024</span>
+                <button class="wcal-nav-btn" id="wcalNext"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="wcal-weekdays">
+                <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+            </div>
+            <div class="wcal-days" id="wcalDays"></div>
+            <div class="wcal-events" id="wcalEvents">
+                <div class="wcal-no-events">No events today</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Monitor Widget -->
+    <div class="widget widget-system" id="widgetSystem" data-widget="system">
+        <div class="widget-header">
+            <span class="widget-title"><i class="fa-solid fa-gauge-high"></i> System</span>
+            <button class="widget-menu-btn" data-widget="system"><i class="fa-solid fa-ellipsis"></i></button>
+        </div>
+        <div class="widget-body">
+            <div class="sys-monitor-item">
+                <div class="sys-monitor-label">
+                    <i class="fa-solid fa-microchip"></i> CPU
+                    <span class="sys-monitor-value" id="sysCpuValue">0%</span>
+                </div>
+                <div class="sys-monitor-bar">
+                    <div class="sys-monitor-fill" id="sysCpuBar" style="width:0%"></div>
+                </div>
+            </div>
+            <div class="sys-monitor-item">
+                <div class="sys-monitor-label">
+                    <i class="fa-solid fa-memory"></i> RAM
+                    <span class="sys-monitor-value" id="sysRamValue">0%</span>
+                </div>
+                <div class="sys-monitor-bar">
+                    <div class="sys-monitor-fill sys-ram" id="sysRamBar" style="width:0%"></div>
+                </div>
+            </div>
+            <div class="sys-monitor-item">
+                <div class="sys-monitor-label">
+                    <i class="fa-solid fa-hard-drive"></i> Disk
+                    <span class="sys-monitor-value" id="sysDiskValue">0%</span>
+                </div>
+                <div class="sys-monitor-bar">
+                    <div class="sys-monitor-fill sys-disk" id="sysDiskBar" style="width:0%"></div>
+                </div>
+            </div>
+            <div class="sys-monitor-item">
+                <div class="sys-monitor-label">
+                    <i class="fa-solid fa-network-wired"></i> Network
+                    <span class="sys-monitor-value" id="sysNetValue">--</span>
+                </div>
+                <div class="sys-monitor-bar">
+                    <div class="sys-monitor-fill sys-net" id="sysNetBar" style="width:0%"></div>
+                </div>
+            </div>
+            <div class="sys-uptime" id="sysUptime">
+                <i class="fa-solid fa-server"></i> Uptime: <span id="uptimeValue">0h 0m</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Notes Widget -->
+    <div class="widget widget-notes" id="widgetNotes" data-widget="notes">
+        <div class="widget-header">
+            <span class="widget-title"><i class="fa-solid fa-note-sticky"></i> Quick Notes</span>
+            <button class="widget-menu-btn" data-widget="notes"><i class="fa-solid fa-ellipsis"></i></button>
+        </div>
+        <div class="widget-body">
+            <div class="notes-list" id="quickNotesList">
+                <!-- Notes populated by JS -->
+            </div>
+            <div class="notes-add-row">
+                <input type="text" class="notes-input" id="quickNoteInput" placeholder="Add a quick note...">
+                <button class="notes-add-btn" id="quickNoteAdd">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Certificate Status Widget -->
+    <div class="widget widget-certificates" id="widgetCertificates" data-widget="certificates">
+        <div class="widget-header">
+            <span class="widget-title"><i class="fa-solid fa-shield-halved"></i> Certificates</span>
+            <button class="widget-menu-btn" data-widget="certificates"><i class="fa-solid fa-ellipsis"></i></button>
+        </div>
+        <div class="widget-body">
+            <div class="cert-status-summary" id="certStatusSummary">
+                <div class="cert-ring">
+                    <svg viewBox="0 0 60 60">
+                        <circle class="cert-ring-bg" cx="30" cy="30" r="26"/>
+                        <circle class="cert-ring-active" id="certRingActive" cx="30" cy="30" r="26"
+                                stroke-dasharray="163.36" stroke-dashoffset="0"/>
+                    </svg>
+                    <div class="cert-ring-text">
+                        <span id="certActiveCount">0</span>
+                        <small>active</small>
+                    </div>
+                </div>
+                <div class="cert-counts">
+                    <div class="cert-count-item cert-ok">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span id="certOkCount">0</span> OK
+                    </div>
+                    <div class="cert-count-item cert-warn">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span id="certWarnCount">0</span> Expiring
+                    </div>
+                    <div class="cert-count-item cert-error">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                        <span id="certErrorCount">0</span> Expired
+                    </div>
+                </div>
+            </div>
+            <div class="cert-list" id="certList">
+                <!-- Certificate items populated by JS -->
+            </div>
+            <a href="{{ url_for('my_certificates') }}" class="cert-manage-link">
+                <i class="fa-solid fa-arrow-right"></i> Manage Certificates
+            </a>
+        </div>
+    </div>
+</div>
+
+{# Widget Context Menu #}
+<div class="widget-context-menu" id="widgetContextMenu">
+    <div class="wcm-item" data-action="refresh">
+        <i class="fa-solid fa-rotate"></i> Refresh
+    </div>
+    <div class="wcm-item" data-action="configure">
+        <i class="fa-solid fa-sliders"></i> Configure
+    </div>
+    <div class="wcm-divider"></div>
+    <div class="wcm-item" data-action="small">
+        <i class="fa-solid fa-compress"></i> Small Size
+    </div>
+    <div class="wcm-item" data-action="medium">
+        <i class="fa-solid fa-expand"></i> Medium Size
+    </div>
+    <div class="wcm-item" data-action="large">
+        <i class="fa-solid fa-maximize"></i> Large Size
+    </div>
+    <div class="wcm-divider"></div>
+    <div class="wcm-item" data-action="hide">
+        <i class="fa-solid fa-eye-slash"></i> Hide Widget
+    </div>
+</div>
