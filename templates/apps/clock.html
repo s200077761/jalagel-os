@@ -1,0 +1,118 @@
+<div class="app-container" data-app="clock">
+<style>
+.clk-wrap{display:flex;flex-direction:column;height:100%;}
+.clk-tabs{display:flex;gap:2px;padding:0 16px;background:#232344;border-bottom:1px solid #334155;}
+.clk-tab{padding:10px 18px;border:none;border-bottom:2px solid transparent;background:transparent;color:#94A3B8;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;}
+.clk-tab.active{color:#7C3AED;border-bottom-color:#7C3AED;background:rgba(124,58,237,0.08);}
+.clk-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow:auto;}
+.clk-digital{font-family:'JetBrains Mono',monospace;font-size:4rem;font-weight:700;background:linear-gradient(135deg,#7C3AED,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;}
+.clk-date{font-size:1.1rem;color:#94A3B8;margin-top:8px;}
+.clk-sec{font-size:1.5rem;color:#06B6D4;margin-top:4px;font-family:'JetBrains Mono',monospace;}
+/* Analog */
+.clk-analog-wrap{display:flex;flex-direction:column;align-items:center;gap:20px;}
+.clk-face{width:220px;height:220px;border:3px solid #7C3AED;border-radius:50%;position:relative;background:#232344;box-shadow:0 0 30px rgba(124,58,237,0.2);}
+.clk-hand{position:absolute;background:#F1F5F9;transform-origin:bottom center;border-radius:4px;left:50%;bottom:50%;}
+.clk-hand.hour{width:4px;height:60px;margin-left:-2px;}
+.clk-hand.min{width:3px;height:80px;margin-left:-1.5px;background:#06B6D4;}
+.clk-hand.sec{width:1.5px;height:90px;margin-left:-0.75px;background:#EF4444;}
+.clk-center{width:10px;height:10px;background:#7C3AED;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;}
+.clk-mark{position:absolute;width:2px;height:10px;background:#94A3B8;left:50%;transform-origin:center 110px;margin-left:-1px;}
+/* World */
+.clk-world{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;width:100%;max-width:600px;}
+.clk-wc{background:#232344;border:1px solid #334155;border-radius:12px;padding:16px;text-align:center;}
+.clk-wc .city{font-size:13px;color:#94A3B8;margin-bottom:4px;}
+.clk-wc .time{font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:700;color:#F1F5F9;}
+.clk-wc .day{font-size:11px;color:#7C3AED;margin-top:2px;}
+/* Stopwatch */
+.clk-sw{font-family:'JetBrains Mono',monospace;font-size:3rem;font-weight:700;color:#F1F5F9;margin-bottom:16px;}
+.clk-sw-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.clk-sw-btns button{padding:8px 20px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:#fff;}
+.clk-sw-btns .start{background:#10B981;}.clk-sw-btns .stop{background:#EF4444;}.clk-sw-btns .reset{background:#334155;}
+.clk-laps{max-height:200px;overflow:auto;width:100%;max-width:400px;margin-top:16px;}
+.clk-lap{display:flex;justify-content:space-between;padding:6px 12px;border-bottom:1px solid #334155;font-size:13px;font-family:'JetBrains Mono',monospace;}
+/* Timer */
+.clk-timer-inputs{display:flex;gap:8px;align-items:center;margin-bottom:16px;}
+.clk-timer-inputs input{width:70px;text-align:center;padding:8px;font-size:1.2rem;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:'JetBrains Mono',monospace;}
+.clk-timer-inputs span{font-size:1.2rem;color:#94A3B8;}
+.clk-timer-disp{font-family:'JetBrains Mono',monospace;font-size:3.5rem;font-weight:700;color:#EF4444;margin-bottom:16px;}
+</style>
+<div class="clk-wrap">
+<div class="clk-tabs">
+  <button class="clk-tab active" onclick="clkTab('digital')" id="tabDigital"><i class="fa-solid fa-clock"></i> Digital</button>
+  <button class="clk-tab" onclick="clkTab('analog')" id="tabAnalog"><i class="fa-regular fa-clock"></i> Analog</button>
+  <button class="clk-tab" onclick="clkTab('world')" id="tabWorld"><i class="fa-solid fa-earth-americas"></i> World</button>
+  <button class="clk-tab" onclick="clkTab('stopwatch')" id="tabStopwatch"><i class="fa-solid fa-stopwatch"></i> Stopwatch</button>
+  <button class="clk-tab" onclick="clkTab('timer')" id="tabTimer"><i class="fa-solid fa-hourglass-half"></i> Timer</button>
+</div>
+<div class="clk-body" id="clkBody">
+  <!-- Digital default -->
+  <div class="clk-digital" id="clkDigitalDisp">00:00:00</div>
+  <div class="clk-date" id="clkDateDisp">Loading...</div>
+  <div class="clk-sec" id="clkSecDisp">00</div>
+</div>
+</div>
+<script>
+(function(){
+let tab='digital',swRunning=false,swStart=0,swElapsed=0,swInt,timerInt,timerLeft=0,timerRunning=false;
+const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function pad(n){return n<10?'0'+n:n;}
+function tick(){
+  const n=new Date();
+  if(tab==='digital'){
+    document.getElementById('clkDigitalDisp').textContent=pad(n.getHours())+':'+pad(n.getMinutes())+':'+pad(n.getSeconds());
+    document.getElementById('clkDateDisp').textContent=days[n.getDay()]+', '+months[n.getMonth()]+' '+n.getDate()+', '+n.getFullYear();
+    document.getElementById('clkSecDisp').textContent=pad(n.getSeconds())+' seconds';
+  }
+  if(tab==='analog'){
+    const h=n.getHours()%12,m=n.getMinutes(),s=n.getSeconds();
+    document.querySelector('.clk-hand.hour').style.transform='rotate('+(h*30+m*0.5)+'deg)';
+    document.querySelector('.clk-hand.min').style.transform='rotate('+(m*6+s*0.1)+'deg)';
+    document.querySelector('.clk-hand.sec').style.transform='rotate('+(s*6)+'deg)';
+  }
+  if(tab==='world'){
+    const cities=[{name:'New York',tz:'America/New_York'},{name:'London',tz:'Europe/London'},{name:'Tokyo',tz:'Asia/Tokyo'},{name:'Sydney',tz:'Australia/Sydney'},{name:'Dubai',tz:'Asia/Dubai'},{name:'Paris',tz:'Europe/Paris'}];
+    const grid=document.getElementById('clkWorldGrid');if(!grid)return;
+    grid.querySelectorAll('.clk-wc').forEach((el,i)=>{
+      const t=new Date(n.toLocaleString('en-US',{timeZone:cities[i].tz}));
+      el.querySelector('.time').textContent=pad(t.getHours())+':'+pad(t.getMinutes());
+      el.querySelector('.day').textContent=days[t.getDay()].substring(0,3);
+    });
+  }
+}
+setInterval(tick,1000);
+window.clkTab=function(t){
+  tab=t;
+  document.querySelectorAll('.clk-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab'+(t[0].toUpperCase()+t.slice(1))).classList.add('active');
+  const body=document.getElementById('clkBody');
+  if(t==='digital'){body.innerHTML='<div class="clk-digital" id="clkDigitalDisp">00:00:00</div><div class="clk-date" id="clkDateDisp"></div><div class="clk-sec" id="clkSecDisp"></div>';tick();}
+  if(t==='analog'){
+    body.innerHTML='<div class="clk-analog-wrap"><div class="clk-face"><div class="clk-center"></div><div class="clk-hand hour"></div><div class="clk-hand min"></div><div class="clk-hand sec"></div></div><div class="clk-date" style="margin-top:8px;"></div></div>';
+    const face=body.querySelector('.clk-face');
+    for(let i=0;i<12;i++){const m=document.createElement('div');m.className='clk-mark';m.style.transform='rotate('+(i*30)+'deg)';face.appendChild(m);}
+    tick();
+  }
+  if(t==='world'){
+    body.innerHTML='<div class="clk-world" id="clkWorldGrid"></div>';
+    const g=document.getElementById('clkWorldGrid');
+    [{name:'New York',tz:'America/New_York'},{name:'London',tz:'Europe/London'},{name:'Tokyo',tz:'Asia/Tokyo'},{name:'Sydney',tz:'Australia/Sydney'},{name:'Dubai',tz:'Asia/Dubai'},{name:'Paris',tz:'Europe/Paris'}].forEach(c=>{
+      g.innerHTML+='<div class="clk-wc"><div class="city">'+c.name+'</div><div class="time">--:--</div><div class="day">---</div></div>';
+    });tick();
+  }
+  if(t==='stopwatch'){body.innerHTML='<div class="clk-sw" id="swDisp">00:00:00.00</div><div class="clk-sw-btns"><button class="start" onclick="swStartFn()">Start</button><button class="stop" onclick="swStop()">Stop</button><button class="reset" onclick="swReset()">Reset</button><button class="reset" onclick="swLap()">Lap</button></div><div class="clk-laps" id="swLaps"></div>';}
+  if(t==='timer'){
+    body.innerHTML='<div class="clk-timer-inputs"><input type="number" id="tmH" placeholder="00" min="0" max="99" value="0"><span>:</span><input type="number" id="tmM" placeholder="00" min="0" max="59" value="5"><span>:</span><input type="number" id="tmS" placeholder="00" min="0" max="59" value="0"></div><div class="clk-timer-disp" id="tmDisp">05:00</div><div class="clk-sw-btns"><button class="start" onclick="tmStart()">Start</button><button class="stop" onclick="tmStop()">Stop</button><button class="reset" onclick="tmReset()">Reset</button></div>';
+  }
+};
+window.swStartFn=function(){if(swRunning)return;swRunning=true;swStart=Date.now()-swElapsed;swInt=setInterval(function(){swElapsed=Date.now()-swStart;const cs=Math.floor(swElapsed/10);const ms=cs%100;const s=Math.floor(cs/100)%60;const m=Math.floor(cs/6000)%60;const h=Math.floor(cs/360000);document.getElementById('swDisp').textContent=pad(h)+':'+pad(m)+':'+pad(s)+'.'+pad(ms);},10);};
+window.swStop=function(){swRunning=false;clearInterval(swInt);};
+window.swReset=function(){swRunning=false;clearInterval(swInt);swElapsed=0;document.getElementById('swDisp').textContent='00:00:00.00';document.getElementById('swLaps').innerHTML='';};
+window.swLap=function(){const el=document.createElement('div');el.className='clk-lap';el.innerHTML='<span>Lap '+(document.querySelectorAll('.clk-lap').length+1)+'</span><span>'+document.getElementById('swDisp').textContent+'</span>';document.getElementById('swLaps').prepend(el);};
+window.tmStart=function(){if(timerRunning)return;const m=parseInt(document.getElementById('tmM').value)||0,s=parseInt(document.getElementById('tmS').value)||0,h=parseInt(document.getElementById('tmH').value)||0;if(timerLeft===0)timerLeft=h*3600+m*60+s;if(timerLeft<=0)return;timerRunning=true;timerInt=setInterval(function(){timerLeft--;const hh=Math.floor(timerLeft/3600),mm=Math.floor((timerLeft%3600)/60),ss=timerLeft%60;document.getElementById('tmDisp').textContent=(hh>0?pad(hh)+':':'')+pad(mm)+':'+pad(ss);if(timerLeft<=0){clearInterval(timerInt);timerRunning=false;document.getElementById('tmDisp').textContent='DONE!';JALAGEL.Utils.toast('Timer finished!','success');}},1000);};
+window.tmStop=function(){timerRunning=false;clearInterval(timerInt);};
+window.tmReset=function(){timerRunning=false;clearInterval(timerInt);timerLeft=0;document.getElementById('tmDisp').textContent='00:00';document.getElementById('tmM').value=5;document.getElementById('tmS').value=0;document.getElementById('tmH').value=0;};
+tick();
+})();
+</script>
+</div>

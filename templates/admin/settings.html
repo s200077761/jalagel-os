@@ -1,0 +1,113 @@
+{% extends "admin/layout.html" %}
+{% block title %}System Settings - Admin - JALAGEL OS Pro{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-house"></i> Dashboard</a> <i class="fa-solid fa-chevron-right" style="font-size:0.625rem;margin:0 8px;color:var(--text-secondary)"></i> Settings{% endblock %}
+{% block admin_content %}
+<div class="admin-settings-grid">
+  <!-- General Settings -->
+  <div class="profile-card">
+    <h3><i class="fa-solid fa-globe" style="color:var(--color-primary)"></i> General Settings</h3>
+    <form method="POST" action="{{ url_for('admin_settings') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="section" value="general">
+      <div class="profile-form-group"><label class="profile-form-label">Site Name</label><input type="text" name="site_name" class="profile-form-input" value="{{ settings.site_name|default('JALAGEL OS Pro') }}"></div>
+      <div class="profile-form-group"><label class="profile-form-label">Logo URL</label><input type="text" name="logo_url" class="profile-form-input" value="{{ settings.logo_url|default('') }}"></div>
+      <div class="toggle-row" style="margin:20px 0">
+        <div class="toggle-row-info"><h4>Maintenance Mode</h4><p>Temporarily disable public access</p></div>
+        <label class="toggle-switch"><input type="checkbox" name="maintenance_mode" {{ 'checked' if settings.maintenance_mode else '' }}><span class="toggle-slider"></span></label>
+      </div>
+      <button type="submit" class="profile-btn"><i class="fa-solid fa-save"></i> Save General</button>
+    </form>
+  </div>
+
+  <!-- Registration Settings -->
+  <div class="profile-card">
+    <h3><i class="fa-solid fa-user-plus" style="color:var(--color-success)"></i> Registration</h3>
+    <form method="POST" action="{{ url_for('admin_settings') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="section" value="registration">
+      <div class="toggle-row" style="margin:20px 0">
+        <div class="toggle-row-info"><h4>Open Registration</h4><p>Allow new users to sign up</p></div>
+        <label class="toggle-switch"><input type="checkbox" name="open_registration" {{ 'checked' if settings.open_registration|default(true) else '' }}><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row" style="margin:20px 0">
+        <div class="toggle-row-info"><h4>Email Verification</h4><p>Require email verification for new accounts</p></div>
+        <label class="toggle-switch"><input type="checkbox" name="email_verification" {{ 'checked' if settings.email_verification else '' }}><span class="toggle-slider"></span></label>
+      </div>
+      <button type="submit" class="profile-btn"><i class="fa-solid fa-save"></i> Save Registration</button>
+    </form>
+  </div>
+
+  <!-- License Pricing -->
+  <div class="profile-card">
+    <h3><i class="fa-solid fa-tags" style="color:var(--color-accent)"></i> License Pricing</h3>
+    <form method="POST" action="{{ url_for('admin_settings') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="section" value="pricing">
+      <div class="profile-grid" style="grid-template-columns:1fr 1fr;gap:16px">
+        <div class="profile-form-group"><label class="profile-form-label">Pro Monthly ($)</label><input type="number" name="pro_monthly" class="profile-form-input" step="0.01" value="{{ settings.pro_monthly|default(9.99) }}"></div>
+        <div class="profile-form-group"><label class="profile-form-label">Pro Yearly ($)</label><input type="number" name="pro_yearly" class="profile-form-input" step="0.01" value="{{ settings.pro_yearly|default(99.99) }}"></div>
+        <div class="profile-form-group"><label class="profile-form-label">Enterprise Monthly ($)</label><input type="number" name="enterprise_monthly" class="profile-form-input" step="0.01" value="{{ settings.enterprise_monthly|default(29.99) }}"></div>
+        <div class="profile-form-group"><label class="profile-form-label">Enterprise Yearly ($)</label><input type="number" name="enterprise_yearly" class="profile-form-input" step="0.01" value="{{ settings.enterprise_yearly|default(299.99) }}"></div>
+      </div>
+      <button type="submit" class="profile-btn" style="margin-top:16px"><i class="fa-solid fa-save"></i> Save Pricing</button>
+    </form>
+  </div>
+
+  <!-- Email Configuration -->
+  <div class="profile-card">
+    <h3><i class="fa-solid fa-envelope" style="color:var(--color-secondary)"></i> Email Settings</h3>
+    <form method="POST" action="{{ url_for('admin_settings') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="section" value="email">
+      <div class="profile-form-group"><label class="profile-form-label">SMTP Server</label><input type="text" name="smtp_server" class="profile-form-input" value="{{ settings.smtp_server|default('') }}"></div>
+      <div class="profile-form-group"><label class="profile-form-label">SMTP Port</label><input type="number" name="smtp_port" class="profile-form-input" value="{{ settings.smtp_port|default(587) }}"></div>
+      <div class="profile-form-group"><label class="profile-form-label">SMTP Username</label><input type="text" name="smtp_username" class="profile-form-input" value="{{ settings.smtp_username|default('') }}"></div>
+      <div class="profile-form-group"><label class="profile-form-label">SMTP Password</label><input type="password" name="smtp_password" class="profile-form-input" placeholder="••••••••"></div>
+      <div class="profile-form-group"><label class="profile-form-label">From Email</label><input type="email" name="from_email" class="profile-form-input" value="{{ settings.from_email|default('noreply@jalagel.com') }}"></div>
+      <button type="submit" class="profile-btn"><i class="fa-solid fa-save"></i> Save Email</button>
+    </form>
+  </div>
+
+  <!-- Security Settings -->
+  <div class="profile-card">
+    <h3><i class="fa-solid fa-shield-halved" style="color:var(--color-warning)"></i> Security</h3>
+    <form method="POST" action="{{ url_for('admin_settings') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="section" value="security">
+      <div class="profile-form-group"><label class="profile-form-label">Max Login Attempts / Minute</label><input type="number" name="rate_limit_login" class="profile-form-input" value="{{ settings.rate_limit_login|default(10) }}"></div>
+      <div class="profile-form-group"><label class="profile-form-label">Max Register Attempts / Minute</label><input type="number" name="rate_limit_register" class="profile-form-input" value="{{ settings.rate_limit_register|default(5) }}"></div>
+      <div class="profile-form-group"><label class="profile-form-label">Session Timeout (hours)</label><input type="number" name="session_timeout" class="profile-form-input" value="{{ settings.session_timeout|default(24) }}"></div>
+      <div class="toggle-row" style="margin:20px 0">
+        <div class="toggle-row-info"><h4>Force HTTPS</h4><p>Redirect all traffic to HTTPS</p></div>
+        <label class="toggle-switch"><input type="checkbox" name="force_https" {{ 'checked' if settings.force_https else '' }}><span class="toggle-slider"></span></label>
+      </div>
+      <button type="submit" class="profile-btn"><i class="fa-solid fa-save"></i> Save Security</button>
+    </form>
+  </div>
+
+  <!-- Backup & Logs -->
+  <div class="profile-card">
+    <h3><i class="fa-solid fa-database" style="color:var(--color-primary)"></i> Backup & Logs</h3>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:12px">
+        <button class="profile-btn" style="flex:1" onclick="showToast('Backup started...','success')"><i class="fa-solid fa-cloud-arrow-up"></i> Backup Now</button>
+        <button class="profile-btn-outline" style="flex:1" onclick="showToast('Restore dialog coming soon','info')"><i class="fa-solid fa-cloud-arrow-down"></i> Restore</button>
+      </div>
+      <div style="background:var(--bg-primary);border:1px solid var(--border-color);border-radius:12px;padding:16px;margin-top:8px;max-height:300px;overflow-y:auto">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-secondary);line-height:1.8">
+          <div><span style="color:var(--color-success)">[INFO]</span> 2025-01-15 08:30:00 - System startup complete</div>
+          <div><span style="color:var(--color-success)">[INFO]</span> 2025-01-15 08:30:02 - Database connection established</div>
+          <div><span style="color:var(--color-accent)">[DEBUG]</span> 2025-01-15 08:45:12 - Seed data check passed</div>
+          <div><span style="color:var(--color-success)">[INFO]</span> 2025-01-15 09:12:34 - User admin logged in</div>
+          <div><span style="color:var(--color-warning)">[WARN]</span> 2025-01-15 10:23:45 - Rate limit approaching for IP 192.168.1.1</div>
+          <div><span style="color:var(--color-success)">[INFO]</span> 2025-01-15 11:05:21 - Certificate #42 issued to user5</div>
+          <div><span style="color:var(--color-success)">[INFO]</span> 2025-01-15 12:34:56 - New registration: john_doe</div>
+          <div><span style="color:var(--color-error)">[ERROR]</span> 2025-01-15 13:45:00 - Failed SMTP connection (expected in dev)</div>
+          <div><span style="color:var(--color-success)">[INFO]</span> 2025-01-15 14:20:10 - Scheduled backup completed</div>
+          <div><span style="color:var(--color-accent)">[DEBUG]</span> 2025-01-15 15:00:00 - Cleanup job ran: 0 expired sessions</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

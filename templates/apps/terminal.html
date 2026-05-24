@@ -1,0 +1,77 @@
+<div class="app-container" data-app="terminal">
+<style>
+.term-wrap{display:flex;flex-direction:column;height:100%;background:#0f0f23;font-family:'JetBrains Mono','Fira Code',monospace;}
+.term-toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;}
+.term-toolbar button{padding:4px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:11px;font-family:inherit;cursor:pointer;}
+.term-toolbar button:hover{background:#7C3AED;border-color:#7C3AED;}
+.term-body{flex:1;padding:12px;overflow:auto;font-size:13px;line-height:1.6;}
+.term-line{display:flex;flex-wrap:wrap;gap:4px;}
+.term-prompt{color:#10B981;font-weight:600;white-space:nowrap;}
+.term-input{background:transparent;border:none;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;flex:1;caret-color:#7C3AED;}
+.term-output{color:#F1F5F9;white-space:pre-wrap;margin-bottom:4px;}
+.term-output .dim{color:#94A3B8;}
+.term-output .accent{color:#7C3AED;}
+.term-output .success{color:#10B981;}
+.term-output .warning{color:#F59E0B;}
+.term-output .error{color:#EF4444;}
+.term-output .info{color:#06B6D4;}
+.term-ascii{color:#7C3AED;font-size:10px;line-height:1.2;}
+</style>
+<div class="term-wrap">
+<div class="term-toolbar">
+  <button onclick="termClear()"><i class="fa-solid fa-eraser"></i> Clear</button>
+  <button onclick="termRun('help')"><i class="fa-solid fa-circle-question"></i> Help</button>
+  <button onclick="termRun('neofetch')"><i class="fa-solid fa-circle-info"></i> Info</button>
+</div>
+<div class="term-body" id="termBody">
+  <div class="term-output">
+<span class="accent">    ___         __             __   ______  _____</span>
+<span class="accent">   |   |       |  |           |  | /      |/     |</span>
+<span class="accent">   |   | ____  |  | ____  ____|  ||   ,---'|   ,--'</span>
+<span class="accent">   |   |/   /  |  |/   / /   |   ||   |    |   |</span>
+<span class="accent">   |       /   |      /  /        |   `---.|   |</span>
+<span class="accent">   |______/    |_____/   \____|__| \______||___|</span>
+<span class="dim">   JALAGEL OS Pro v1.0.0 - Type 'help' for commands</span>
+  </div>
+</div>
+<div style="display:flex;align-items:center;padding:4px 12px 12px;">
+  <span class="term-prompt" id="termPrompt">user@jalagel:~$ </span>
+  <input type="text" class="term-input" id="termInput" autocomplete="off" spellcheck="false" autofocus>
+</div>
+</div>
+<script>
+(function(){
+let cwd='~',fs={Desktop:{type:'dir',items:{'todo.txt':'Buy milk\nWalk dog\nCode review',ideas.txt:'App launcher redesign\nDark theme palette'}},Documents:{type:'dir',items:{'report.txt':'Q4 Sales Report\nRevenue: $1.2M\nGrowth: 23%',letter.txt:'Dear Sir/Madam,\n\nI am writing to...'}},Downloads:{type:'dir',items:{'setup.exe':'[binary data]','archive.zip':'[compressed data]'}},Projects:{type:'dir',items:{app:{type:'dir',items:{'main.py':'def main():\n    print("Hello")\n\nif __name__ == "__main__":\n    main()','config.py':'DEBUG = True\nHOST = "0.0.0.0"','README.md':'# My App\n\nA cool project.'}},website:{type:'dir',items:{'index.html':'<!DOCTYPE html>\n<html>\n<body>\n<h1>Hello</h1>\n</body>\n</html>'}}}};
+function resolve(p){if(p==='~'||p==='/')return fs;if(p.startsWith('~/'))p=p.slice(2);const parts=p.split('/').filter(Boolean);let cur=fs;for(const part of parts){if(cur[part]&&cur[part].type==='dir')cur=cur[part].items;else return null;}return cur;}
+function cwdObj(){return resolve(cwd);}
+const cmds={
+help:()=>'<span class="success">Available commands:</span>\n  <span class="info">ls</span> [path]     - List files\n  <span class="info">cd</span> <path>     - Change directory\n  <span class="info">pwd</span>           - Print working directory\n  <span class="info">cat</span> <file>    - Display file contents\n  <span class="info">mkdir</span> <name>  - Create directory\n  <span class="info">touch</span> <name>  - Create empty file\n  <span class="info">rm</span> <name>     - Remove file or directory\n  <span class="info">echo</span> <text>   - Print text\n  <span class="info">clear</span>         - Clear terminal\n  <span class="info">neofetch</span>      - System info\n  <span class="info">whoami</span>        - Current user\n  <span class="info">date</span>          - Current date/time\n  <span class="info">uname</span>         - System information\n  <span class="info">calc</span> <expr>   - Calculate expression',
+ls:(args)=>{const p=args[0]?args[0]:cwd;const d=resolve(p==='.'?cwd:p);if(!d)return'<span class="error">No such directory: '+p+'</span>';let out='';for(const k of Object.keys(d).sort()){const v=d[k];if(typeof v==='string')out+='<span class="info">'+k+'</span>  ';else if(v.type==='dir')out+='<span class="accent">'+k+'/</span>  ';}return out||'<span class="dim">(empty)</span>';},
+cd:(args)=>{if(!args[0]){cwd='~';return'';}const t=args[0];if(t==='..'){if(cwd!=='~')cwd=cwd.substring(0,cwd.lastIndexOf('/'))||'~';return'';}if(t==='~'){cwd='~';return'';}const d=cwdObj();if(!d||!d[t]||d[t].type!=='dir')return'<span class="error">No such directory: '+t+'</span>';cwd=cwd==='~'?'~/'+t:cwd+'/'+t;return'';},
+pwd:()=>cwd,
+cat:(args)=>{if(!args[0])return'<span class="error">Usage: cat <file></span>';const d=cwdObj();if(!d||!d[args[0]])return'<span class="error">No such file: '+args[0]+'</span>';if(typeof d[args[0]]==='object')return'<span class="error">'+args[0]+' is a directory</span>';return d[args[0]];},
+mkdir:(args)=>{if(!args[0])return'<span class="error">Usage: mkdir <name></span>';const d=cwdObj();d[args[0]]={type:'dir',items:{}};return'<span class="success">Created directory: '+args[0]+'</span>';},
+touch:(args)=>{if(!args[0])return'<span class="error">Usage: touch <name></span>';const d=cwdObj();d[args[0]]='';return'<span class="success">Created file: '+args[0]+'</span>';},
+rm:(args)=>{if(!args[0])return'<span class="error">Usage: rm <name></span>';const d=cwdObj();if(!d||!d[args[0]])return'<span class="error">No such file: '+args[0]+'</span>';delete d[args[0]];return'<span class="success">Removed: '+args[0]+'</span>';},
+echo:(args)=>args.join(' '),
+clear:()=>{document.getElementById('termBody').innerHTML='';return'';},
+neofetch:()=>'<span class="accent">       _______________      </span><span class="success">user@jalagel-os</span>\n<span class="accent">      /               \\     </span><span class="dim">----------------</span>\n<span class="accent">     /   <span class="warning">.</span>   <span class="warning">.</span>   <span class="warning">.</span>   <span class="warning">.</span>   \\    </span><span class="success">OS:</span> JALAGEL OS Pro 1.0\n<span class="accent">    |   <span class="warning">.</span>   <span class="warning">.</span>   <span class="warning">.</span>   <span class="warning">.</span>   |   </span><span class="success">Host:</span> Web Container\n<span class="accent">    |   <span class="warning">.</span>   <span class="warning">.</span>   <span class="warning">.</span>   <span class="warning">.</span>   |   </span><span class="success">Kernel:</span> Python 3.11 + Flask\n<span class="accent">     \\   <span class="warning">.</span>   <span class="warning">.</span>   <span class="warning">.</span>   <span class="warning">.</span>   /    </span><span class="success">Shell:</span> JTerm 1.0\n<span class="accent">      \\_______________/     </span><span class="success">Apps:</span> 50+ pre-installed',
+whoami:()=>OS_CONFIG?OS_CONFIG.user.username:'user',
+date:()=>new Date().toString(),
+uname:()=>'JALAGEL OS Pro version 1.0.0 (Build 2024) x86_64',
+calc:(args)=>{try{const r=eval(args.join(' '));return'<span class="success">'+args.join(' ')+' = '+r+'</span>';}catch(e){return'<span class="error">Invalid expression</span>';}}
+};
+function runCmd(line){const parts=line.trim().split(/\s+/);if(!parts[0])return;const c=parts[0].toLowerCase(),args=parts.slice(1);const body=document.getElementById('termBody');
+const cmdEl=document.createElement('div');cmdEl.className='term-output';cmdEl.innerHTML='<span class="dim">'+OS_CONFIG.user.username+'@jalagel:'+cwd+'$</span> '+line;body.appendChild(cmdEl);
+if(cmds[c]){const out=document.createElement('div');out.className='term-output';const r=cmds[c](args);if(r)out.innerHTML=r;body.appendChild(out);}
+else{const out=document.createElement('div');out.className='term-output error';out.textContent=c+': command not found. Type "help" for available commands.';body.appendChild(out);}
+const b=document.getElementById('termBody');b.scrollTop=b.scrollHeight;}
+const inp=document.getElementById('termInput');
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'){runCmd(inp.value);inp.value='';}if(e.key==='Tab'){e.preventDefault();}});
+inp.focus();
+document.querySelector('.term-wrap').addEventListener('click',()=>inp.focus());
+window.termClear=function(){document.getElementById('termBody').innerHTML='';};
+window.termRun=function(cmd){runCmd(cmd);};
+})();
+</script>
+</div>

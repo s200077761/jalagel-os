@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% block admin_extra_css %}{% endblock %}
+{% endblock %}
+{% block main_class %}{% endblock %}
+{% block content %}
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar-header">
+      <div class="admin-logo">
+        <div class="admin-logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+        <span class="admin-logo-text">JALAGEL <span>Admin</span></span>
+      </div>
+      <button class="admin-sidebar-close" id="sidebarClose" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <nav class="admin-nav">
+      <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-item {{ 'active' if request.endpoint == 'admin_dashboard' }}">
+        <i class="fa-solid fa-chart-line"></i> <span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('admin_users') }}" class="admin-nav-item {{ 'active' if request.endpoint == 'admin_users' }}">
+        <i class="fa-solid fa-users"></i> <span>Users</span>
+      </a>
+      <a href="{{ url_for('admin_licenses') }}" class="admin-nav-item {{ 'active' if request.endpoint == 'admin_licenses' }}">
+        <i class="fa-solid fa-id-card"></i> <span>Licenses</span>
+      </a>
+      <a href="{{ url_for('admin_certificates') }}" class="admin-nav-item {{ 'active' if request.endpoint == 'admin_certificates' }}">
+        <i class="fa-solid fa-certificate"></i> <span>Certificates</span>
+      </a>
+      <a href="{{ url_for('admin_settings') }}" class="admin-nav-item {{ 'active' if request.endpoint == 'admin_settings' }}">
+        <i class="fa-solid fa-gear"></i> <span>Settings</span>
+      </a>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="{{ url_for('os_desktop') }}" class="admin-nav-item">
+        <i class="fa-solid fa-desktop"></i> <span>Launch OS</span>
+      </a>
+      <a href="{{ url_for('home') }}" class="admin-nav-item">
+        <i class="fa-solid fa-arrow-left"></i> <span>Back to Site</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="admin-main">
+    <!-- Top Bar -->
+    <header class="admin-topbar">
+      <button class="admin-menu-toggle" id="menuToggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div class="admin-breadcrumb">
+        {% block breadcrumb %}{% endblock %}
+      </div>
+      <div class="admin-topbar-actions">
+        <button class="admin-topbar-btn" onclick="showToast('Search coming soon','info')" title="Search"><i class="fa-solid fa-search"></i></button>
+        <div class="admin-notifications">
+          <button class="admin-topbar-btn" id="notifBtn" onclick="toggleNotifications()" title="Notifications">
+            <i class="fa-solid fa-bell"></i>
+            <span class="admin-notif-badge" id="notifBadge">3</span>
+          </button>
+          <div class="admin-notif-dropdown" id="notifDropdown">
+            <div class="admin-notif-header"><strong>Notifications</strong><span>3 new</span></div>
+            <div class="admin-notif-list">
+              <div class="admin-notif-item unread">
+                <i class="fa-solid fa-user-plus"></i>
+                <div><strong>New user registered</strong><span>john_doe joined 5 min ago</span></div>
+              </div>
+              <div class="admin-notif-item unread">
+                <i class="fa-solid fa-certificate"></i>
+                <div><strong>Certificate purchased</strong><span>DV SSL - $9.99</span></div>
+              </div>
+              <div class="admin-notif-item unread">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div><strong>License expiring</strong><span>2 Pro licenses expire in 7 days</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-user-menu">
+          <button class="admin-user-btn" id="adminUserBtn" onclick="toggleUserMenu()">
+            <div class="admin-user-avatar">{{ current_user.username[0]|upper }}</div>
+            <span>{{ current_user.username }}</span>
+            <i class="fa-solid fa-chevron-down" style="font-size:0.625rem"></i>
+          </button>
+          <div class="admin-user-dropdown" id="adminUserDropdown">
+            <a href="{{ url_for('auth_profile') }}"><i class="fa-solid fa-id-card"></i> Profile</a>
+            <a href="{{ url_for('os_desktop') }}"><i class="fa-solid fa-desktop"></i> My OS</a>
+            <div class="dropdown-divider"></div>
+            <a href="{{ url_for('auth_logout') }}" class="text-error"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Admin Content -->
+    <div class="admin-content">
+      {% block admin_content %}{% endblock %}
+    </div>
+  </div>
+
+  <!-- Sidebar Overlay -->
+  <div class="admin-sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% block admin_extra_js %}{% endblock %}
+{% endblock %}

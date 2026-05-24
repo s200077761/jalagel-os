@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="JALAGEL OS Pro - A commercial-grade web-based operating system with 50+ apps, SSL certificates, and enterprise licensing.">
+    <meta name="theme-color" content="#0F0F23">
+    <title>{% block title %}JALAGEL OS Pro{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Global Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('home') }}" class="nav-logo">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <span class="logo-text">JALAGEL <span class="logo-pro">OS Pro</span></span>
+            </a>
+
+            <button class="nav-mobile-toggle" id="navMobileToggle" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <div class="nav-links" id="navLinks">
+                <a href="{{ url_for('home') }}" class="nav-link {{ 'active' if request.endpoint == 'home' }}">
+                    <i class="fa-solid fa-home"></i> Home
+                </a>
+                <a href="{{ url_for('features') }}" class="nav-link {{ 'active' if request.endpoint == 'features' }}">
+                    <i class="fa-solid fa-star"></i> Features
+                </a>
+                <a href="{{ url_for('pricing') }}" class="nav-link {{ 'active' if request.endpoint == 'pricing' }}">
+                    <i class="fa-solid fa-tag"></i> Pricing
+                </a>
+                <a href="{{ url_for('demo') }}" class="nav-link {{ 'active' if request.endpoint == 'demo' }}">
+                    <i class="fa-solid fa-play"></i> Demo
+                </a>
+                <a href="{{ url_for('docs') }}" class="nav-link {{ 'active' if request.endpoint == 'docs' }}">
+                    <i class="fa-solid fa-book"></i> Docs
+                </a>
+                <a href="{{ url_for('certificates_store') }}" class="nav-link {{ 'active' if request.endpoint == 'certificates_store' }}">
+                    <i class="fa-solid fa-shield-halved"></i> Certificates
+                </a>
+
+                {% if current_user.is_authenticated %}
+                <div class="nav-divider"></div>
+                <a href="{{ url_for('os_desktop') }}" class="nav-link nav-os-link">
+                    <i class="fa-solid fa-desktop"></i> Launch OS
+                </a>
+                <div class="nav-user-menu">
+                    <button class="nav-user-btn" id="navUserBtn">
+                        <i class="fa-solid fa-user-circle"></i>
+                        <span>{{ current_user.username }}</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="nav-dropdown" id="navDropdown">
+                        <a href="{{ url_for('auth_profile') }}">
+                            <i class="fa-solid fa-id-card"></i> Profile
+                        </a>
+                        <a href="{{ url_for('os_desktop') }}">
+                            <i class="fa-solid fa-desktop"></i> My OS
+                        </a>
+                        {% if current_user.is_admin() %}
+                        <a href="{{ url_for('admin_dashboard') }}">
+                            <i class="fa-solid fa-shield-halved"></i> Admin
+                        </a>
+                        {% endif %}
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ url_for('auth_logout') }}" class="dropdown-logout">
+                            <i class="fa-solid fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="nav-auth">
+                    <a href="{{ url_for('auth_login') }}" class="btn btn-outline btn-sm">Sign In</a>
+                    <a href="{{ url_for('auth_register') }}" class="btn btn-primary btn-sm">Get Started</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="flash-container" id="flashContainer">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}" data-auto-dismiss="5000">
+                <i class="fa-solid {{ 'fa-check-circle' if category == 'success' else 'fa-exclamation-circle' if category == 'error' else 'fa-info-circle' if category == 'info' else 'fa-exclamation-triangle' }}"></i>
+                <span>{{ message }}</span>
+                <button class="flash-close" onclick="this.parentElement.remove()">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="{% block main_class %}main-content{% endblock %}">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>JALAGEL OS Pro</span>
+                    </div>
+                    <p class="footer-tagline">A commercial-grade web-based operating system for the modern web.</p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+                        <a href="#" aria-label="Discord"><i class="fa-brands fa-discord"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links-col">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="{{ url_for('features') }}">Features</a></li>
+                        <li><a href="{{ url_for('pricing') }}">Pricing</a></li>
+                        <li><a href="{{ url_for('demo') }}">Demo</a></li>
+                        <li><a href="{{ url_for('certificates_store') }}">Certificates</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="{{ url_for('docs') }}">Documentation</a></li>
+                        <li><a href="#">API Reference</a></li>
+                        <li><a href="#">Changelog</a></li>
+                        <li><a href="#">Status</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Careers</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">License</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p> JALAGEL OS Pro. Built with <i class="fa-solid fa-heart"></i> in Python & Flask.</p>
+                <p class="footer-version">v{{ app_version }} &middot; {{ now.strftime('%Y') }}</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Global Scripts -->
+    <script src="{{ url_for('static', filename='js/marketing.js') }}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

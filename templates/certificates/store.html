@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Certificate Store - JALAGEL OS Pro{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/marketing.css') }}">{% endblock %}
+{% block content %}
+<section class="hero" style="min-height:35vh;padding-top:120px;">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label"><i class="fa-solid fa-shield-halved"></i> SSL Certificates</div>
+            <h1 class="hero-title gradient-text">Certificate Store</h1>
+            <p class="hero-tagline">Secure your websites with industry-leading SSL certificates.</p>
+        </div>
+    </div>
+</section>
+<section class="section">
+    <div class="container">
+        <div class="certs-grid">
+            {% for template in templates %}
+            <div class="cert-card reveal-on-scroll">
+                <div class="cert-header">
+                    <div class="cert-icon"><i class="{{ template.icon }}"></i></div>
+                    {% if template.price_yearly < 50 %}<div class="cert-badge">Popular</div>{% endif %}
+                </div>
+                <h3>{{ template.name }}</h3>
+                <p>{{ template.description|truncate_words(20) }}</p>
+                <div class="cert-price">${{ "%.2f"|format(template.price_yearly) }}<span>/yr</span></div>
+                <ul class="cert-features">
+                    {% for feature in template.get_features()[:4] %}
+                    <li><i class="fa-solid fa-check"></i> {{ feature }}</li>
+                    {% endfor %}
+                </ul>
+                {% if current_user.is_authenticated %}
+                <button class="btn btn-primary btn-sm" style="width:100%;" onclick="purchaseCert({{ template.id }})">
+                    <i class="fa-solid fa-cart-shopping"></i> Purchase
+                </button>
+                {% else %}
+                <a href="{{ url_for('auth_login') }}" class="btn btn-outline btn-sm" style="width:100%;">
+                    Sign In to Purchase
+                </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

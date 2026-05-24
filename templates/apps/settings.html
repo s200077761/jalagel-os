@@ -1,0 +1,93 @@
+<div class="app-container" data-app="settings">
+<style>
+.set-wrap{display:flex;height:100%;}
+.set-sidebar{width:220px;border-right:1px solid #334155;padding:12px;overflow:auto;background:#232344;flex-shrink:0;}
+.set-si{padding:10px 12px;border-radius:8px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:10px;color:#94A3B8;transition:all .15s;margin-bottom:2px;}
+.set-si:hover,.set-si.active{background:rgba(124,58,237,0.15);color:#F1F5F9;}
+.set-si i{width:18px;text-align:center;}
+.set-content{flex:1;padding:24px;overflow:auto;}
+.set-section{display:none;}
+.set-section.active{display:block;animation:fadeIn .2s ease;}
+.set-section h2{margin:0 0 16px;font-size:20px;}
+.set-card{background:#232344;border:1px solid #334155;border-radius:12px;padding:16px;margin-bottom:16px;}
+.set-card h3{margin:0 0 12px;font-size:15px;display:flex;align-items:center;gap:8px;}
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(51,65,85,0.3);}
+.set-row:last-child{border-bottom:none;}
+.set-row label{font-size:13px;color:#F1F5F9;}
+.set-row .desc{font-size:11px;color:#94A3B8;margin-top:2px;}
+.set-toggle{width:44px;height:24px;background:#334155;border-radius:12px;position:relative;cursor:pointer;transition:all .2s;flex-shrink:0;}
+.set-toggle::after{content:'';position:absolute;width:20px;height:20px;background:#F1F5F9;border-radius:50%;top:2px;left:2px;transition:all .2s;}
+.set-toggle.on{background:#7C3AED;}
+.set-toggle.on::after{left:22px;}
+.set-select{padding:6px 12px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;}
+</style>
+<div class="set-wrap">
+<div class="set-sidebar">
+  <div style="font-size:11px;font-weight:600;color:#7C3AED;margin-bottom:8px;padding:0 8px;">SETTINGS</div>
+  <div class="set-si active" onclick="setTab('personal')" id="si-personal"><i class="fa-solid fa-user"></i> Personalization</div>
+  <div class="set-si" onclick="setTab('display')" id="si-display"><i class="fa-solid fa-desktop"></i> Display</div>
+  <div class="set-si" onclick="setTab('notifications')" id="si-notifications"><i class="fa-solid fa-bell"></i> Notifications</div>
+  <div class="set-si" onclick="setTab('account')" id="si-account"><i class="fa-solid fa-shield-halved"></i> Account</div>
+  <div class="set-si" onclick="setTab('about')" id="si-about"><i class="fa-solid fa-circle-info"></i> About</div>
+</div>
+<div class="set-content">
+  <div class="set-section active" id="sec-personal">
+    <h2>Personalization</h2>
+    <div class="set-card">
+      <h3><i class="fa-solid fa-palette" style="color:#7C3AED;"></i> Appearance</h3>
+      <div class="set-row"><div><label>Theme</label><div class="desc">Choose your OS theme</div></div><select class="set-select"><option>Dark (Default)</option><option>Darker</option><option>Ocean</option></select></div>
+      <div class="set-row"><div><label>Accent Color</label><div class="desc">Highlight color throughout the OS</div></div><div class="paint-colors"><div class="paint-csw active" style="background:#7C3AED"></div><div class="paint-csw" style="background:#EC4899"></div><div class="paint-csw" style="background:#06B6D4"></div><div class="paint-csw" style="background:#10B981"></div></div></div>
+      <div class="set-row"><div><label>Transparency Effects</label><div class="desc">Enable glass-like transparency</div></div><div class="set-toggle on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="set-row"><div><label>Animations</label><div class="desc">Window and UI animations</div></div><div class="set-toggle on" onclick="this.classList.toggle('on')"></div></div>
+    </div>
+  </div>
+  <div class="set-section" id="sec-display">
+    <h2>Display</h2>
+    <div class="set-card">
+      <h3><i class="fa-solid fa-display" style="color:#06B6D4;"></i> Screen</h3>
+      <div class="set-row"><div><label>Wallpaper</label><div class="desc">Desktop background</div></div><select class="set-select"><option>Gradient Mesh</option><option>Solid Dark</option><option>Particle Field</option></select></div>
+      <div class="set-row"><div><label>Desktop Icons</label><div class="desc">Show icons on desktop</div></div><div class="set-toggle on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="set-row"><div><label>Snap Assist</label><div class="desc">Snap windows to screen edges</div></div><div class="set-toggle on" onclick="this.classList.toggle('on')"></div></div>
+    </div>
+  </div>
+  <div class="set-section" id="sec-notifications">
+    <h2>Notifications</h2>
+    <div class="set-card">
+      <h3><i class="fa-solid fa-bell" style="color:#F59E0B;"></i> Notification Settings</h3>
+      <div class="set-row"><div><label>Enable Notifications</label></div><div class="set-toggle on" onclick="this.classList.toggle('on')"></div></div>
+      <div class="set-row"><div><label>Focus Mode</label><div class="desc">Silence non-urgent notifications</div></div><div class="set-toggle" onclick="this.classList.toggle('on')"></div></div>
+      <div class="set-row"><div><label>Sound Alerts</label></div><div class="set-toggle on" onclick="this.classList.toggle('on')"></div></div>
+    </div>
+  </div>
+  <div class="set-section" id="sec-account">
+    <h2>Account</h2>
+    <div class="set-card">
+      <h3><i class="fa-solid fa-user-shield" style="color:#10B981;"></i> Security</h3>
+      <div class="set-row"><div><label>Two-Factor Authentication</label></div><div class="set-toggle" onclick="this.classList.toggle('on')"></div></div>
+      <div class="set-row"><div><label>Auto-lock after inactivity</label></div><div class="set-toggle on" onclick="this.classList.toggle('on')"></div></div>
+    </div>
+  </div>
+  <div class="set-section" id="sec-about">
+    <h2>About JALAGEL OS Pro</h2>
+    <div class="set-card" style="text-align:center;padding:32px;">
+      <i class="fa-solid fa-layer-group" style="font-size:3rem;color:#7C3AED;"></i>
+      <h3 style="margin-top:12px;">JALAGEL OS Pro</h3>
+      <p style="color:#94A3B8;font-size:13px;">Version 1.0.0 (Build 2024.01.15)</p>
+      <p style="color:#94A3B8;font-size:12px;margin-top:8px;">A commercial-grade web-based operating system<br>with 50+ applications, SSL certificates, and enterprise licensing.</p>
+      <div style="margin-top:16px;display:flex;gap:8px;justify-content:center;">
+        <span class="app-badge purple">Python 3.11</span><span class="app-badge blue">Flask 3.0</span><span class="app-badge green">SQLite</span>
+      </div>
+      <p style="color:#64748B;font-size:11px;margin-top:16px;">© 2024 JALAGEL Systems. All rights reserved.</p>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+window.setTab=function(t){
+  document.querySelectorAll('.set-si').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.set-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('si-'+t).classList.add('active');
+  document.getElementById('sec-'+t).classList.add('active');
+};
+</script>
+</div>

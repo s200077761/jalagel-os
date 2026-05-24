@@ -1,0 +1,123 @@
+{% extends "admin/layout.html" %}
+{% block title %}Manage Certificates - Admin - JALAGEL OS Pro{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-house"></i> Dashboard</a> <i class="fa-solid fa-chevron-right" style="font-size:0.625rem;margin:0 8px;color:var(--text-secondary)"></i> Certificates{% endblock %}
+{% block admin_content %}
+<!-- Stats Row -->
+<div class="admin-stats-row">
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon certs"><i class="fa-solid fa-certificate"></i></div>
+    <div class="admin-stat-info"><span class="admin-stat-value">{{ total_certs|default(certificates|length) }}</span><span class="admin-stat-label">Total Certificates</span></div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon" style="background:rgba(16,185,129,0.15);color:var(--color-success)"><i class="fa-solid fa-check-circle"></i></div>
+    <div class="admin-stat-info"><span class="admin-stat-value" style="color:var(--color-success)">{{ active_certs|default(0) }}</span><span class="admin-stat-label">Active</span></div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon" style="background:rgba(245,158,11,0.15);color:var(--color-warning)"><i class="fa-solid fa-clock"></i></div>
+    <div class="admin-stat-info"><span class="admin-stat-value" style="color:var(--color-warning)">{{ pending_certs|default(0) }}</span><span class="admin-stat-label">Pending</span></div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon revenue"><i class="fa-solid fa-dollar-sign"></i></div>
+    <div class="admin-stat-info"><span class="admin-stat-value">${{ "%.0f"|format(total_revenue|default(0)) }}</span><span class="admin-stat-label">Total Revenue</span></div>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="admin-toolbar">
+  <div class="admin-search"><i class="fa-solid fa-search"></i><input type="text" placeholder="Search certificates..." oninput="filterCerts(this.value)"></div>
+  <div class="admin-filters">
+    <select id="certTypeFilter" onchange="applyCertFilters()">
+      <option value="">All Types</option><option value="ssl">DV SSL</option><option value="ov">OV SSL</option><option value="ev">EV SSL</option><option value="wildcard">Wildcard</option><option value="san">SAN</option><option value="code">Code Signing</option>
+    </select>
+    <select id="certStatusFilter" onchange="applyCertFilters()">
+      <option value="">All Status</option><option value="active">Active</option><option value="pending">Pending</option><option value="expired">Expired</option><option value="revoked">Revoked</option>
+    </select>
+    <button class="profile-btn" onclick="openModal('issueCertModal')"><i class="fa-solid fa-plus"></i> Issue Cert</button>
+    <button class="profile-btn-outline" onclick="exportCertsCSV()"><i class="fa-solid fa-file-csv"></i> Export</button>
+  </div>
+</div>
+
+<!-- Pending Queue -->
+{% if pending_queue %}
+<div class="admin-table-card" style="margin-bottom:24px;border-left:3px solid var(--color-warning)">
+  <div class="admin-table-header"><h3><i class="fa-solid fa-clock" style="color:var(--color-warning)"></i> Pending Validation Queue ({{ pending_queue|length }})</h3></div>
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead><tr><th>ID</th><th>User</th><th>Certificate</th><th>Domain</th><th>Submitted</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for cert in pending_queue %}
+        <tr><td>#{{ cert.id }}</td><td>{{ cert.owner.username if cert.owner else 'N/A' }}</td><td><strong>{{ cert.cert_name }}</strong></td><td>{{ cert.domain or 'N/A' }}</td><td>{{ cert.created_at|date }}</td>
+          <td><div class="admin-row-actions"><button class="admin-action-icon" onclick="validateCert({{ cert.id }})" title="Validate"><i class="fa-solid fa-check"></i></button><button class="admin-action-icon danger" onclick="revokeCert({{ cert.id }})" title="Revoke"><i class="fa-solid fa-ban"></i></button></div></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Certificates Table -->
+<div class="admin-table-card">
+  <div class="admin-table-wrap">
+    <table class="admin-table" id="certsTable">
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Type</th><th>User</th><th>Domain</th><th>Status</th><th>Issued</th><th>Expires</th><th>Price</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for cert in certificates %}
+        <tr data-type="{{ cert.cert_type }}" data-status="{{ cert.status }}" data-search="{{ cert.cert_name|lower }} {{ cert.domain|lower }} {{ cert.owner.username|lower if cert.owner else '' }}">
+          <td>#{{ cert.id }}</td>
+          <td><strong>{{ cert.cert_name }}</strong></td>
+          <td><span class="admin-badge type-{{ cert.cert_type }}">{{ cert.cert_type|upper }}</span></td>
+          <td>{{ cert.owner.username if cert.owner else 'N/A' }}</td>
+          <td>{{ cert.domain or 'N/A' }}</td>
+          <td><span class="admin-badge status-{{ cert.status }}">{{ cert.status|title }}</span></td>
+          <td>{{ cert.issued_date|date if cert.issued_date else 'Pending' }}</td>
+          <td>{{ cert.expiry_date|date if cert.expiry_date else 'N/A' }}</td>
+          <td>${{ "%.2f"|format(cert.price_paid) }}</td>
+          <td>
+            <div class="admin-row-actions">
+              <button class="admin-action-icon" onclick="viewCert({{ cert.id }})" title="View"><i class="fa-solid fa-eye"></i></button>
+              {% if cert.status != 'revoked' %}<button class="admin-action-icon danger" onclick="revokeCert({{ cert.id }})" title="Revoke"><i class="fa-solid fa-ban"></i></button>{% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Issue Certificate Modal -->
+<div class="admin-modal" id="issueCertModal">
+  <div class="admin-modal-content">
+    <div class="admin-modal-header"><h3><i class="fa-solid fa-certificate"></i> Issue Certificate</h3><button class="admin-modal-close" onclick="closeModal('issueCertModal')"><i class="fa-solid fa-xmark"></i></button></div>
+    <form method="POST" action="{{ url_for('api_admin_issue_cert') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="admin-modal-body">
+        <div class="profile-form-group"><label class="profile-form-label">User ID</label><input type="number" name="user_id" class="profile-form-input" required></div>
+        <div class="profile-form-group"><label class="profile-form-label">Certificate Name</label><input type="text" name="cert_name" class="profile-form-input" required></div>
+        <div class="profile-form-group"><label class="profile-form-label">Domain</label><input type="text" name="domain" class="profile-form-input" placeholder="example.com"></div>
+        <div class="profile-grid" style="grid-template-columns:1fr 1fr;gap:16px">
+          <div class="profile-form-group"><label class="profile-form-label">Type</label><select name="cert_type" class="profile-form-input"><option value="ssl">DV SSL</option><option value="ov">OV SSL</option><option value="ev">EV SSL</option><option value="wildcard">Wildcard</option><option value="san">SAN</option><option value="code">Code Signing</option></select></div>
+          <div class="profile-form-group"><label class="profile-form-label">Price ($)</label><input type="number" name="price_paid" class="profile-form-input" step="0.01" value="9.99"></div>
+        </div>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="profile-btn-outline" onclick="closeModal('issueCertModal')">Cancel</button>
+        <button type="submit" class="profile-btn"><i class="fa-solid fa-plus"></i> Issue</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block admin_extra_js %}
+<script>
+function filterCerts(q){q=q.toLowerCase();document.querySelectorAll('#certsTable tbody tr').forEach(function(r){var search=r.dataset.search||'';if(search.includes(q))r.style.display='';else r.style.display='none'});}
+function applyCertFilters(){var type=document.getElementById('certTypeFilter').value,status=document.getElementById('certStatusFilter').value;document.querySelectorAll('#certsTable tbody tr').forEach(function(r){var show=true;if(type&&r.dataset.type!==type)show=false;if(status&&r.dataset.status!==status)show=false;r.style.display=show?'':'none'});}
+function revokeCert(id){if(confirm('Revoke this certificate? It will be immediately invalidated.')){fetch('/api/admin/certificates/'+id+'/revoke',{method:'POST',headers:{'X-CSRFToken':'{{ csrf_token() }}'}}).then(function(r){return r.json()}).then(function(d){if(d.success){showToast('Certificate revoked','success');location.reload()}else{showToast(d.error||'Failed','error')}});}}
+function validateCert(id){if(confirm('Validate and activate this certificate?')){fetch('/api/admin/certificates/'+id+'/validate',{method:'POST',headers:{'X-CSRFToken':'{{ csrf_token() }}'}}).then(function(r){return r.json()}).then(function(d){if(d.success){showToast('Certificate validated','success');location.reload()}else{showToast(d.error||'Failed','error')}});}}
+function viewCert(id){window.open('/certificates/verify/'+id,'_blank');}
+function exportCertsCSV(){var rows=[['ID','Name','Type','User','Domain','Status','Issued','Expires','Price'].join(',')];document.querySelectorAll('#certsTable tbody tr').forEach(function(r){if(r.style.display==='none')return;var tds=r.querySelectorAll('td');rows.push([tds[0].textContent.replace('#','').trim(),'"'+(tds[1].textContent.trim())+'"',tds[2].textContent.trim(),tds[3].textContent.trim(),tds[4].textContent.trim(),tds[5].textContent.trim(),tds[6].textContent.trim(),tds[7].textContent.trim(),tds[8].textContent.trim()].join(','));});var blob=new Blob([rows.join('\n')],{type:'text/csv'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='certificates_'+new Date().toISOString().slice(0,10)+'.csv';a.click();}
+</script>
+{% endblock %}

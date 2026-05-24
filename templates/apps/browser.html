@@ -1,0 +1,68 @@
+<div class="app-container" data-app="browser">
+<style>
+.br-wrap{display:flex;flex-direction:column;height:100%;}
+.br-bar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;}
+.br-bar button{width:30px;height:30px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;cursor:pointer;font-size:11px;}
+.br-bar button:hover{background:#7C3AED;border-color:#7C3AED;}
+.br-bar input{flex:1;padding:7px 12px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;}
+.br-bar input:focus{border-color:#7C3AED;}
+.br-tabs{display:flex;gap:0;background:#1A1A2E;border-bottom:1px solid #334155;overflow-x:auto;flex-shrink:0;}
+.br-tab{display:flex;align-items:center;gap:6px;padding:6px 14px;background:#1A1A2E;border-right:1px solid #334155;font-size:12px;color:#94A3B8;cursor:pointer;white-space:nowrap;max-width:160px;}
+.br-tab.active{background:#232344;color:#F1F5F9;border-bottom:2px solid #7C3AED;}
+.br-tab .x{font-size:10px;padding:2px 4px;border-radius:3px;margin-left:4px;}
+.br-tab .x:hover{background:rgba(239,68,68,0.3);}
+.br-body{flex:1;overflow:auto;padding:24px;background:#1A1A2E;}
+.br-body h1{color:#F1F5F9;margin-top:0;}
+.br-body h2{color:#7C3AED;}
+.br-body p{color:#94A3B8;line-height:1.6;}
+.br-body a{color:#06B6D4;}
+.br-body pre{background:#0f0f23;padding:16px;border-radius:8px;border:1px solid #334155;overflow:auto;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:13px;}
+.br-bookmarks{display:flex;gap:8px;padding:6px 12px;background:#1A1A2E;border-bottom:1px solid #334155;font-size:12px;flex-shrink:0;overflow-x:auto;}
+.br-bm{color:#94A3B8;cursor:pointer;padding:2px 8px;border-radius:4px;white-space:nowrap;}
+.br-bm:hover{color:#7C3AED;background:rgba(124,58,237,0.1);}
+.br-book{display:flex;align-items:center;gap:8px;padding:8px;background:#232344;border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all .15s;}
+.br-book:hover{background:rgba(124,58,237,0.15);}
+.br-book i{color:#7C3AED;font-size:1.2rem;}
+</style>
+<div class="br-wrap">
+<div class="br-bar">
+  <button onclick="brBack()" title="Back"><i class="fa-solid fa-arrow-left"></i></button>
+  <button onclick="brFwd()" title="Forward"><i class="fa-solid fa-arrow-right"></i></button>
+  <button onclick="brReload()" title="Reload"><i class="fa-solid fa-rotate"></i></button>
+  <input type="text" id="brUrl" value="jalagel://home" onkeydown="if(event.key==='Enter')brNav()">
+  <button onclick="brNav()" title="Go"><i class="fa-solid fa-arrow-right"></i></button>
+  <button onclick="brNewTab()" title="New Tab"><i class="fa-solid fa-plus"></i></button>
+</div>
+<div class="br-bookmarks" id="brBookmarks">
+  <span class="br-bm" onclick="brGo('jalagel://home')"><i class="fa-solid fa-house"></i> Home</span>
+  <span class="br-bm" onclick="brGo('jalagel://search')"><i class="fa-solid fa-search"></i> Search</span>
+  <span class="br-bm" onclick="brGo('jalagel://news')"><i class="fa-solid fa-newspaper"></i> News</span>
+  <span class="br-bm" onclick="brGo('jalagel://docs')"><i class="fa-solid fa-book"></i> Docs</span>
+</div>
+<div class="br-body" id="brBody"></div>
+</div>
+<script>
+(function(){
+const pages={
+'jalagel://home':'<div style="text-align:center;padding:32px;"><i class="fa-solid fa-layer-group" style="font-size:3rem;color:#7C3AED;"></i><h1>JALAGEL Browser</h1><p style="max-width:400px;margin:0 auto 24px;">Your gateway to the simulated web. Use the address bar to navigate to built-in pages.</p><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:500px;margin:0 auto;"><div class="br-book" onclick="brGo('jalagel://search')"><i class="fa-solid fa-search"></i><div><strong>Search</strong><br><span style="font-size:11px;color:#94A3B8;">Find anything</span></div></div><div class="br-book" onclick="brGo('jalagel://news')"><i class="fa-solid fa-newspaper"></i><div><strong>News</strong><br><span style="font-size:11px;color:#94A3B8;">Latest headlines</span></div></div><div class="br-book" onclick="brGo('jalagel://docs')"><i class="fa-solid fa-book"></i><div><strong>Documentation</strong><br><span style="font-size:11px;color:#94A3B8;">OS guides</span></div></div><div class="br-book" onclick="brGo('jalagel://weather')"><i class="fa-solid fa-cloud-sun"></i><div><strong>Weather</strong><br><span style="font-size:11px;color:#94A3B8;">Local forecast</span></div></div></div></div>',
+'jalagel://search':'<h1><i class="fa-solid fa-search" style="color:#7C3AED;"></i> JALAGEL Search</h1><div style="max-width:500px;margin:16px auto;"><input type="text" placeholder="Search the web..." style="width:100%;padding:12px 16px;border:1px solid #334155;border-radius:10px;background:#0f0f23;color:#F1F5F9;font-size:16px;outline:none;" onkeydown="if(event.key==='Enter')brSearch(this.value)"></div><div id="brSearchResults"></div>',
+'jalagel://news':'<h1><i class="fa-solid fa-newspaper" style="color:#7C3AED;"></i> News</h1><div style="display:flex;flex-direction:column;gap:12px;"><div style="background:#232344;padding:16px;border-radius:12px;border:1px solid #334155;"><h3>JALAGEL OS Pro Launches with 50+ Apps</h3><p>The revolutionary web-based OS is now available with a complete suite of productivity, creative, and developer tools.</p><span style="font-size:11px;color:#94A3B8;">2 hours ago</span></div><div style="background:#232344;padding:16px;border-radius:12px;border:1px solid #334155;"><h3>New SSL Certificate Store</h3><p>Purchase and manage SSL certificates directly from your OS. Starting at $9.99/year.</p><span style="font-size:11px;color:#94A3B8;">5 hours ago</span></div><div style="background:#232344;padding:16px;border-radius:12px;border:1px solid #334155;"><h3>Developer Tools Suite Released</h3><p>JSON formatter, regex tester, API client and more now available in the app store.</p><span style="font-size:11px;color:#94A3B8;">1 day ago</span></div></div>',
+'jalagel://docs':'<h1><i class="fa-solid fa-book" style="color:#7C3AED;"></i> Documentation</h1><h2>Getting Started</h2><p>Welcome to JALAGEL OS Pro. This guide will help you navigate the system.</p><h2>Keyboard Shortcuts</h2><pre>Alt + Tab         Switch windows
+Win / Cmd         Open start menu
+Ctrl + F          Find in app
+F11               Fullscreen mode</pre><h2>Window Management</h2><p>Drag windows by the title bar. Resize from any edge. Double-click title bar to maximize.</p>',
+'jalagel://weather':'<h1><i class="fa-solid fa-cloud-sun" style="color:#F59E0B;"></i> Weather</h1><p>Current conditions in your area.</p><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:16px;"><div style="background:#232344;padding:16px;border-radius:12px;text-align:center;"><i class="fa-solid fa-sun" style="font-size:2rem;color:#F59E0B;"></i><div style="font-size:1.5rem;font-weight:700;margin-top:8px;">24°C</div><div style="font-size:12px;color:#94A3B8;">Sunny</div></div><div style="background:#232344;padding:16px;border-radius:12px;text-align:center;"><i class="fa-solid fa-droplet" style="font-size:2rem;color:#06B6D4;"></i><div style="font-size:1.5rem;font-weight:700;margin-top:8px;">55%</div><div style="font-size:12px;color:#94A3B8;">Humidity</div></div><div style="background:#232344;padding:16px;border-radius:12px;text-align:center;"><i class="fa-solid fa-wind" style="font-size:2rem;color:#94A3B8;"></i><div style="font-size:1.5rem;font-weight:700;margin-top:8px;">12 km/h</div><div style="font-size:12px;color:#94A3B8;">Wind</div></div></div>'
+};
+let history=['jalagel://home'],hIdx=0;
+function render(){document.getElementById('brBody').innerHTML=pages[history[hIdx]]||'<h1>404</h1><p>Page not found: '+history[hIdx]+'</p><button onclick="brGo('jalagel://home')" class="app-btn primary">Go Home</button>';document.getElementById('brUrl').value=history[hIdx];}
+window.brNav=function(){const u=document.getElementById('brUrl').value.trim();if(!u.startsWith('jalagel://')&&!u.startsWith('http')){brGo('jalagel://search');setTimeout(()=>brSearch(u),100);return;}brGo(u);};
+window.brGo=function(url){history=history.slice(0,hIdx+1);history.push(url);hIdx++;render();};
+window.brBack=function(){if(hIdx>0){hIdx--;render();}};
+window.brFwd=function(){if(hIdx<history.length-1){hIdx++;render();}};
+window.brReload=function(){render();};
+window.brNewTab=function(){brGo('jalagel://home');};
+window.brSearch=function(q){const results=document.getElementById('brSearchResults');if(!results)return;results.innerHTML='<h3>Search Results for "'+q+'"</h3><div style="display:flex;flex-direction:column;gap:10px;"><div class="br-book" onclick="brGo('jalagel://docs')"><i class="fa-solid fa-book"></i><div><strong>JALAGEL Documentation</strong><br><span style="font-size:11px;color:#94A3B8;">Official docs - jalagel://docs</span></div></div><div class="br-book" onclick="brGo('jalagel://news')"><i class="fa-solid fa-newspaper"></i><div><strong>Latest News</strong><br><span style="font-size:11px;color:#94A3B8;">News portal - jalagel://news</span></div></div></div>';};
+render();
+})();
+</script>
+</div>

@@ -1,0 +1,604 @@
+/**
+ * JALAGEL OS Pro - Shared App Styles
+ * Consistent window-like appearance for all 50+ applications
+ */
+
+/* ============================================
+   APP WINDOW CONTAINER
+   ============================================ */
+
+.app-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface, #1A1A2E);
+  color: var(--text-primary, #F1F5F9);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow: hidden;
+  border-radius: 0 0 10px 10px;
+}
+
+.app-container * {
+  box-sizing: border-box;
+}
+
+/* ============================================
+   APP HEADER / TOOLBAR
+   ============================================ */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(6, 182, 212, 0.08));
+  border-bottom: 1px solid var(--border-color, #334155);
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+.app-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary, #F1F5F9);
+}
+
+.app-header-title i {
+  color: var(--color-primary, #7C3AED);
+  font-size: 16px;
+}
+
+.app-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: var(--bg-surface-light, #232344);
+  border-bottom: 1px solid var(--border-color, #334155);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* ============================================
+   APP BODY / CONTENT
+   ============================================ */
+
+.app-body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+.app-body.no-padding {
+  padding: 0;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.app-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 8px;
+  background: var(--bg-surface-light, #232344);
+  color: var(--text-primary, #F1F5F9);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.app-btn:hover {
+  background: rgba(124, 58, 237, 0.2);
+  border-color: var(--color-primary, #7C3AED);
+}
+
+.app-btn:active {
+  transform: scale(0.96);
+}
+
+.app-btn.primary {
+  background: linear-gradient(135deg, #7C3AED, #6D28D9);
+  border-color: transparent;
+  color: #fff;
+}
+
+.app-btn.primary:hover {
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
+}
+
+.app-btn.danger {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #EF4444;
+}
+
+.app-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.app-btn.success {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10B981;
+}
+
+.app-btn.success:hover {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+.app-btn.warning {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #F59E0B;
+}
+
+.app-btn.sm {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.app-btn.icon-btn {
+  padding: 6px 10px;
+}
+
+/* ============================================
+   FORM INPUTS
+   ============================================ */
+
+.app-input,
+.app-select,
+.app-textarea {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 8px;
+  background: var(--bg-surface, #1A1A2E);
+  color: var(--text-primary, #F1F5F9);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.app-input:focus,
+.app-select:focus,
+.app-textarea:focus {
+  border-color: var(--color-primary, #7C3AED);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+.app-input::placeholder,
+.app-textarea::placeholder {
+  color: var(--text-secondary, #94A3B8);
+}
+
+.app-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.app-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394A3B8' viewBox='0 0 16 16'%3E%3Cpath d='M4.646 5.646a.5.5 0 0 1 .708 0L8 8.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
+}
+
+/* ============================================
+   SEARCH BOX
+   ============================================ */
+
+.app-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-surface, #1A1A2E);
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.app-search:focus-within {
+  border-color: var(--color-primary, #7C3AED);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+.app-search i {
+  color: var(--text-secondary, #94A3B8);
+  font-size: 14px;
+}
+
+.app-search input {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  width: 180px;
+}
+
+.app-search input::placeholder {
+  color: var(--text-secondary, #94A3B8);
+}
+
+/* ============================================
+   TABS
+   ============================================ */
+
+.app-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 16px;
+  background: var(--bg-surface-light, #232344);
+  border-bottom: 1px solid var(--border-color, #334155);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.app-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-secondary, #94A3B8);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.app-tab:hover {
+  color: var(--text-primary, #F1F5F9);
+  background: rgba(124, 58, 237, 0.08);
+}
+
+.app-tab.active {
+  color: var(--color-primary, #7C3AED);
+  border-bottom-color: var(--color-primary, #7C3AED);
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.app-tab-close {
+  font-size: 10px;
+  padding: 2px;
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.app-tab-close:hover {
+  opacity: 1;
+  background: rgba(239, 68, 68, 0.3);
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+
+.app-sidebar {
+  width: 220px;
+  background: var(--bg-surface-light, #232344);
+  border-right: 1px solid var(--border-color, #334155);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.app-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #94A3B8);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.app-sidebar-item:hover {
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--text-primary, #F1F5F9);
+}
+
+.app-sidebar-item.active {
+  background: rgba(124, 58, 237, 0.2);
+  color: var(--color-primary, #7C3AED);
+  border-left: 3px solid var(--color-primary, #7C3AED);
+}
+
+.app-sidebar-item i {
+  font-size: 15px;
+  width: 20px;
+  text-align: center;
+}
+
+/* ============================================
+   GRID / LAYOUT
+   ============================================ */
+
+.app-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.app-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.app-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.app-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.app-grid-6 { grid-template-columns: repeat(6, 1fr); }
+
+/* ============================================
+   CARDS
+   ============================================ */
+
+.app-card {
+  background: var(--bg-surface-light, #232344);
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.app-card:hover {
+  border-color: rgba(124, 58, 237, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.app-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.app-card-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* ============================================
+   TABLE
+   ============================================ */
+
+.app-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.app-table th {
+  text-align: left;
+  padding: 10px 14px;
+  background: var(--bg-surface-light, #232344);
+  color: var(--text-secondary, #94A3B8);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color, #334155);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.app-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+  color: var(--text-primary, #F1F5F9);
+}
+
+.app-table tbody tr:hover {
+  background: rgba(124, 58, 237, 0.05);
+}
+
+.app-table tbody tr.selected {
+  background: rgba(124, 58, 237, 0.12);
+}
+
+/* ============================================
+   LIST
+   ============================================ */
+
+.app-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.app-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.app-list-item:hover {
+  background: rgba(124, 58, 237, 0.05);
+}
+
+.app-list-item.active {
+  background: rgba(124, 58, 237, 0.12);
+  border-left: 3px solid var(--color-primary, #7C3AED);
+}
+
+/* ============================================
+   DIVIDER
+   ============================================ */
+
+.app-divider {
+  height: 1px;
+  background: var(--border-color, #334155);
+  margin: 12px 0;
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+.app-container ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.app-container ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-container ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 3px;
+}
+
+.app-container ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.app-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: var(--text-secondary, #94A3B8);
+  text-align: center;
+  gap: 12px;
+}
+
+.app-empty i {
+  font-size: 3rem;
+  opacity: 0.3;
+}
+
+.app-empty-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary, #F1F5F9);
+}
+
+/* ============================================
+   STATUS BAR
+   ============================================ */
+
+.app-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 16px;
+  background: var(--bg-surface-light, #232344);
+  border-top: 1px solid var(--border-color, #334155);
+  font-size: 11px;
+  color: var(--text-secondary, #94A3B8);
+  flex-shrink: 0;
+  min-height: 26px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .app-sidebar {
+    width: 180px;
+  }
+  .app-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .app-grid-6 { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.app-fade-in {
+  animation: fadeIn 0.2s ease;
+}
+
+.app-slide-in {
+  animation: slideIn 0.2s ease;
+}
+
+/* ============================================
+   UTILITY
+   ============================================ */
+
+.app-flex { display: flex; }
+.app-flex-col { display: flex; flex-direction: column; }
+.app-flex-1 { flex: 1; }
+.app-items-center { align-items: center; }
+.app-justify-between { justify-content: space-between; }
+.app-gap-2 { gap: 8px; }
+.app-gap-4 { gap: 16px; }
+.app-text-center { text-align: center; }
+.app-text-sm { font-size: 12px; }
+.app-text-xs { font-size: 11px; }
+.app-text-muted { color: var(--text-secondary, #94A3B8); }
+.app-mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+
+/* App-specific: color-coded badges */
+.app-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.app-badge.purple { background: rgba(124, 58, 237, 0.15); color: #A78BFA; }
+.app-badge.blue { background: rgba(6, 182, 212, 0.15); color: #22D3EE; }
+.app-badge.green { background: rgba(16, 185, 129, 0.15); color: #34D399; }
+.app-badge.red { background: rgba(239, 68, 68, 0.15); color: #F87171; }
+.app-badge.amber { background: rgba(245, 158, 11, 0.15); color: #FBBF24; }
+.app-badge.pink { background: rgba(236, 72, 153, 0.15); color: #F472B6; }

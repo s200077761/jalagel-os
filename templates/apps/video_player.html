@@ -1,0 +1,72 @@
+<div class="app-container" data-app="video-player">
+<style>
+.vp-wrap{display:flex;flex-direction:column;height:100%;background:#000;}
+.vp-main{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.vp-video{width:100%;height:100%;object-fit:contain;background:#0a0a1a;}
+.vp-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94A3B8;gap:12px;}
+.vp-controls{display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(26,26,46,0.95);border-top:1px solid #334155;flex-shrink:0;}
+.vp-controls button{background:transparent;border:none;color:#F1F5F9;cursor:pointer;font-size:16px;padding:6px;border-radius:50%;transition:all .15s;width:36px;height:36px;display:flex;align-items:center;justify-content:center;}
+.vp-controls button:hover{background:rgba(124,58,237,0.2);color:#7C3AED;}
+.vp-controls input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:#334155;border-radius:2px;cursor:pointer;}
+.vp-controls input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:#7C3AED;border-radius:50%;}
+.vp-time{font-family:'JetBrains Mono',monospace;font-size:12px;color:#94A3B8;white-space:nowrap;}
+.vp-playlist{width:240px;border-left:1px solid #334155;background:#1A1A2E;overflow:auto;display:none;}
+.vp-playlist.show{display:block;}
+.vp-pl-item{padding:10px 12px;border-bottom:1px solid #334155;cursor:pointer;font-size:12px;color:#94A3B8;display:flex;align-items:center;gap:8px;transition:all .15s;}
+.vp-pl-item:hover,.vp-pl-item.active{background:rgba(124,58,237,0.15);color:#F1F5F9;}
+.vp-pl-item i{color:#7C3AED;}
+.vp-topbar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;}
+.vp-topbar button{padding:5px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;cursor:pointer;}
+.vp-topbar button:hover{background:#7C3AED;border-color:#7C3AED;}
+</style>
+<div class="vp-wrap">
+<div class="vp-topbar">
+  <button onclick="vpOpen()"><i class="fa-solid fa-folder-open"></i> Open</button>
+  <button onclick="vpTogglePlaylist()"><i class="fa-solid fa-list"></i> Playlist</button>
+  <button onclick="vpFullscreen()"><i class="fa-solid fa-expand"></i> Fullscreen</button>
+  <div style="margin-left:auto;font-size:12px;color:#94A3B8;" id="vpFileName">No video loaded</div>
+</div>
+<div style="display:flex;flex:1;overflow:hidden;">
+  <div class="vp-main" id="vpMain">
+    <div class="vp-placeholder" id="vpPlaceholder">
+      <i class="fa-solid fa-film" style="font-size:3rem;opacity:.3;"></i>
+      <p>No video loaded</p>
+      <button class="app-btn primary" onclick="vpOpen()">Open Video</button>
+    </div>
+    <video class="vp-video" id="vpVideo" style="display:none;" ontimeupdate="vpUpdate()" onended="vpEnded()"></video>
+  </div>
+  <div class="vp-playlist" id="vpPlaylist">
+    <div style="padding:10px 12px;font-size:11px;font-weight:600;color:#7C3AED;border-bottom:1px solid #334155;">PLAYLIST</div>
+    <div id="vpPlList"></div>
+  </div>
+</div>
+<div class="vp-controls" id="vpControls" style="display:none;">
+  <button onclick="vpPlay()" id="vpPlayBtn"><i class="fa-solid fa-play"></i></button>
+  <button onclick="vpStop()"><i class="fa-solid fa-stop"></i></button>
+  <input type="range" id="vpSeek" value="0" max="100" oninput="vpSeek()">
+  <span class="vp-time"><span id="vpCur">0:00</span> / <span id="vpDur">0:00</span></span>
+  <button onclick="vpMute()" id="vpMuteBtn"><i class="fa-solid fa-volume-high"></i></button>
+  <input type="range" id="vpVol" value="80" max="100" style="width:80px;" oninput="vpSetVol()">
+</div>
+</div>
+<script>
+(function(){
+let playlist=[],curIdx=-1;
+const v=document.getElementById('vpVideo');
+function fmt(s){const m=Math.floor(s/60);return m+':'+String(Math.floor(s%60)).padStart(2,'0');}
+window.vpOpen=function(){const i=document.createElement('input');i.type='file';i.accept='video/*';i.onchange=e=>{const f=e.target.files[0];if(!f)return;const url=URL.createObjectURL(f);playlist.push({name:f.name,url:url});curIdx=playlist.length-1;vpLoad();renderPl();};i.click();};
+function vpLoad(){const p=playlist[curIdx];if(!p)return;document.getElementById('vpPlaceholder').style.display='none';v.style.display='block';v.src=p.url;document.getElementById('vpFileName').textContent=p.name;document.getElementById('vpControls').style.display='flex';v.play().catch(()=>{});document.getElementById('vpPlayBtn').innerHTML='<i class="fa-solid fa-pause"></i>';renderPl();}
+window.vpPlay=function(){if(v.paused){v.play();document.getElementById('vpPlayBtn').innerHTML='<i class="fa-solid fa-pause"></i>';}else{v.pause();document.getElementById('vpPlayBtn').innerHTML='<i class="fa-solid fa-play"></i>';}};
+window.vpStop=function(){v.pause();v.currentTime=0;document.getElementById('vpPlayBtn').innerHTML='<i class="fa-solid fa-play"></i>';};
+window.vpSeek=function(){v.currentTime=(document.getElementById('vpSeek').value/100)*v.duration;};
+window.vpUpdate=function(){if(!v.duration)return;document.getElementById('vpSeek').value=(v.currentTime/v.duration)*100;document.getElementById('vpCur').textContent=fmt(v.currentTime);document.getElementById('vpDur').textContent=fmt(v.duration);};
+window.vpMute=function(){v.muted=!v.muted;document.getElementById('vpMuteBtn').innerHTML=v.muted?'<i class="fa-solid fa-volume-xmark"></i>':'<i class="fa-solid fa-volume-high"></i>';};
+window.vpSetVol=function(){v.volume=document.getElementById('vpVol').value/100;};
+window.vpTogglePlaylist=function(){document.getElementById('vpPlaylist').classList.toggle('show');};
+window.vpFullscreen=function(){const el=document.getElementById('vpMain');if(el.requestFullscreen)el.requestFullscreen();else if(v.requestFullscreen)v.requestFullscreen();};
+window.vpEnded=function(){if(curIdx<playlist.length-1){curIdx++;vpLoad();}};
+function renderPl(){const l=document.getElementById('vpPlList');l.innerHTML='';playlist.forEach((p,i)=>{const d=document.createElement('div');d.className='vp-pl-item'+(i===curIdx?' active':'');d.innerHTML='<i class="fa-solid fa-film"></i>'+p.name;d.onclick=()=>{curIdx=i;vpLoad();};l.appendChild(d);});}
+v.addEventListener('click',vpPlay);
+})();
+</script>
+</div>

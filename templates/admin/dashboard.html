@@ -1,0 +1,275 @@
+{% extends "admin/layout.html" %}
+{% block title %}Admin Dashboard - JALAGEL OS Pro{% endblock %}
+{% block breadcrumb %}<i class="fa-solid fa-house"></i> Dashboard{% endblock %}
+{% block admin_content %}
+<!-- Stats Cards -->
+<div class="admin-stats-row">
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon users"><i class="fa-solid fa-users"></i></div>
+    <div class="admin-stat-info">
+      <span class="admin-stat-value">{{ stats.total_users }}</span>
+      <span class="admin-stat-label">Total Users</span>
+    </div>
+    <div class="admin-stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> +{{ stats.new_users_today|default(0) }} today</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon licenses"><i class="fa-solid fa-id-card"></i></div>
+    <div class="admin-stat-info">
+      <span class="admin-stat-value">{{ stats.active_licenses|default(0) }}</span>
+      <span class="admin-stat-label">Active Licenses</span>
+    </div>
+    <div class="admin-stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> {{ stats.premium_users }} paid</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon revenue"><i class="fa-solid fa-dollar-sign"></i></div>
+    <div class="admin-stat-info">
+      <span class="admin-stat-value">${{ "%.0f"|format(stats.monthly_revenue|default(0)) }}</span>
+      <span class="admin-stat-label">Revenue (This Month)</span>
+    </div>
+    <div class="admin-stat-change up"><i class="fa-solid fa-arrow-trend-up"></i> +12%</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon certs"><i class="fa-solid fa-certificate"></i></div>
+    <div class="admin-stat-info">
+      <span class="admin-stat-value">{{ stats.total_certs }}</span>
+      <span class="admin-stat-label">Certificates Issued</span>
+    </div>
+    <div class="admin-stat-change">{{ stats.pending_certs }} pending</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon apps"><i class="fa-solid fa-rocket"></i></div>
+    <div class="admin-stat-info">
+      <span class="admin-stat-value">{{ stats.total_apps }}</span>
+      <span class="admin-stat-label">Apps Available</span>
+    </div>
+    <div class="admin-stat-change">{{ stats.total_launches|default(0) }} launches</div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon health"><i class="fa-solid fa-heart-pulse"></i></div>
+    <div class="admin-stat-info">
+      <span class="admin-stat-value" style="color:var(--color-success)">98%</span>
+      <span class="admin-stat-label">System Health</span>
+    </div>
+    <div class="admin-stat-change up" style="color:var(--color-success)"><i class="fa-solid fa-check"></i> All good</div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="admin-charts-row">
+  <div class="admin-chart-card large">
+    <div class="admin-chart-header">
+      <h3><i class="fa-solid fa-chart-line" style="color:var(--color-primary)"></i> Revenue Overview</h3>
+      <select class="admin-chart-filter" id="revenueFilter" onchange="updateRevenueChart(this.value)">
+        <option value="6">Last 6 Months</option>
+        <option value="12">Last 12 Months</option>
+      </select>
+    </div>
+    <div class="admin-chart-body"><canvas id="revenueChart"></canvas></div>
+  </div>
+  <div class="admin-chart-card">
+    <div class="admin-chart-header">
+      <h3><i class="fa-solid fa-chart-pie" style="color:var(--color-accent)"></i> License Distribution</h3>
+    </div>
+    <div class="admin-chart-body"><canvas id="licensePieChart"></canvas></div>
+  </div>
+</div>
+
+<!-- Second Charts Row -->
+<div class="admin-charts-row">
+  <div class="admin-chart-card">
+    <div class="admin-chart-header">
+      <h3><i class="fa-solid fa-chart-column" style="color:var(--color-success)"></i> User Signups</h3>
+      <span style="font-size:0.75rem;color:var(--text-secondary)">Last 30 days</span>
+    </div>
+    <div class="admin-chart-body"><canvas id="signupChart"></canvas></div>
+  </div>
+  <div class="admin-chart-card">
+    <div class="admin-chart-header">
+      <h3><i class="fa-solid fa-chart-pie" style="color:var(--color-warning)"></i> Certificate Types</h3>
+    </div>
+    <div class="admin-chart-body"><canvas id="certPieChart"></canvas></div>
+  </div>
+  <div class="admin-chart-card">
+    <div class="admin-chart-header">
+      <h3><i class="fa-solid fa-server" style="color:var(--color-secondary)"></i> System Status</h3>
+    </div>
+    <div class="admin-chart-body">
+      <div class="admin-sys-status">
+        <div class="admin-sys-item">
+          <div class="admin-sys-label"><i class="fa-solid fa-microchip"></i> CPU</div>
+          <div class="admin-sys-bar"><div class="admin-sys-fill" style="width:{{ sys.cpu|default(32) }}%;background:linear-gradient(90deg,var(--color-primary),var(--color-secondary))"></div></div>
+          <div class="admin-sys-value">{{ sys.cpu|default(32) }}%</div>
+        </div>
+        <div class="admin-sys-item">
+          <div class="admin-sys-label"><i class="fa-solid fa-memory"></i> RAM</div>
+          <div class="admin-sys-bar"><div class="admin-sys-fill" style="width:{{ sys.ram|default(58) }}%;background:linear-gradient(90deg,var(--color-accent),#0891B2)"></div></div>
+          <div class="admin-sys-value">{{ sys.ram|default(58) }}%</div>
+        </div>
+        <div class="admin-sys-item">
+          <div class="admin-sys-label"><i class="fa-solid fa-hard-drive"></i> Disk</div>
+          <div class="admin-sys-bar"><div class="admin-sys-fill" style="width:{{ sys.disk|default(42) }}%;background:linear-gradient(90deg,var(--color-success),#059669)"></div></div>
+          <div class="admin-sys-value">{{ sys.disk|default(42) }}%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tables Row -->
+<div class="admin-tables-row">
+  <div class="admin-table-card">
+    <div class="admin-table-header">
+      <h3><i class="fa-solid fa-users" style="color:var(--color-primary)"></i> Recent Users</h3>
+      <a href="{{ url_for('admin_users') }}" class="admin-table-link">View All <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr><th>User</th><th>Email</th><th>Tier</th><th>Joined</th></tr>
+        </thead>
+        <tbody>
+          {% for user in recent_users[:8] %}
+          <tr>
+            <td>
+              <div class="admin-user-cell">
+                <div class="admin-user-avatar-sm">{{ user.username[0]|upper }}</div>
+                <div><strong>{{ user.username }}</strong>{% if user.full_name %}<span>{{ user.full_name }}</span>{% endif %}</div>
+              </div>
+            </td>
+            <td>{{ user.email }}</td>
+            <td><span class="admin-badge tier-{{ user.license_tier }}">{{ user.license_tier|title }}</span></td>
+            <td>{{ user.created_at|date }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="admin-table-card">
+    <div class="admin-table-header">
+      <h3><i class="fa-solid fa-certificate" style="color:var(--color-accent)"></i> Recent Purchases</h3>
+      <a href="{{ url_for('admin_certificates') }}" class="admin-table-link">View All <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr><th>Certificate</th><th>User</th><th>Status</th><th>Price</th></tr>
+        </thead>
+        <tbody>
+          {% for cert in recent_certs[:8] %}
+          <tr>
+            <td><strong>{{ cert.cert_name }}</strong></td>
+            <td>{{ cert.owner.username if cert.owner else 'Unknown' }}</td>
+            <td><span class="admin-badge status-{{ cert.status }}">{{ cert.status|title }}</span></td>
+            <td>${{ "%.2f"|format(cert.price_paid) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="admin-quick-actions">
+  <h3 class="admin-section-title"><i class="fa-solid fa-bolt" style="color:var(--color-warning)"></i> Quick Actions</h3>
+  <div class="admin-actions-row">
+    <button class="admin-action-btn" onclick="openModal('addUserModal')">
+      <i class="fa-solid fa-user-plus"></i><span>Add User</span>
+    </button>
+    <button class="admin-action-btn" onclick="openModal('issueCertModal')">
+      <i class="fa-solid fa-certificate"></i><span>Issue Certificate</span>
+    </button>
+    <button class="admin-action-btn" onclick="showToast('Report generator coming soon','info')">
+      <i class="fa-solid fa-file-lines"></i><span>View Reports</span>
+    </button>
+    <button class="admin-action-btn" onclick="generateLicenseKey()">
+      <i class="fa-solid fa-key"></i><span>Generate License</span>
+    </button>
+    <button class="admin-action-btn" onclick="showToast('Backup started','success')">
+      <i class="fa-solid fa-cloud-arrow-up"></i><span>Backup Now</span>
+    </button>
+    <button class="admin-action-btn" onclick="window.open('{{ url_for('health_check') }}','_blank')">
+      <i class="fa-solid fa-heart-pulse"></i><span>Health Check</span>
+    </button>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="admin-modal" id="addUserModal">
+  <div class="admin-modal-content">
+    <div class="admin-modal-header">
+      <h3><i class="fa-solid fa-user-plus"></i> Add New User</h3>
+      <button class="admin-modal-close" onclick="closeModal('addUserModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form method="POST" action="{{ url_for('api_admin_create_user') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="admin-modal-body">
+        <div class="profile-form-group"><label class="profile-form-label">Username</label><input type="text" name="username" class="profile-form-input" required minlength="3"></div>
+        <div class="profile-form-group"><label class="profile-form-label">Email</label><input type="email" name="email" class="profile-form-input" required></div>
+        <div class="profile-form-group"><label class="profile-form-label">Full Name</label><input type="text" name="full_name" class="profile-form-input"></div>
+        <div class="profile-form-group"><label class="profile-form-label">Password</label><input type="password" name="password" class="profile-form-input" required minlength="6"></div>
+        <div class="profile-form-group">
+          <label class="profile-form-label">Role</label>
+          <select name="role" class="profile-form-input"><option value="user">User</option><option value="admin">Admin</option></select>
+        </div>
+        <div class="profile-form-group">
+          <label class="profile-form-label">License Tier</label>
+          <select name="license_tier" class="profile-form-input"><option value="free">Free</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option></select>
+        </div>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="profile-btn-outline" onclick="closeModal('addUserModal')">Cancel</button>
+        <button type="submit" class="profile-btn"><i class="fa-solid fa-plus"></i> Add User</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Issue Certificate Modal -->
+<div class="admin-modal" id="issueCertModal">
+  <div class="admin-modal-content">
+    <div class="admin-modal-header">
+      <h3><i class="fa-solid fa-certificate"></i> Issue Certificate</h3>
+      <button class="admin-modal-close" onclick="closeModal('issueCertModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form method="POST" action="{{ url_for('api_admin_issue_cert') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="admin-modal-body">
+        <div class="profile-form-group"><label class="profile-form-label">User ID</label><input type="number" name="user_id" class="profile-form-input" required></div>
+        <div class="profile-form-group"><label class="profile-form-label">Certificate Name</label><input type="text" name="cert_name" class="profile-form-input" required></div>
+        <div class="profile-form-group"><label class="profile-form-label">Domain</label><input type="text" name="domain" class="profile-form-input" placeholder="example.com"></div>
+        <div class="profile-form-group">
+          <label class="profile-form-label">Certificate Type</label>
+          <select name="cert_type" class="profile-form-input">
+            <option value="ssl">DV SSL</option><option value="ov">OV SSL</option><option value="ev">EV SSL</option>
+            <option value="wildcard">Wildcard</option><option value="san">Multi-Domain (SAN)</option><option value="code">Code Signing</option>
+          </select>
+        </div>
+        <div class="profile-form-group"><label class="profile-form-label">Price Paid ($)</label><input type="number" name="price_paid" class="profile-form-input" step="0.01" value="9.99"></div>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="profile-btn-outline" onclick="closeModal('issueCertModal')">Cancel</button>
+        <button type="submit" class="profile-btn"><i class="fa-solid fa-plus"></i> Issue Certificate</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block admin_extra_js %}
+<script>
+/* Revenue Chart */
+var revCtx=document.getElementById('revenueChart').getContext('2d');
+var revenueChart=new Chart(revCtx,{type:'line',data:{labels:['Jan','Feb','Mar','Apr','May','Jun'],datasets:[{label:'Revenue ($)',data:{{ revenue_data|default('[1200,1900,1500,2400,2100,2800]')|safe }},borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,0.1)',fill:true,tension:0.4,borderWidth:2,pointBackgroundColor:'#7C3AED',pointRadius:4,pointHoverRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false,color:'#334155'},ticks:{color:'#94A3B8'}},y:{grid:{color:'rgba(51,65,85,0.3)'},ticks:{color:'#94A3B8',callback:function(v){return'$'+v}}}}});
+/* License Distribution Pie */
+var pieCtx=document.getElementById('licensePieChart').getContext('2d');
+new Chart(pieCtx,{type:'doughnut',data:{labels:['Free','Pro','Enterprise'],datasets:[{data:[{{ stats.free_users }},{{ stats.pro_users|default(0) }},{{ stats.enterprise_users|default(0) }}],backgroundColor:['#334155','#06B6D4','#7C3AED'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#94A3B8',padding:16,usePointStyle:true}}},cutout:'65%'}});
+/* User Signups Bar Chart */
+var signupCtx=document.getElementById('signupChart').getContext('2d');
+new Chart(signupCtx,{type:'bar',data:{labels:{{ signup_labels|default('["W1","W2","W3","W4"]')|safe }},datasets:[{label:'Signups',data:{{ signup_data|default('[12,19,15,28]')|safe }},backgroundColor:'rgba(16,185,129,0.7)',borderRadius:6,hoverBackgroundColor:'#10B981'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#94A3B8'}},y:{grid:{color:'rgba(51,65,85,0.3)'},ticks:{color:'#94A3B8'}}}}});
+/* Certificate Types Pie */
+var certCtx=document.getElementById('certPieChart').getContext('2d');
+new Chart(certCtx,{type:'doughnut',data:{labels:['DV SSL','OV SSL','EV SSL','Wildcard','SAN','Code'],datasets:[{data:[{{ cert_dist|default('[8,4,2,3,1,2]')|safe }}],backgroundColor:['#7C3AED','#EC4899','#06B6D4','#10B981','#F59E0B','#EF4444'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#94A3B8',padding:12,usePointStyle:true,font:{size:11}}}},cutout:'55%'}});
+function updateRevenueChart(v){var months=v==='12'?['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']:['Jan','Feb','Mar','Apr','May','Jun'];var data=v==='12'?[1200,1900,1500,2400,2100,2800,2600,3100,3400,2900,3800,4200]:[1200,1900,1500,2400,2100,2800];revenueChart.data.labels=months;revenueChart.data.datasets[0].data=data;revenueChart.update();}
+</script>
+{% endblock %}

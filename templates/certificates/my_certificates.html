@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}My Certificates - JALAGEL OS Pro{% endblock %}
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label"><i class="fa-solid fa-shield-halved"></i> My Certificates</div>
+            <h1 class="gradient-text">My Certificates</h1>
+        </div>
+        {% if certificates %}
+        <div class="grid grid-3">
+            {% for cert in certificates %}
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">{{ cert.cert_name }}</span>
+                    <span class="badge badge-{{ 'success' if cert.status == 'active' else 'warning' if cert.status == 'pending' else 'error' }}">
+                        {{ cert.status|title }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Domain:</strong> {{ cert.domain or 'N/A' }}</p>
+                    <p><strong>Issuer:</strong> {{ cert.issuer }}</p>
+                    <p><strong>Expiry:</strong> {{ cert.expiry_date|date }}</p>
+                    <p><strong>Days Remaining:</strong> {{ cert.days_until_expiry() }}</p>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('certificates_verify', cert_id=cert.id) }}" class="btn btn-sm btn-ghost">Verify</a>
+                    {% if cert.status == 'active' %}
+                    <button class="btn btn-sm btn-outline" onclick="renewCert({{ cert.id }})">Renew</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card text-center" style="padding:60px;">
+            <i class="fa-solid fa-shield-halved" style="font-size:3rem;color:var(--text-muted);margin-bottom:16px;"></i>
+            <h3>No Certificates Yet</h3>
+            <p>Visit the <a href="{{ url_for('certificates_store') }}">Certificate Store</a> to get started.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

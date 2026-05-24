@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Get Started - JALAGEL OS Pro{% endblock %}
+{% block extra_css %}
+<style>
+.reg-split{display:flex;min-height:100vh;background:var(--bg-primary)}
+.reg-brand{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px;position:relative;overflow:hidden;background:linear-gradient(135deg,#0F0F23 0%,#1A1A3E 50%,#0F0F23 100%)}
+.reg-brand::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(124,58,237,0.25) 0%,transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(236,72,153,0.15) 0%,transparent 50%);animation:brandGlow 8s ease-in-out infinite alternate}
+.reg-brand-content{position:relative;z-index:2;text-align:center;max-width:420px}
+.reg-logo{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:40px}
+.reg-logo-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--color-primary),var(--color-secondary));display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#fff;box-shadow:0 8px 32px rgba(124,58,237,0.4)}
+.reg-logo-text{font-family:'Space Grotesk',sans-serif;font-size:1.75rem;font-weight:700;color:var(--text-primary)}
+.reg-logo-pro{font-weight:400;color:var(--color-primary)}
+.reg-brand h1{font-size:2.5rem;font-weight:700;margin-bottom:16px;background:linear-gradient(135deg,var(--text-primary),var(--color-primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.reg-brand p{font-size:1.125rem;color:var(--text-secondary);margin-bottom:40px;line-height:1.7}
+.reg-features{text-align:left;list-style:none;padding:0}
+.reg-features li{display:flex;align-items:center;gap:12px;padding:10px 0;color:var(--text-secondary);font-size:0.9375rem}
+.reg-features li i{color:var(--color-success);font-size:1rem}
+.reg-form-side{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px;background:var(--bg-surface);border-left:1px solid var(--border-color);overflow-y:auto}
+.reg-form-container{width:100%;max-width:440px}
+.reg-form-header{margin-bottom:24px}
+.reg-form-header h2{font-size:1.875rem;font-weight:700;color:var(--text-primary);margin-bottom:8px}
+.reg-form-header p{color:var(--text-secondary);font-size:0.9375rem}
+.reg-social{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.reg-social-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border:1px solid var(--border-color);border-radius:12px;background:var(--bg-surface-light);color:var(--text-primary);font-size:0.875rem;cursor:pointer;transition:all .2s}
+.reg-social-btn:hover{border-color:var(--color-primary);background:rgba(124,58,237,0.08)}
+.reg-divider{display:flex;align-items:center;gap:16px;margin-bottom:20px;color:var(--text-secondary);font-size:0.8125rem}
+.reg-divider::before,.reg-divider::after{content:'';flex:1;height:1px;background:var(--border-color)}
+.auth-form-group{margin-bottom:16px}
+.auth-form-label{display:block;margin-bottom:6px;font-size:0.8125rem;font-weight:500;color:var(--text-secondary)}
+.auth-form-input-group{position:relative}
+.auth-form-input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:0.875rem;z-index:2}
+.auth-form-input{width:100%;padding:12px 14px 12px 42px;border:1px solid var(--border-color);border-radius:12px;background:var(--bg-primary);color:var(--text-primary);font-size:0.9375rem;transition:all .2s}
+.auth-form-input:focus{outline:none;border-color:var(--color-primary);box-shadow:0 0 0 3px rgba(124,58,237,0.15)}
+.auth-form-input::placeholder{color:var(--text-secondary);opacity:0.5}
+.auth-form-input.is-valid{border-color:var(--color-success)}
+.auth-form-input.is-invalid{border-color:var(--color-error)}
+.strength-bar{height:4px;border-radius:2px;background:var(--border-color);margin-top:6px;overflow:hidden}
+.strength-fill{height:100%;width:0;border-radius:2px;transition:all .3s ease}
+.strength-fill.weak{background:var(--color-error);width:33%}
+.strength-fill.fair{background:var(--color-warning);width:66%}
+.strength-fill.strong{background:var(--color-success);width:100%}
+.strength-text{font-size:0.75rem;margin-top:4px;font-weight:500}
+.strength-text.weak{color:var(--color-error)}
+.strength-text.fair{color:var(--color-warning)}
+.strength-text.strong{color:var(--color-success)}
+.terms-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:20px}
+.terms-row input{margin-top:3px}
+.terms-row label{font-size:0.8125rem;color:var(--text-secondary);line-height:1.5}
+.terms-row label a{color:var(--color-primary);text-decoration:none}
+.terms-row label a:hover{text-decoration:underline}
+.btn-register{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--color-primary),var(--color-secondary));color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(124,58,237,0.3)}
+.btn-register:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.4)}
+.btn-register:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+.reg-footer{text-align:center;margin-top:24px;color:var(--text-secondary);font-size:0.875rem}
+.reg-footer a{color:var(--color-primary);text-decoration:none;font-weight:500}
+.reg-footer a:hover{text-decoration:underline}
+.reg-success-overlay{position:fixed;inset:0;background:rgba(15,15,35,0.95);display:none;align-items:center;justify-content:center;z-index:9999;flex-direction:column;text-align:center;padding:40px}
+.reg-success-overlay.active{display:flex}
+.reg-success-icon{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--color-success),#059669);display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;margin-bottom:24px;box-shadow:0 8px 32px rgba(16,185,129,0.4);animation:successPop .5s ease}
+@keyframes successPop{0%{transform:scale(0)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+.reg-success-overlay h2{font-size:2rem;margin-bottom:12px;color:var(--text-primary)}
+.reg-success-overlay p{color:var(--text-secondary);margin-bottom:24px}
+@media(max-width:900px){.reg-brand{display:none}.reg-form-side{padding:40px 24px;border-left:none}}
+</style>
+{% endblock %}
+{% block main_class %}{% endblock %}
+{% block content %}
+<div class="reg-split">
+  <div class="reg-brand">
+    <div class="reg-brand-content">
+      <div class="reg-logo">
+        <div class="reg-logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+        <span class="reg-logo-text">JALAGEL <span class="reg-logo-pro">OS Pro</span></span>
+      </div>
+      <h1>Join JALAGEL OS Pro</h1>
+      <p>Get access to 50+ professional web apps, SSL certificates, and enterprise-grade tools.</p>
+      <ul class="reg-features">
+        <li><i class="fa-solid fa-check-circle"></i> Free tier with 10+ core apps</li>
+        <li><i class="fa-solid fa-check-circle"></i> Upgrade anytime to Pro or Enterprise</li>
+        <li><i class="fa-solid fa-check-circle"></i> SSL certificates starting at $9.99/yr</li>
+        <li><i class="fa-solid fa-check-circle"></i> No credit card required to start</li>
+      </ul>
+    </div>
+  </div>
+  <div class="reg-form-side">
+    <div class="reg-form-container">
+      <div class="reg-form-header">
+        <h2>Create Account</h2>
+        <p>Start your JALAGEL OS Pro journey for free</p>
+      </div>
+      {% with messages=get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div style="margin-bottom:16px">
+        {% for category,message in messages %}
+        <div style="padding:10px 14px;border-radius:12px;background:{{ 'rgba(16,185,129,0.1)' if category=='success' else 'rgba(239,68,68,0.1)' }};border:1px solid {{ 'rgba(16,185,129,0.2)' if category=='success' else 'rgba(239,68,68,0.2)' }};color:{{ 'var(--color-success)' if category=='success' else 'var(--color-error)' }};font-size:0.875rem;margin-bottom:8px;display:flex;align-items:center;gap:8px"><i class="fa-solid {{ 'fa-check-circle' if category=='success' else 'fa-circle-exclamation' }}"></i> {{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+      <div class="reg-social">
+        <button type="button" class="reg-social-btn" onclick="showToast('Google signup coming soon!','info')"><i class="fa-brands fa-google"></i> Google</button>
+        <button type="button" class="reg-social-btn" onclick="showToast('GitHub signup coming soon!','info')"><i class="fa-brands fa-github"></i> GitHub</button>
+      </div>
+      <div class="reg-divider"><span>or sign up with email</span></div>
+      <form method="POST" action="{{ url_for('auth_register') }}" id="registerForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="auth-form-group">
+          <label class="auth-form-label">Full Name</label>
+          <div class="auth-form-input-group">
+            <i class="fa-solid fa-user auth-form-input-icon"></i>
+            <input type="text" name="full_name" class="auth-form-input" placeholder="Your full name" required value="{{ request.form.full_name or '' }}">
+          </div>
+        </div>
+        <div class="auth-form-group">
+          <label class="auth-form-label">Username</label>
+          <div class="auth-form-input-group">
+            <i class="fa-solid fa-at auth-form-input-icon"></i>
+            <input type="text" name="username" class="auth-form-input" id="regUsername" placeholder="Choose a unique username" required minlength="3" maxlength="30" value="{{ request.form.username or '' }}">
+          </div>
+          <small style="color:var(--text-secondary);font-size:0.75rem;margin-top:4px;display:block">3-30 characters, letters, numbers, underscores</small>
+        </div>
+        <div class="auth-form-group">
+          <label class="auth-form-label">Email</label>
+          <div class="auth-form-input-group">
+            <i class="fa-solid fa-envelope auth-form-input-icon"></i>
+            <input type="email" name="email" class="auth-form-input" placeholder="your@email.com" required value="{{ request.form.email or '' }}">
+          </div>
+        </div>
+        <div class="auth-form-group">
+          <label class="auth-form-label">Password</label>
+          <div class="auth-form-input-group">
+            <i class="fa-solid fa-lock auth-form-input-icon"></i>
+            <input type="password" name="password" class="auth-form-input" id="regPassword" placeholder="Create a strong password" required minlength="6" oninput="checkStrength(this.value)">
+          </div>
+          <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+          <div class="strength-text" id="strengthText"></div>
+        </div>
+        <div class="auth-form-group">
+          <label class="auth-form-label">Confirm Password</label>
+          <div class="auth-form-input-group">
+            <i class="fa-solid fa-lock auth-form-input-icon"></i>
+            <input type="password" name="confirm_password" class="auth-form-input" id="regConfirm" placeholder="Confirm your password" required minlength="6" oninput="checkMatch()">
+          </div>
+          <small id="matchText" style="font-size:0.75rem;margin-top:4px;display:none"></small>
+        </div>
+        <div class="terms-row">
+          <input type="checkbox" name="terms" id="termsCheck" required onchange="toggleSubmit()">
+          <label for="termsCheck">I agree to the <a href="#" onclick="event.preventDefault();showToast('Terms page coming soon!','info')">Terms of Service</a> and <a href="#" onclick="event.preventDefault();showToast('Privacy policy coming soon!','info')">Privacy Policy</a></label>
+        </div>
+        <button type="submit" class="btn-register" id="regBtn"><i class="fa-solid fa-rocket"></i> Create Account</button>
+      </form>
+      <div class="reg-footer">Already have an account? <a href="{{ url_for('auth_login') }}">Sign in</a></div>
+    </div>
+  </div>
+</div>
+<div class="reg-success-overlay" id="regSuccess">
+  <div class="reg-success-icon"><i class="fa-solid fa-check"></i></div>
+  <h2>Account Created!</h2>
+  <p>Welcome to JALAGEL OS Pro. Redirecting you to your desktop...</p>
+  <div style="width:200px;height:4px;background:var(--border-color);border-radius:2px;overflow:hidden;margin:0 auto">
+    <div style="height:100%;background:linear-gradient(90deg,var(--color-primary),var(--color-secondary));border-radius:2px;animation:loadBar 2s ease forwards"></div>
+  </div>
+  <style>@keyframes loadBar{from{width:0}to{width:100%}}</style>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function checkStrength(v){var f=document.getElementById('strengthFill'),t=document.getElementById('strengthText');if(!v){f.className='strength-fill';t.className='strength-text';t.textContent='';return}var s=0;if(v.length>=8)s++;if(v.length>=12)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;f.className='strength-fill '+(s<=2?'weak':s<=4?'fair':'strong');t.className='strength-text '+(s<=2?'weak':s<=4?'fair':'strong');t.textContent=s<=2?'Weak':s<=4?'Fair':'Strong'}
+function checkMatch(){var p=document.getElementById('regPassword').value,c=document.getElementById('regConfirm').value,m=document.getElementById('matchText');if(!c){m.style.display='none';return}m.style.display='block';if(p===c){m.textContent='Passwords match';m.style.color='var(--color-success)'}else{m.textContent='Passwords do not match';m.style.color='var(--color-error)'}}
+function toggleSubmit(){var btn=document.getElementById('regBtn'),terms=document.getElementById('termsCheck');btn.disabled=!terms.checked}
+function showToast(m,t){var d=document.createElement('div');d.style.cssText='position:fixed;top:20px;right:20px;padding:14px 20px;border-radius:12px;color:#fff;font-size:0.875rem;z-index:9999;animation:toastIn .3s ease;background:'+(t==='info'?'linear-gradient(135deg,#06B6D4,#0891B2)':'linear-gradient(135deg,#7C3AED,#6D28D9)')+';';d.textContent=m;document.body.appendChild(d);setTimeout(function(){d.style.animation='toastOut .3s ease';setTimeout(function(){d.remove()},300)},3000)}
+var s=document.createElement('style');s.textContent='@keyframes toastIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes toastOut{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}';document.head.appendChild(s);
+document.getElementById('registerForm').addEventListener('submit',function(){var btn=document.getElementById('regBtn');btn.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i> Creating account...';btn.disabled=true;});
+toggleSubmit();
+</script>
+{% endblock %}

@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+{% block title %}Profile - {{ current_user.username }} - JALAGEL OS Pro{% endblock %}
+{% block extra_css %}
+<style>
+.profile-header{background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(236,72,153,0.1));border:1px solid var(--border-color);border-radius:16px;padding:40px;margin-bottom:32px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.profile-avatar{width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--color-primary),var(--color-secondary));display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:#fff;font-weight:700;flex-shrink:0;overflow:hidden;border:3px solid rgba(124,58,237,0.3)}
+.profile-avatar img{width:100%;height:100%;object-fit:cover}
+.profile-info{flex:1;min-width:200px}
+.profile-info h1{font-size:1.75rem;font-weight:700;color:var(--text-primary);margin-bottom:4px}
+.profile-info p{color:var(--text-secondary);font-size:0.9375rem;margin-bottom:8px}
+.profile-role-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.profile-role-badge.admin{background:rgba(124,58,237,0.15);color:var(--color-primary)}
+.profile-role-badge.user{background:rgba(6,182,212,0.15);color:var(--color-accent)}
+.profile-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border-color);margin-bottom:32px;overflow-x:auto}
+.profile-tab{padding:12px 20px;font-size:0.875rem;font-weight:500;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;background:none;border:none}
+.profile-tab:hover{color:var(--text-primary)}
+.profile-tab.active{color:var(--color-primary);border-bottom-color:var(--color-primary)}
+.profile-panel{display:none;animation:fadeIn .3s ease}
+.profile-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.profile-card{background:var(--bg-surface);border:1px solid var(--border-color);border-radius:16px;padding:28px}
+.profile-card h3{font-size:1.125rem;font-weight:600;color:var(--text-primary);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.profile-card h3 i{color:var(--color-primary)}
+.profile-form-group{margin-bottom:20px}
+.profile-form-label{display:block;margin-bottom:6px;font-size:0.8125rem;font-weight:500;color:var(--text-secondary)}
+.profile-form-input{width:100%;padding:12px 14px;border:1px solid var(--border-color);border-radius:12px;background:var(--bg-primary);color:var(--text-primary);font-size:0.9375rem;transition:all .2s}
+.profile-form-input:focus{outline:none;border-color:var(--color-primary);box-shadow:0 0 0 3px rgba(124,58,237,0.15)}
+.profile-form-input:disabled{opacity:0.6;cursor:not-allowed}
+.profile-btn{padding:12px 24px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--color-primary),var(--color-secondary));color:#fff;font-size:0.875rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.profile-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(124,58,237,0.3)}
+.profile-btn-outline{padding:12px 24px;border:1px solid var(--border-color);border-radius:12px;background:transparent;color:var(--text-primary);font-size:0.875rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.profile-btn-outline:hover{border-color:var(--color-primary);color:var(--color-primary)}
+.profile-btn-danger{padding:12px 24px;border:1px solid var(--color-error);border-radius:12px;background:rgba(239,68,68,0.1);color:var(--color-error);font-size:0.875rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.profile-btn-danger:hover{background:rgba(239,68,68,0.2)}
+.avatar-upload{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.avatar-preview{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--color-primary),var(--color-secondary));display:flex;align-items:center;justify-content:center;font-size:1.75rem;color:#fff;overflow:hidden;border:2px dashed var(--border-color);cursor:pointer;transition:all .2s}
+.avatar-preview:hover{border-color:var(--color-primary)}
+.license-card{background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(236,72,153,0.05));border:1px solid rgba(124,58,237,0.2);border-radius:16px;padding:24px;margin-bottom:20px;text-align:center}
+.license-card h4{font-size:1.25rem;font-weight:700;color:var(--text-primary);margin-bottom:8px}
+.license-card .license-tier{font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--color-primary),var(--color-secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-transform:uppercase}
+.license-card .license-key{font-family:'JetBrains Mono',monospace;font-size:0.8125rem;color:var(--text-secondary);background:var(--bg-primary);padding:8px 16px;border-radius:8px;display:inline-block;margin:12px 0}
+.license-card .license-expiry{color:var(--text-secondary);font-size:0.875rem}
+.license-features{list-style:none;padding:0;margin:0}
+.license-features li{display:flex;align-items:center;gap:10px;padding:8px 0;color:var(--text-secondary);font-size:0.875rem;border-bottom:1px solid var(--border-color)}
+.license-features li:last-child{border-bottom:none}
+.license-features li i{color:var(--color-success);width:16px}
+.license-features li.missing i{color:var(--color-error)}
+.session-item{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border-color)}
+.session-item:last-child{border-bottom:none}
+.session-info{display:flex;align-items:center;gap:12px}
+.session-icon{width:36px;height:36px;border-radius:10px;background:var(--bg-surface-light);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:0.875rem}
+.session-details{flex:1}
+.session-details strong{font-size:0.875rem;color:var(--text-primary)}
+.session-details span{font-size:0.75rem;color:var(--text-secondary);display:block}
+.session-current{font-size:0.6875rem;padding:2px 8px;border-radius:10px;background:rgba(16,185,129,0.15);color:var(--color-success);font-weight:600;margin-left:8px}
+.activity-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border-color)}
+.activity-item:last-child{border-bottom:none}
+.activity-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:0.875rem}
+.activity-icon.login{background:rgba(124,58,237,0.15);color:var(--color-primary)}
+.activity-icon.app{background:rgba(6,182,212,0.15);color:var(--color-accent)}
+.activity-icon.cert{background:rgba(16,185,129,0.15);color:var(--color-success)}
+.activity-details{flex:1}
+.activity-details strong{font-size:0.875rem;color:var(--text-primary)}
+.activity-details span{font-size:0.75rem;color:var(--text-secondary);display:block}
+.activity-time{font-size:0.75rem;color:var(--text-secondary);white-space:nowrap}
+.toggle-switch{position:relative;display:inline-block;width:44px;height:24px}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--border-color);transition:.3s;border-radius:24px}
+.toggle-slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;transition:.3s;border-radius:50%}
+.toggle-switch input:checked+.toggle-slider{background:var(--color-primary)}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(20px)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border-color)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-row-info h4{font-size:0.9375rem;color:var(--text-primary);margin-bottom:2px}
+.toggle-row-info p{font-size:0.75rem;color:var(--text-secondary)}
+.delete-section{margin-top:32px;padding-top:24px;border-top:2px solid rgba(239,68,68,0.2)}
+.delete-section h3{color:var(--color-error);margin-bottom:8px}
+.delete-section p{font-size:0.8125rem;color:var(--text-secondary);margin-bottom:16px}
+@media(max-width:768px){.profile-header{padding:24px;text-align:center;flex-direction:column}.profile-grid{grid-template-columns:1fr}.profile-tabs{gap:0}}
+</style>
+{% endblock %}
+{% block main_class %}main-content{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="profile-header">
+      <div class="profile-avatar" id="profileAvatar">
+        {% if current_user.avatar and current_user.avatar != 'default-avatar.svg' %}
+        <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}" alt="{{ current_user.username }}">
+        {% else %}
+        {{ current_user.username[0]|upper }}
+        {% endif %}
+      </div>
+      <div class="profile-info">
+        <h1>{{ current_user.full_name or current_user.username }}</h1>
+        <p><i class="fa-solid fa-envelope"></i> {{ current_user.email }} &middot; <i class="fa-solid fa-at"></i> {{ current_user.username }}</p>
+        <span class="profile-role-badge {{ current_user.role }}"><i class="fa-solid {{ 'fa-shield-halved' if current_user.is_admin() else 'fa-user' }}"></i> {{ current_user.role|title }}</span>
+        <span class="profile-role-badge {{ current_user.license_tier }}" style="margin-left:8px;background:{{ 'rgba(124,58,237,0.15)' if current_user.license_tier=='enterprise' else 'rgba(6,182,212,0.15)' if current_user.license_tier=='pro' else 'rgba(148,163,184,0.15)' }};color:{{ 'var(--color-primary)' if current_user.license_tier=='enterprise' else 'var(--color-accent)' if current_user.license_tier=='pro' else 'var(--text-secondary)' }}"><i class="fa-solid fa-gem"></i> {{ current_user.license_tier|title }}</span>
+      </div>
+    </div>
+
+    <div class="profile-tabs">
+      <button class="profile-tab active" data-tab="profile"><i class="fa-solid fa-user"></i> Profile</button>
+      <button class="profile-tab" data-tab="security"><i class="fa-solid fa-shield-halved"></i> Security</button>
+      <button class="profile-tab" data-tab="license"><i class="fa-solid fa-id-card"></i> License</button>
+      <button class="profile-tab" data-tab="activity"><i class="fa-solid fa-clock-rotate-left"></i> Activity</button>
+    </div>
+
+    <!-- Profile Tab -->
+    <div class="profile-panel active" id="panel-profile">
+      <div class="profile-grid">
+        <div class="profile-card">
+          <h3><i class="fa-solid fa-pen-to-square"></i> Edit Profile</h3>
+          <form method="POST" action="{{ url_for('auth_profile') }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="update_profile">
+            <div class="avatar-upload">
+              <div class="profile-avatar avatar-preview" style="width:64px;height:64px;font-size:1.5rem;margin:0" onclick="document.getElementById('avatarInput').click()">
+                {% if current_user.avatar and current_user.avatar != 'default-avatar.svg' %}
+                <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}" alt="{{ current_user.username }}" style="width:100%;height:100%;object-fit:cover">
+                {% else %}
+                {{ current_user.username[0]|upper }}
+                {% endif %}
+              </div>
+              <div>
+                <button type="button" class="profile-btn-outline" style="padding:8px 16px;font-size:0.8125rem" onclick="document.getElementById('avatarInput').click()"><i class="fa-solid fa-camera"></i> Change Avatar</button>
+                <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarChange(this)">
+                <p style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px">JPG, PNG up to 2MB</p>
+              </div>
+            </div>
+            <div class="profile-form-group">
+              <label class="profile-form-label">Full Name</label>
+              <input type="text" name="full_name" class="profile-form-input" value="{{ current_user.full_name or '' }}" placeholder="Your full name">
+            </div>
+            <div class="profile-form-group">
+              <label class="profile-form-label">Email</label>
+              <input type="email" name="email" class="profile-form-input" value="{{ current_user.email }}" placeholder="your@email.com" required>
+            </div>
+            <div class="profile-form-group">
+              <label class="profile-form-label">Bio</label>
+              <textarea name="bio" class="profile-form-input" rows="3" placeholder="Tell us about yourself..." style="resize:vertical">{{ current_user.bio or '' }}</textarea>
+            </div>
+            <button type="submit" class="profile-btn"><i class="fa-solid fa-save"></i> Save Changes</button>
+          </form>
+        </div>
+        <div class="profile-card">
+          <h3><i class="fa-solid fa-circle-info"></i> Account Information</h3>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-color)">
+              <span style="color:var(--text-secondary);font-size:0.875rem">Member Since</span>
+              <strong style="color:var(--text-primary);font-size:0.875rem">{{ current_user.created_at|date }}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-color)">
+              <span style="color:var(--text-secondary);font-size:0.875rem">Last Login</span>
+              <strong style="color:var(--text-primary);font-size:0.875rem">{{ current_user.last_login|datetime if current_user.last_login else 'Never' }}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-color)">
+              <span style="color:var(--text-secondary);font-size:0.875rem">License</span>
+              <strong style="color:var(--text-primary);font-size:0.875rem">{{ current_user.license_tier|title }}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-color)">
+              <span style="color:var(--text-secondary);font-size:0.875rem">Status</span>
+              <strong style="color:{{ 'var(--color-success)' if current_user.is_active else 'var(--color-error)' }};font-size:0.875rem">{{ 'Active' if current_user.is_active else 'Inactive' }}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-color)">
+              <span style="color:var(--text-secondary);font-size:0.875rem">Account ID</span>
+              <strong style="color:var(--text-primary);font-size:0.875rem;font-family:'JetBrains Mono',monospace">#{{ current_user.id }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Tab -->
+    <div class="profile-panel" id="panel-security">
+      <div class="profile-grid">
+        <div class="profile-card">
+          <h3><i class="fa-solid fa-key"></i> Change Password</h3>
+          <form method="POST" action="{{ url_for('auth_profile') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="change_password">
+            <div class="profile-form-group">
+              <label class="profile-form-label">Current Password</label>
+              <input type="password" name="current_password" class="profile-form-input" placeholder="Enter current password" required>
+            </div>
+            <div class="profile-form-group">
+              <label class="profile-form-label">New Password</label>
+              <input type="password" name="new_password" class="profile-form-input" placeholder="Enter new password (min 6 chars)" required minlength="6">
+            </div>
+            <div class="profile-form-group">
+              <label class="profile-form-label">Confirm New Password</label>
+              <input type="password" name="confirm_password" class="profile-form-input" placeholder="Confirm new password" required minlength="6">
+            </div>
+            <button type="submit" class="profile-btn"><i class="fa-solid fa-key"></i> Update Password</button>
+          </form>
+        </div>
+        <div class="profile-card">
+          <h3><i class="fa-solid fa-shield-halved"></i> Security Settings</h3>
+          <div class="toggle-row">
+            <div class="toggle-row-info">
+              <h4>Two-Factor Authentication</h4>
+              <p>Add an extra layer of security to your account</p>
+            </div>
+            <label class="toggle-switch"><input type="checkbox" id="tfaToggle" onchange="toggleTFA()"><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-row-info">
+              <h4>Login Notifications</h4>
+              <p>Get notified when someone logs into your account</p>
+            </div>
+            <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-row-info">
+              <h4>Email Verification</h4>
+              <p>Your email is {{ 'verified' if current_user.email_verified else 'not verified' }}</p>
+            </div>
+            {% if not current_user.email_verified %}
+            <button type="button" class="profile-btn-outline" style="padding:6px 14px;font-size:0.75rem" onclick="verifyEmail()"><i class="fa-solid fa-envelope"></i> Verify</button>
+            {% else %}
+            <i class="fa-solid fa-circle-check" style="color:var(--color-success);font-size:1.25rem"></i>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="profile-card" style="margin-top:24px">
+        <h3><i class="fa-solid fa-desktop"></i> Active Sessions</h3>
+        <div class="session-item">
+          <div class="session-info">
+            <div class="session-icon"><i class="fa-solid fa-globe"></i></div>
+            <div class="session-details">
+              <strong>Current Browser</strong>
+              <span>Web Session &middot; Now</span>
+            </div>
+          </div>
+          <span class="session-current">CURRENT</span>
+        </div>
+        <div class="session-item">
+          <div class="session-info">
+            <div class="session-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+            <div class="session-details">
+              <strong>Mobile App</strong>
+              <span>Last active: 2 days ago</span>
+            </div>
+          </div>
+          <button type="button" class="profile-btn-danger" style="padding:6px 12px;font-size:0.75rem" onclick="revokeSession(this)"><i class="fa-solid fa-xmark"></i> Revoke</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- License Tab -->
+    <div class="profile-panel" id="panel-license">
+      <div class="profile-grid">
+        <div class="profile-card" style="grid-column:1/-1">
+          <div class="license-card">
+            <h4>Your License</h4>
+            <div class="license-tier">{{ current_user.license_tier }}</div>
+            <div class="license-key">{{ current_user.license_key[:16] }}...{{ current_user.license_key[-8:] }}</div>
+            {% if current_user.license_expires %}
+            <div class="license-expiry"><i class="fa-solid fa-clock"></i> Expires: {{ current_user.license_expires|date }} ({{ current_user.days_until_expiry() }} days remaining)</div>
+            {% else %}
+            <div class="license-expiry"><i class="fa-solid fa-infinity"></i> No expiration</div>
+            {% endif %}
+            <div style="margin-top:16px">
+              <a href="{{ url_for('pricing') }}" class="profile-btn"><i class="fa-solid fa-arrow-up"></i> Upgrade License</a>
+            </div>
+          </div>
+          <h3 style="margin-top:24px"><i class="fa-solid fa-list-check"></i> Features Included</h3>
+          <ul class="license-features">
+            <li><i class="fa-solid fa-check"></i> Core OS Desktop with 10+ Apps</li>
+            <li><i class="fa-solid fa-check"></i> File Manager with Cloud Storage</li>
+            <li><i class="fa-solid fa-check"></i> Notes, Todo, Calendar</li>
+            <li><i class="fa-solid fa-check"></i> Basic SSL Certificates</li>
+            <li class="{{ '' if current_user.is_premium() else 'missing' }}"><i class="fa-solid {{ 'fa-check' if current_user.is_premium() else 'fa-xmark' }}"></i> All 50+ Professional Apps</li>
+            <li class="{{ '' if current_user.is_premium() else 'missing' }}"><i class="fa-solid {{ 'fa-check' if current_user.is_premium() else 'fa-xmark' }}"></i> Advanced Certificate Management</li>
+            <li class="{{ '' if current_user.license_tier=='enterprise' else 'missing' }}"><i class="fa-solid {{ 'fa-check' if current_user.license_tier=='enterprise' else 'fa-xmark' }}"></i> Enterprise API Access</li>
+            <li class="{{ '' if current_user.license_tier=='enterprise' else 'missing' }}"><i class="fa-solid {{ 'fa-check' if current_user.license_tier=='enterprise' else 'fa-xmark' }}"></i> Custom Domain & White Label</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Tab -->
+    <div class="profile-panel" id="panel-activity">
+      <div class="profile-grid">
+        <div class="profile-card">
+          <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</h3>
+          <div class="activity-item">
+            <div class="activity-icon login"><i class="fa-solid fa-sign-in-alt"></i></div>
+            <div class="activity-details"><strong>Account Login</strong><span>Web Browser</span></div>
+            <div class="activity-time">Now</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon app"><i class="fa-solid fa-terminal"></i></div>
+            <div class="activity-details"><strong>Launched Terminal</strong><span>System App</span></div>
+            <div class="activity-time">2 hours ago</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon app"><i class="fa-solid fa-file-lines"></i></div>
+            <div class="activity-details"><strong>Created Note</strong><span>Personal</span></div>
+            <div class="activity-time">Yesterday</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon cert"><i class="fa-solid fa-certificate"></i></div>
+            <div class="activity-details"><strong>Purchased DV SSL</strong><span>$9.99</span></div>
+            <div class="activity-time">3 days ago</div>
+          </div>
+        </div>
+        <div class="profile-card">
+          <h3><i class="fa-solid fa-chart-simple"></i> Usage Statistics</h3>
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:0.875rem;color:var(--text-secondary)">App Launches</span><strong style="font-size:0.875rem">142</strong></div>
+              <div style="height:8px;background:var(--bg-surface-light);border-radius:4px;overflow:hidden"><div style="width:70%;height:100%;background:linear-gradient(90deg,var(--color-primary),var(--color-secondary));border-radius:4px"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:0.875rem;color:var(--text-secondary)">Files Created</span><strong style="font-size:0.875rem">38</strong></div>
+              <div style="height:8px;background:var(--bg-surface-light);border-radius:4px;overflow:hidden"><div style="width:45%;height:100%;background:linear-gradient(90deg,var(--color-accent),#0891B2);border-radius:4px"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:0.875rem;color:var(--text-secondary)">Notes</span><strong style="font-size:0.875rem">24</strong></div>
+              <div style="height:8px;background:var(--bg-surface-light);border-radius:4px;overflow:hidden"><div style="width:30%;height:100%;background:linear-gradient(90deg,var(--color-success),#059669);border-radius:4px"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:0.875rem;color:var(--text-secondary)">Certificates</span><strong style="font-size:0.875rem">3</strong></div>
+              <div style="height:8px;background:var(--bg-surface-light);border-radius:4px;overflow:hidden"><div style="width:15%;height:100%;background:linear-gradient(90deg,var(--color-warning),#D97706);border-radius:4px"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="profile-card" style="margin-top:24px">
+        <div class="delete-section">
+          <h3><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</h3>
+          <p>Once you delete your account, all your data will be permanently removed. This action cannot be undone.</p>
+          <button type="button" class="profile-btn-danger" onclick="confirmDelete()"><i class="fa-solid fa-trash"></i> Delete Account</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.querySelectorAll('.profile-tab').forEach(function(tab){tab.addEventListener('click',function(){document.querySelectorAll('.profile-tab').forEach(function(t){t.classList.remove('active')});this.classList.add('active');document.querySelectorAll('.profile-panel').forEach(function(p){p.classList.remove('active')});document.getElementById('panel-'+this.dataset.tab).classList.add('active')})});
+function handleAvatarChange(input){if(input.files&&input.files[0]){var reader=new FileReader();reader.onload=function(e){var img=input.closest('form').querySelector('.avatar-preview');img.innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover">'};reader.readAsDataURL(input.files[0])}}
+function toggleTFA(){var cb=document.getElementById('tfaToggle');if(cb.checked){showToast('2FA setup would open a modal here','info');setTimeout(function(){cb.checked=false},500)}}
+function verifyEmail(){showToast('Verification email sent! Check your inbox.','success')}
+function revokeSession(btn){if(confirm('Revoke this session? The device will be logged out.')){btn.closest('.session-item').remove();showToast('Session revoked.','success')}}
+function confirmDelete(){if(confirm('WARNING: This will permanently delete your account and all data. Are you sure?')){if(prompt('Type DELETE to confirm:')==='DELETE'){showToast('Account deletion request submitted.','info')}else{showToast('Deletion cancelled.','info')}}}
+function showToast(m,t){var d=document.createElement('div');d.style.cssText='position:fixed;top:20px;right:20px;padding:14px 20px;border-radius:12px;color:#fff;font-size:0.875rem;z-index:9999;animation:toastIn .3s ease;background:'+(t==='success'?'linear-gradient(135deg,#10B981,#059669)':t==='error'?'linear-gradient(135deg,#EF4444,#DC2626)':'linear-gradient(135deg,#7C3AED,#6D28D9)')+';';d.textContent=m;document.body.appendChild(d);setTimeout(function(){d.style.animation='toastOut .3s ease';setTimeout(function(){d.remove()},300)},3000)}
+var s=document.createElement('style');s.textContent='@keyframes toastIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes toastOut{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}';document.head.appendChild(s);
+</script>
+{% endblock %}

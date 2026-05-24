@@ -1,0 +1,123 @@
+<div class="app-container" data-app="file-manager">
+<style>
+.fm-wrap{display:flex;flex-direction:column;height:100%;}
+.fm-toolbar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;}
+.fm-toolbar button,.fm-toolbar .app-btn{padding:5px 10px;font-size:12px;}
+.fm-breadcrumb{display:flex;align-items:center;gap:4px;padding:6px 16px;font-size:12px;color:#94A3B8;border-bottom:1px solid #334155;flex-shrink:0;overflow:auto;}
+.fm-breadcrumb span{cursor:pointer;color:#7C3AED;}
+.fm-breadcrumb span:hover{text-decoration:underline;}
+.fm-body{flex:1;display:flex;overflow:hidden;}
+.fm-sidebar{width:180px;border-right:1px solid #334155;padding:8px;overflow:auto;background:#232344;flex-shrink:0;}
+.fm-si{padding:8px 10px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;color:#94A3B8;transition:all .15s;}
+.fm-si:hover,.fm-si.active{background:rgba(124,58,237,0.15);color:#F1F5F9;}
+.fm-si i{width:16px;text-align:center;}
+.fm-content{flex:1;overflow:auto;padding:8px;}
+.fm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;}
+.fm-item{display:flex;flex-direction:column;align-items:center;padding:12px 8px;border-radius:10px;cursor:pointer;transition:all .15s;text-align:center;gap:6px;font-size:12px;color:#F1F5F9;}
+.fm-item:hover{background:rgba(124,58,237,0.1);transform:translateY(-2px);}
+.fm-item i{font-size:2rem;}
+.fm-item .name{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;}
+.fm-item.folder i{color:#F59E0B;}
+.fm-item.file i{color:#06B6D4;}
+.fm-item.image i{color:#10B981;}
+.fm-item.code i{color:#EC4899;}
+.fm-list-view .fm-item{flex-direction:row;gap:10px;padding:8px 12px;font-size:13px;}
+.fm-list-view .fm-item i{font-size:1.2rem;}
+.fm-list-view .fm-item .name{flex:1;text-align:left;white-space:nowrap;}
+.fm-list-view .fm-item .meta{color:#94A3B8;font-size:11px;}
+.fm-status{display:flex;align-items:center;justify-content:space-between;padding:4px 16px;background:#232344;border-top:1px solid #334155;font-size:11px;color:#94A3B8;flex-shrink:0;}
+</style>
+<div class="fm-wrap">
+<div class="fm-toolbar">
+  <button class="app-btn" onclick="fmBack()"><i class="fa-solid fa-arrow-left"></i></button>
+  <button class="app-btn" onclick="fmUp()"><i class="fa-solid fa-arrow-up"></i></button>
+  <div class="app-search"><i class="fa-solid fa-search"></i><input type="text" id="fmSearch" placeholder="Search files..." oninput="fmFilter()"></div>
+  <button class="app-btn" onclick="fmNewFolder()"><i class="fa-solid fa-folder-plus"></i> New Folder</button>
+  <button class="app-btn" onclick="fmNewFile()"><i class="fa-solid fa-file-plus"></i> New File</button>
+  <button class="app-btn" onclick="fmToggleView()" title="Toggle view"><i class="fa-solid fa-list" id="fmViewIcon"></i></button>
+</div>
+<div class="fm-breadcrumb" id="fmBread">Home</div>
+<div class="fm-body">
+  <div class="fm-sidebar">
+    <div class="fm-si active" onclick="fmGo('Home')"><i class="fa-solid fa-house"></i> Home</div>
+    <div class="fm-si" onclick="fmGo('Desktop')"><i class="fa-solid fa-desktop"></i> Desktop</div>
+    <div class="fm-si" onclick="fmGo('Documents')"><i class="fa-solid fa-folder"></i> Documents</div>
+    <div class="fm-si" onclick="fmGo('Downloads')"><i class="fa-solid fa-download"></i> Downloads</div>
+    <div class="fm-si" onclick="fmGo('Pictures')"><i class="fa-solid fa-image"></i> Pictures</div>
+    <div class="fm-si" onclick="fmGo('Music')"><i class="fa-solid fa-music"></i> Music</div>
+    <div class="fm-si" onclick="fmGo('Videos')"><i class="fa-solid fa-video"></i> Videos</div>
+    <div class="fm-si" onclick="fmGo('Projects')"><i class="fa-solid fa-code"></i> Projects</div>
+  </div>
+  <div class="fm-content" id="fmContent"></div>
+</div>
+<div class="fm-status">
+  <span id="fmCount">0 items</span>
+  <span id="fmSel">Nothing selected</span>
+</div>
+</div>
+<script>
+(function(){
+let path=['Home'],viewMode='grid',fs=JALAGEL.Storage.get('filemanager','fs',null);
+const icons={folder:'fa-solid fa-folder',file:'fa-solid fa-file',image:'fa-solid fa-file-image',code:'fa-solid fa-file-code',pdf:'fa-solid fa-file-pdf',music:'fa-solid fa-file-audio',video:'fa-solid fa-file-video',zip:'fa-solid fa-file-zipper'};
+if(!fs){
+  fs={
+    Home:{type:'folder',children:['Desktop','Documents','Downloads','Pictures','Music','Videos','Projects','readme.txt']},
+    Desktop:{type:'folder',children:['todo.txt','shortcut.url']},
+    Documents:{type:'folder',children:['report.pdf','notes.doc','budget.xlsx']},
+    Downloads:{type:'folder',children:['installer.exe','archive.zip','photo.jpg']},
+    Pictures:{type:'folder',children:['vacation','screenshots','wallpaper.jpg']},
+    Music:{type:'folder',children:['playlist1.mp3','playlist2.mp3']},
+    Videos:{type:'folder',children:['tutorial.mp4','recording.mkv']},
+    Projects:{type:'folder',children:['website','app.py','README.md']},
+    website:{type:'folder',children:['index.html','style.css','script.js']},
+    vacation:{type:'folder',children:['beach.jpg','mountain.jpg']},
+    screenshots:{type:'folder',children:['screen1.png']},
+    'readme.txt':{type:'file',size:1024,ext:'txt'},
+    'todo.txt':{type:'file',size:256,ext:'txt'},
+    'shortcut.url':{type:'file',size:64,ext:'url'},
+    'report.pdf':{type:'file',size:2048000,ext:'pdf'},
+    'notes.doc':{type:'file',size:51200,ext:'doc'},
+    'budget.xlsx':{type:'file',size:15360,ext:'xlsx'},
+    'installer.exe':{type:'file',size:52428800,ext:'exe'},
+    'archive.zip':{type:'file',size:10485760,ext:'zip'},
+    'photo.jpg':{type:'file',size:3145728,ext:'jpg'},
+    'wallpaper.jpg':{type:'file',size:2097152,ext:'jpg'},
+    'playlist1.mp3':{type:'file',size:4194304,ext:'mp3'},
+    'playlist2.mp3':{type:'file',size:3670016,ext:'mp3'},
+    'tutorial.mp4':{type:'file',size:104857600,ext:'mp4'},
+    'recording.mkv':{type:'file',size:209715200,ext:'mkv'},
+    'app.py':{type:'file',size:4096,ext:'py'},
+    'README.md':{type:'file',size:2048,ext:'md'},
+    'index.html':{type:'file',size:3072,ext:'html'},
+    'style.css':{type:'file',size:2048,ext:'css'},
+    'script.js':{type:'file',size:4096,ext:'js'},
+    'beach.jpg':{type:'file',size:2097152,ext:'jpg'},
+    'mountain.jpg':{type:'file',size:2621440,ext:'jpg'},
+    'screen1.png':{type:'file',size:1048576,ext:'png'},
+  };
+  JALAGEL.Storage.set('filemanager','fs',fs);
+}
+function cur(){return fs[path[path.length-1]];}
+function children(){const c=cur();return c&&c.children?c.children:[];}
+function getIcon(name,item){if(item.type==='folder')return icons.folder;const e=item.ext||'';if(['jpg','jpeg','png','gif','bmp','svg','webp'].includes(e))return icons.image;if(['py','js','html','css','java','cpp','c','go','rs','php','rb'].includes(e))return icons.code;if(e==='pdf')return icons.pdf;if(['mp3','wav','ogg','flac','aac'].includes(e))return icons.music;if(['mp4','avi','mkv','mov','wmv'].includes(e))return icons.video;if(['zip','rar','7z','tar','gz'].includes(e))return icons.zip;return icons.file;}
+function getClass(name,item){if(item.type==='folder')return'folder';const e=item.ext||'';if(['jpg','jpeg','png','gif','bmp','svg','webp'].includes(e))return'image';if(['py','js','html','css','java','cpp','c','go','rs','php','rb'].includes(e))return'code';return'file';}
+window.render=function(){
+  const c=children();const el=document.getElementById('fmContent');
+  if(viewMode==='grid'){el.className='fm-content';el.innerHTML='<div class="fm-grid" id="fmGrid"></div>';const g=document.getElementById('fmGrid');}
+  else{el.className='fm-content fm-list-view';el.innerHTML='';}
+  c.forEach(n=>{const item=fs[n];if(!item)return;const d=document.createElement('div');d.className='fm-item '+getClass(n,item);d.innerHTML='<i class="'+getIcon(n,item)+'"></i><span class="name">'+n+'</span>'+(viewMode==='list'?'<span class="meta">'+(item.type==='folder'?'--':JALAGEL.Utils.formatBytes(item.size||0))+'</span>':'');d.onclick=()=>{if(item.type==='folder'){path.push(n);render();}else{document.getElementById('fmSel').textContent=n+' ('+JALAGEL.Utils.formatBytes(item.size||0)+')';}};d.ondblclick=()=>{if(item.type==='folder'){path.push(n);render();}};(viewMode==='grid'?el.querySelector('.fm-grid'):el).appendChild(d);});
+  document.getElementById('fmBread').innerHTML=path.map((p,i)=>'<span onclick="fmGoTo('+i+')">'+p+'</span>').join(' <i class="fa-solid fa-chevron-right" style="font-size:9px;color:#94A3B8;"></i> ');
+  document.getElementById('fmCount').textContent=c.length+' items';
+};
+window.fmBack=function(){if(path.length>1){path.pop();render();}};
+window.fmUp=function(){if(path.length>1){path.pop();render();}};
+window.fmGo=function(name){path=['Home',name];render();};
+window.fmGoTo=function(i){path=path.slice(0,i+1);render();};
+window.fmFilter=function(){const q=document.getElementById('fmSearch').value.toLowerCase();document.querySelectorAll('.fm-item').forEach(el=>{el.style.display=el.querySelector('.name').textContent.toLowerCase().includes(q)?'':'none';});};
+window.fmToggleView=function(){viewMode=viewMode==='grid'?'list':'grid';document.getElementById('fmViewIcon').className=viewMode==='grid'?'fa-solid fa-list':'fa-solid fa-grid-2';render();};
+window.fmNewFolder=function(){const n=prompt('Folder name:');if(n&&n.trim()){const nn=n.trim();fs[nn]={type:'folder',children:[]};cur().children.push(nn);JALAGEL.Storage.set('filemanager','fs',fs);render();}};
+window.fmNewFile=function(){const n=prompt('File name:');if(n&&n.trim()){const nn=n.trim(),e=nn.split('.').pop()||'txt';fs[nn]={type:'file',size:0,ext:e};cur().children.push(nn);JALAGEL.Storage.set('filemanager','fs',fs);render();}};
+render();
+})();
+</script>
+</div>

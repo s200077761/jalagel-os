@@ -1,0 +1,59 @@
+<div class="app-container" data-app="weather">
+<style>
+.w-wrap{display:flex;flex-direction:column;height:100%;overflow:auto;}
+.w-search{display:flex;align-items:center;gap:8px;padding:16px;border-bottom:1px solid #334155;}
+.w-search input{flex:1;max-width:300px;padding:10px 14px;border:1px solid #334155;border-radius:10px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:14px;outline:none;}
+.w-search input:focus{border-color:#7C3AED;}
+.w-search button{padding:10px 16px;border:none;border-radius:10px;background:#7C3AED;color:#fff;font-weight:600;cursor:pointer;font-family:inherit;}
+.w-current{display:flex;align-items:center;gap:24px;padding:24px;background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(6,182,212,0.1));border-bottom:1px solid #334155;flex-wrap:wrap;}
+.w-temp{font-size:4rem;font-weight:800;color:#F1F5F9;line-height:1;}
+.w-info h2{margin:0 0 4px;}
+.w-info p{margin:0;color:#94A3B8;font-size:14px;}
+.w-details{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px;}
+.w-detail{background:#232344;border:1px solid #334155;border-radius:12px;padding:12px;text-align:center;}
+.w-detail i{font-size:1.5rem;color:#7C3AED;margin-bottom:6px;}
+.w-detail .val{font-size:1.2rem;font-weight:700;color:#F1F5F9;}
+.w-detail .lbl{font-size:11px;color:#94A3B8;margin-top:2px;}
+.w-forecast{padding:16px;}
+.w-forecast h3{margin:0 0 12px;font-size:14px;}
+.w-fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;}
+.w-fc-day{background:#232344;border:1px solid #334155;border-radius:10px;padding:12px;text-align:center;}
+.w-fc-day .day{font-size:12px;font-weight:600;color:#94A3B8;}
+.w-fc-day i{font-size:1.5rem;margin:6px 0;display:block;color:#F59E0B;}
+.w-fc-day .temp{font-size:14px;font-weight:700;color:#F1F5F9;}
+.w-fc-day .desc{font-size:11px;color:#94A3B8;}
+@media(max-width:600px){.w-details{grid-template-columns:repeat(2,1fr);}.w-current{flex-direction:column;text-align:center;}}
+</style>
+<div class="w-wrap">
+<div class="w-search">
+  <input type="text" id="wCity" placeholder="Search city..." value="San Francisco" onkeydown="if(event.key==='Enter')wSearch()">
+  <button onclick="wSearch()"><i class="fa-solid fa-search"></i> Search</button>
+</div>
+<div class="w-current" id="wCurrent"></div>
+<div class="w-details" id="wDetails"></div>
+<div class="w-forecast"><h3>5-Day Forecast</h3><div class="w-fc-grid" id="wForecast"></div></div>
+</div>
+<script>
+(function(){
+const weatherData={
+  'San Francisco':{t:18,cond:'Partly Cloudy',icon:'fa-cloud-sun',h:72,wind:14,vis:16,uv:5,press:1015,fc:[{d:'Mon',t:17,i:'fa-cloud'},{d:'Tue',t:19,i:'fa-sun'},{d:'Wed',t:16,i:'fa-cloud-rain'},{d:'Thu',t:18,i:'fa-cloud-sun'},{d:'Fri',t:20,i:'fa-sun'}]},
+  'New York':{t:24,cond:'Sunny',icon:'fa-sun',h:55,wind:10,vis:24,uv:8,press:1018,fc:[{d:'Mon',t:25,i:'fa-sun'},{d:'Tue',t:23,i:'fa-cloud-sun'},{d:'Wed',t:22,i:'fa-cloud'},{d:'Thu',t:26,i:'fa-sun'},{d:'Fri',t:24,i:'fa-cloud-sun'}]},
+  'London':{t:14,cond:'Rainy',icon:'fa-cloud-rain',h:82,wind:18,vis:10,uv:2,press:1008,fc:[{d:'Mon',t:13,i:'fa-cloud-rain'},{d:'Tue',t:12,i:'fa-cloud-showers-heavy'},{d:'Wed',t:14,i:'fa-cloud-rain'},{d:'Thu',t:15,i:'fa-cloud'},{d:'Fri',t:13,i:'fa-cloud-rain'}]},
+  'Tokyo':{t:28,cond:'Clear',icon:'fa-sun',h:68,wind:8,vis:20,uv:9,press:1012,fc:[{d:'Mon',t:29,i:'fa-sun'},{d:'Tue',t:30,i:'fa-sun'},{d:'Wed',t:27,i:'fa-cloud'},{d:'Thu',t:26,i:'fa-cloud-rain'},{d:'Fri',t:28,i:'fa-cloud-sun'}]},
+  'Sydney':{t:22,cond:'Windy',icon:'fa-wind',h:60,wind:25,vis:18,uv:6,press:1020,fc:[{d:'Mon',t:21,i:'fa-wind'},{d:'Tue',t:23,i:'fa-sun'},{d:'Wed',t:24,i:'fa-sun'},{d:'Thu',t:20,i:'fa-cloud'},{d:'Fri',t:19,i:'fa-cloud-rain'}]},
+  'Paris':{t:20,cond:'Overcast',icon:'fa-cloud',h:65,wind:12,vis:14,uv:4,press:1014,fc:[{d:'Mon',t:19,i:'fa-cloud'},{d:'Tue',t:18,i:'fa-cloud-rain'},{d:'Wed',t:21,i:'fa-cloud-sun'},{d:'Thu',t:22,i:'fa-sun'},{d:'Fri',t:20,i:'fa-cloud'}]},
+};
+function wRender(city){
+  const d=weatherData[city]||weatherData['San Francisco'];
+  const c=document.getElementById('wCurrent');
+  c.innerHTML='<div style="font-size:3.5rem;"><i class="fa-solid '+d.icon+'" style="color:#F59E0B;"></i></div><div class="w-temp">'+d.t+'°C</div><div class="w-info"><h2>'+city+'</h2><p>'+d.cond+'</p><p style="margin-top:4px;">Feels like '+(d.t+2)+'°</p></div>';
+  const de=document.getElementById('wDetails');
+  de.innerHTML='<div class="w-detail"><i class="fa-solid fa-droplet"></i><div class="val">'+d.h+'%</div><div class="lbl">Humidity</div></div><div class="w-detail"><i class="fa-solid fa-wind"></i><div class="val">'+d.wind+' km/h</div><div class="lbl">Wind</div></div><div class="w-detail"><i class="fa-solid fa-eye"></i><div class="val">'+d.vis+' km</div><div class="lbl">Visibility</div></div><div class="w-detail"><i class="fa-solid fa-sun"></i><div class="val">'+d.uv+'</div><div class="lbl">UV Index</div></div>';
+  const f=document.getElementById('wForecast');f.innerHTML='';
+  d.fc.forEach(x=>{f.innerHTML+='<div class="w-fc-day"><div class="day">'+x.d+'</div><i class="fa-solid '+x.i+'"></i><div class="temp">'+x.t+'°C</div><div class="desc">'+x.d+'</div></div>';});
+}
+window.wSearch=function(){const c=document.getElementById('wCity').value.trim()||'San Francisco';wRender(c);};
+wRender('San Francisco');
+})();
+</script>
+</div>

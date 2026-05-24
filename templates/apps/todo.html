@@ -1,0 +1,89 @@
+<div class="app-container" data-app="todo">
+<style>
+.todo-wrap{display:flex;flex-direction:column;height:100%;}
+.todo-toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;}
+.todo-input-group{display:flex;flex:1;gap:8px;min-width:250px;}
+.todo-input-group input{flex:1;padding:8px 12px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;}
+.todo-input-group input:focus{border-color:#7C3AED;}
+.todo-input-group select{padding:8px 12px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;cursor:pointer;}
+.todo-stats{display:flex;gap:12px;margin-left:auto;}
+.todo-stat{text-align:center;font-size:11px;color:#94A3B8;}
+.todo-stat .num{font-size:16px;font-weight:700;color:#F1F5F9;}
+.todo-list{flex:1;overflow:auto;padding:12px;}
+.todo-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#232344;border:1px solid #334155;border-radius:10px;margin-bottom:8px;transition:all .2s;cursor:grab;}
+.todo-item:hover{border-color:rgba(124,58,237,0.3);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.15);}
+.todo-item.done{opacity:.6;}
+.todo-item.done .todo-text{text-decoration:line-through;color:#64748B;}
+.todo-check{width:20px;height:20px;border:2px solid #334155;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;color:transparent;font-size:10px;}
+.todo-check:hover{border-color:#7C3AED;}
+.todo-check.checked{background:#10B981;border-color:#10B981;color:#fff;}
+.todo-text{flex:1;font-size:13px;color:#F1F5F9;}
+.todo-prio{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;}
+.todo-prio.high{background:rgba(239,68,68,0.15);color:#EF4444;}
+.todo-prio.medium{background:rgba(245,158,11,0.15);color:#F59E0B;}
+.todo-prio.low{background:rgba(16,185,129,0.15);color:#10B981;}
+.todo-date{font-size:11px;color:#94A3B8;white-space:nowrap;}
+.todo-del{border:none;background:transparent;color:#64748B;cursor:pointer;font-size:12px;padding:4px;border-radius:4px;}
+.todo-del:hover{color:#EF4444;background:rgba(239,68,68,0.1);}
+.todo-progress{height:4px;background:#334155;border-radius:2px;overflow:hidden;margin:0 16px;flex-shrink:0;}
+.todo-progress-bar{height:100%;background:linear-gradient(90deg,#7C3AED,#EC4899);border-radius:2px;transition:width .3s ease;}
+.todo-empty{text-align:center;padding:48px;color:#94A3B8;}
+.todo-empty i{font-size:3rem;margin-bottom:12px;opacity:.3;}
+.todo-filters{display:flex;gap:6px;padding:8px 16px;border-bottom:1px solid #334155;flex-shrink:0;}
+.todo-filters button{padding:4px 12px;border:1px solid #334155;border-radius:6px;background:transparent;color:#94A3B8;font-size:12px;font-family:inherit;cursor:pointer;}
+.todo-filters button.active{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+</style>
+<div class="todo-wrap">
+<div class="todo-toolbar">
+  <div class="todo-input-group">
+    <input type="text" id="todoText" placeholder="Add a new task..." onkeydown="if(event.key==='Enter')todoAdd()">
+    <select id="todoPrio"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select>
+    <input type="date" id="todoDate" style="padding:8px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;">
+    <button class="app-btn primary" onclick="todoAdd()"><i class="fa-solid fa-plus"></i></button>
+  </div>
+</div>
+<div class="todo-filters">
+  <button class="active" onclick="todoFilter('all')" id="tf-all">All</button>
+  <button onclick="todoFilter('active')" id="tf-active">Active</button>
+  <button onclick="todoFilter('done')" id="tf-done">Completed</button>
+  <div class="todo-stats" style="margin-left:auto;">
+    <div class="todo-stat"><div class="num" id="stTotal">0</div>Total</div>
+    <div class="todo-stat"><div class="num" id="stActive">0</div>Active</div>
+    <div class="todo-stat"><div class="num" id="stDone">0</div>Done</div>
+  </div>
+</div>
+<div class="todo-progress"><div class="todo-progress-bar" id="todoProg" style="width:0%"></div></div>
+<div class="todo-list" id="todoList"></div>
+</div>
+<script>
+(function(){
+let todos=JALAGEL.Storage.get('todo','items',[{id:1,text:'Welcome to Todo List',done:false,prio:'medium',date:'',order:0},{id:2,text:'Create your first task',done:false,prio:'low',date:'',order:1},{id:3,text:'Mark tasks as complete',done:true,prio:'high',date:'',order:2}]),filter='all';
+function render(){
+  const list=document.getElementById('todoList');list.innerHTML='';
+  let f=todos.filter(t=>{if(filter==='active')return!t.done;if(filter==='done')return t.done;return true;});
+  f.sort((a,b)=>a.order-b.order);
+  if(!f.length){list.innerHTML='<div class="todo-empty"><i class="fa-solid fa-clipboard-check"></i><div>No tasks found</div></div>';}
+  f.forEach(t=>{
+    const d=document.createElement('div');d.className='todo-item'+(t.done?' done':'');d.draggable=true;
+    d.innerHTML='<div class="todo-check '+(t.done?'checked':'')+'" onclick="todoToggle('+t.id+')">'+(t.done?'<i class="fa-solid fa-check"></i>':'')+'</div><div class="todo-text">'+t.text+'</div><span class="todo-prio '+t.prio+'">'+t.prio+'</span>'+(t.date?'<span class="todo-date">'+t.date+'</span>':'')+'<button class="todo-del" onclick="todoDel('+t.id+')"><i class="fa-solid fa-trash"></i></button>';
+    d.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',t.id);d.style.opacity='0.5';});
+    d.addEventListener('dragend',()=>{d.style.opacity='1';});
+    d.addEventListener('dragover',e=>e.preventDefault());
+    d.addEventListener('drop',e=>{e.preventDefault();const sid=parseInt(e.dataTransfer.getData('text/plain'));const si=todos.findIndex(x=>x.id===sid),ti=todos.findIndex(x=>x.id===t.id);if(si>=0&&ti>=0){const so=todos[si].order;todos[si].order=todos[ti].order;todos[ti].order=so;JALAGEL.Storage.set('todo','items',todos);render();}});
+    list.appendChild(d);
+  });
+  const total=todos.length,done=todos.filter(t=>t.done).length,active=total-done;
+  document.getElementById('stTotal').textContent=total;document.getElementById('stActive').textContent=active;document.getElementById('stDone').textContent=done;
+  document.getElementById('todoProg').style.width=total?(done/total*100)+'%':'0%';
+}
+window.todoAdd=function(){const t=document.getElementById('todoText').value.trim();if(!t)return;const p=document.getElementById('todoPrio').value,d=document.getElementById('todoDate').value;
+  todos.push({id:Date.now(),text:t,done:false,prio:p,date:d,order:todos.length});JALAGEL.Storage.set('todo','items',todos);
+  document.getElementById('todoText').value='';document.getElementById('todoDate').value='';render();
+};
+window.todoToggle=function(id){const t=todos.find(x=>x.id===id);if(t){t.done=!t.done;JALAGEL.Storage.set('todo','items',todos);render();}};
+window.todoDel=function(id){if(!confirm('Delete task?'))return;todos=todos.filter(x=>x.id!==id);JALAGEL.Storage.set('todo','items',todos);render();};
+window.todoFilter=function(f){filter=f;document.querySelectorAll('.todo-filters button').forEach(b=>b.classList.remove('active'));document.getElementById('tf-'+f).classList.add('active');render();};
+render();
+})();
+</script>
+</div>
