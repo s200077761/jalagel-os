@@ -1,0 +1,75 @@
+<div class="app-container" data-app="photos">
+<style>
+.ph-wrap{display:flex;flex-direction:column;height:100%;}
+.ph-toolbar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;}
+.ph-toolbar button{padding:6px 12px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;cursor:pointer;}
+.ph-toolbar button:hover,.ph-toolbar button.active{background:#7C3AED;border-color:#7C3AED;}
+.ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;padding:12px;overflow:auto;flex:1;}
+.ph-item{aspect-ratio:1;background:#232344;border-radius:10px;overflow:hidden;cursor:pointer;position:relative;border:2px solid transparent;transition:all .2s;}
+.ph-item:hover{border-color:#7C3AED;transform:scale(1.02);}
+.ph-item .overlay{position:absolute;bottom:0;left:0;right:0;padding:8px;background:linear-gradient(transparent,rgba(0,0,0,0.7));color:#fff;font-size:11px;opacity:0;transition:opacity .2s;}
+.ph-item:hover .overlay{opacity:1;}
+.ph-viewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;align-items:center;justify-content:center;flex-direction:column;padding:24px;}
+.ph-viewer.show{display:flex;}
+.ph-viewer img{max-width:85%;max-height:75%;object-fit:contain;border-radius:8px;}
+.ph-viewer .close{position:absolute;top:16px;right:16px;color:#fff;font-size:24px;cursor:pointer;background:rgba(255,255,255,0.1);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;}
+.ph-viewer .close:hover{background:rgba(255,255,255,0.2);}
+.ph-filters{display:flex;gap:6px;position:absolute;bottom:16px;}
+.ph-filters button{padding:6px 12px;border:1px solid rgba(255,255,255,0.2);border-radius:6px;background:rgba(255,255,255,0.1);color:#fff;font-size:12px;cursor:pointer;}
+.ph-filters button:hover{background:rgba(255,255,255,0.2);}
+</style>
+<div class="ph-wrap">
+<div class="ph-toolbar">
+  <button onclick="phOpen()"><i class="fa-solid fa-plus"></i> Add Photos</button>
+  <div style="margin-left:auto;display:flex;gap:6px;">
+    <button onclick="phSetFilter('none')" class="active" id="fl-none">All</button>
+    <button onclick="phSetFilter('grayscale')" id="fl-grayscale">Grayscale</button>
+    <button onclick="phSetFilter('sepia')" id="fl-sepia">Sepia</button>
+    <button onclick="phSlideshow()" id="phSS"><i class="fa-solid fa-play"></i> Slideshow</button>
+  </div>
+</div>
+<div class="ph-grid" id="phGrid"></div>
+<div class="ph-viewer" id="phViewer">
+  <button class="close" onclick="phClose()"><i class="fa-solid fa-xmark"></i></button>
+  <img id="phImg" src="" alt="">
+  <div style="color:#fff;margin-top:8px;font-size:13px;" id="phInfo"></div>
+  <div class="ph-filters">
+    <button onclick="phApplyFilter('none')">Original</button>
+    <button onclick="phApplyFilter('grayscale(100%)')">Grayscale</button>
+    <button onclick="phApplyFilter('sepia(100%)')">Sepia</button>
+    <button onclick="phApplyFilter('blur(4px)')">Blur</button>
+    <button onclick="phApplyFilter('brightness(1.3)')">Bright</button>
+    <button onclick="phApplyFilter('contrast(1.5)')">Contrast</button>
+    <button onclick="phApplyFilter('hue-rotate(90deg)')">Hue</button>
+    <button onclick="phApplyFilter('saturate(2)')">Vivid</button>
+    <button onclick="phApplyFilter('invert(1)')">Invert</button>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+let photos=[{id:1,src:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400',name:'Mountain.jpg',w:400,h:300},{id:2,src:'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400',name:'Forest.jpg',w:400,h:300},{id:3,src:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400',name:'Woods.jpg',w:400,h:300},{id:4,src:'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=400',name:'Waterfall.jpg',w:400,h:300},{id:5,src:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400',name:'Lake.jpg',w:400,h:300},{id:6,src:'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400',name:'Nature.jpg',w:400,h:300},{id:7,src:'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400',name:'Hills.jpg',w:400,h:300},{id:8,src:'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=400',name:'Sunset.jpg',w:400,h:300}],viewIdx=0,curFilter='none',ssInt;
+function render(){
+  const g=document.getElementById('phGrid');g.innerHTML='';
+  photos.forEach((p,i)=>{
+    const d=document.createElement('div');d.className='ph-item';d.style.background='url('+p.src+') center/cover';
+    if(curFilter!=='none')d.style.filter=curFilter+'(100%)';
+    d.innerHTML='<div class="overlay">'+p.name+'</div>';
+    d.onclick=()=>phView(i);g.appendChild(d);
+  });
+}
+window.phView=function(i){viewIdx=i;const p=photos[i];document.getElementById('phImg').src=p.src;document.getElementById('phImg').style.filter='none';document.getElementById('phInfo').textContent=p.name+' ('+p.w+'x'+p.h+')';document.getElementById('phViewer').classList.add('show');};
+window.phClose=function(){document.getElementById('phViewer').classList.remove('show');clearInterval(ssInt);document.getElementById('phSS').innerHTML='<i class="fa-solid fa-play"></i> Slideshow';};
+window.phApplyFilter=function(f){document.getElementById('phImg').style.filter=f;};
+window.phSetFilter=function(f){curFilter=f;document.querySelectorAll('.ph-toolbar button').forEach(b=>b.classList.remove('active'));document.getElementById('fl-'+f).classList.add('active');render();};
+window.phOpen=function(){const i=document.createElement('input');i.type='file';i.accept='image/*';i.multiple=true;i.onchange=e=>{Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{photos.push({id:Date.now(),src:ev.target.result,name:f.name,w:0,h:0});render();};r.readAsDataURL(f);});};i.click();};
+window.phSlideshow=function(){const btn=document.getElementById('phSS');if(ssInt){clearInterval(ssInt);ssInt=null;btn.innerHTML='<i class="fa-solid fa-play"></i> Slideshow';return;}
+  if(!document.getElementById('phViewer').classList.contains('show'))phView(0);
+  btn.innerHTML='<i class="fa-solid fa-pause"></i> Pause';ssInt=setInterval(()=>{viewIdx=(viewIdx+1)%photos.length;phView(viewIdx);},3000);
+};
+document.getElementById('phViewer').addEventListener('click',e=>{if(e.target===e.currentTarget)phClose();});
+document.addEventListener('keydown',e=>{if(!document.getElementById('phViewer').classList.contains('show'))return;if(e.key==='Escape')phClose();if(e.key==='ArrowLeft'){viewIdx=(viewIdx-1+photos.length)%photos.length;phView(viewIdx);}if(e.key==='ArrowRight'){viewIdx=(viewIdx+1)%photos.length;phView(viewIdx);}});
+render();
+})();
+</script>
+</div>

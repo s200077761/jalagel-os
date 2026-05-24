@@ -1,0 +1,70 @@
+<div class="app-container" data-app="translator">
+<style>
+.tr-wrap{display:flex;flex-direction:column;height:100%;padding:24px;overflow:auto;}
+.tr-panels{display:flex;gap:16px;margin-bottom:16px;flex:1;min-height:200px;}
+.tr-panel{flex:1;display:flex;flex-direction:column;background:#232344;border:1px solid #334155;border-radius:12px;overflow:hidden;}
+.tr-panel-header{padding:10px 16px;background:#1A1A2E;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between;}
+.tr-panel-header select{padding:4px 8px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;outline:none;cursor:pointer;}
+.tr-textarea{flex:1;padding:16px;background:transparent;color:#F1F5F9;font-family:inherit;font-size:14px;line-height:1.6;border:none;outline:none;resize:none;}
+.tr-swap{display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+.tr-swap button{width:40px;height:40px;border:1px solid #334155;border-radius:50%;background:#232344;color:#F1F5F9;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.tr-swap button:hover{background:#7C3AED;border-color:#7C3AED;transform:rotate(180deg);}
+.tr-actions{display:flex;gap:8px;justify-content:center;}
+.tr-common{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:16px;}
+.tr-phrase{padding:10px 12px;background:#232344;border-radius:8px;font-size:13px;cursor:pointer;transition:all .15s;border:1px solid #334155;}
+.tr-phrase:hover{border-color:#7C3AED;background:rgba(124,58,237,0.1);}
+.tr-phrase .en{color:#F1F5F9;font-weight:500;}
+.tr-phrase .tr{color:#94A3B8;font-size:12px;margin-top:2px;}
+</style>
+<div class="tr-wrap">
+<h2 style="margin:0 0 16px;"><i class="fa-solid fa-language" style="color:#06B6D4;"></i> Translator</h2>
+<div class="tr-panels">
+  <div class="tr-panel">
+    <div class="tr-panel-header">
+      <select id="trFrom"><option value="en">English</option><option value="es">Spanish</option><option value="fr">French</option><option value="de">German</option><option value="it">Italian</option><option value="pt">Portuguese</option><option value="ja">Japanese</option><option value="zh">Chinese</option><option value="ko">Korean</option><option value="ru">Russian</option><option value="ar">Arabic</option><option value="hi">Hindi</option></select>
+      <button class="app-btn sm" onclick="trClear()" title="Clear"><i class="fa-solid fa-eraser"></i></button>
+    </div>
+    <textarea class="tr-textarea" id="trInput" placeholder="Enter text to translate..." oninput="trAuto()"></textarea>
+  </div>
+  <div class="tr-panel">
+    <div class="tr-panel-header">
+      <select id="trTo"><option value="en">English</option><option value="es" selected>Spanish</option><option value="fr">French</option><option value="de">German</option><option value="it">Italian</option><option value="pt">Portuguese</option><option value="ja">Japanese</option><option value="zh">Chinese</option><option value="ko">Korean</option><option value="ru">Russian</option><option value="ar">Arabic</option><option value="hi">Hindi</option></select>
+      <button class="app-btn sm" onclick="trCopy()" title="Copy"><i class="fa-solid fa-copy"></i></button>
+    </div>
+    <textarea class="tr-textarea" id="trOutput" placeholder="Translation..." readonly></textarea>
+  </div>
+</div>
+<div class="tr-swap"><button onclick="trSwap()"><i class="fa-solid fa-arrow-right-arrow-left"></i></button></div>
+<div class="tr-actions">
+  <button class="app-btn primary" onclick="trTranslate()"><i class="fa-solid fa-language"></i> Translate</button>
+</div>
+<h3 style="margin-top:24px;margin-bottom:12px;font-size:14px;">Common Phrases</h3>
+<div class="tr-common" id="trCommon"></div>
+</div>
+<script>
+(function(){
+const phrases={
+  en_es:[{e:'Hello',t:'Hola'},{e:'Thank you',t:'Gracias'},{e:'Good morning',t:'Buenos dias'},{e:'How are you?',t:'Como estas?'},{e:'Goodbye',t:'Adios'},{e:'Please',t:'Por favor'},{e:'Yes',t:'Si'},{e:'No',t:'No'},{e:'I love you',t:'Te amo'},{e:'Excuse me',t:'Perdon'},{e:'Where is...?',t:'Donde esta...?'},{e:'How much?',t:'Cuanto cuesta?'}],
+  en_fr:[{e:'Hello',t:'Bonjour'},{e:'Thank you',t:'Merci'},{e:'Good morning',t:'Bon matin'},{e:'How are you?',t:'Comment allez-vous?'},{e:'Goodbye',t:'Au revoir'},{e:'Please',t:'S\'il vous plait'},{e:'Yes',t:'Oui'},{e:'No',t:'Non'},{e:'I love you',t:'Je t\'aime'},{e:'Excuse me',t:'Excusez-moi'}],
+  en_de:[{e:'Hello',t:'Hallo'},{e:'Thank you',t:'Danke'},{e:'Good morning',t:'Guten Morgen'},{e:'How are you?',t:'Wie geht\'s?'},{e:'Goodbye',t:'Auf Wiedersehen'},{e:'Please',t:'Bitte'},{e:'Yes',t:'Ja'},{e:'No',t:'Nein'}],
+  en_ja:[{e:'Hello',t:'Konnichiwa'},{e:'Thank you',t:'Arigatou'},{e:'Good morning',t:'Ohayou gozaimasu'},{e:'How are you?',t:'Ogenki desu ka?'},{e:'Goodbye',t:'Sayonara'},{e:'Please',t:'Onegaishimasu'},{e:'Yes',t:'Hai'},{e:'No',t:'Iie'}],
+};
+function loadPhrases(){const from=document.getElementById('trFrom').value,to=document.getElementById('trTo').value;const key='en_'+to;if(from!=='en')return;
+  const list=phrases[key]||phrases['en_es'];const c=document.getElementById('trCommon');c.innerHTML='';
+  list.forEach(p=>{const d=document.createElement('div');d.className='tr-phrase';d.innerHTML='<div class="en">'+p.e+'</div><div class="tr">'+p.t+'</div>';d.onclick=()=>{document.getElementById('trInput').value=p.e;document.getElementById('trOutput').value=p.t;};c.appendChild(d);});
+}
+window.trTranslate=function(){
+  const text=document.getElementById('trInput').value.trim();if(!text)return;
+  const to=document.getElementById('trTo').value;const demos={es:'(Traduccion simulada) ',fr:'(Traduction simulee) ',de:'(Simulierte Uebersetzung) ',it:'(Traduzione simulata) ',ja:'(Shimyure-shita hon\'yaku) ',zh:'(Mo ni fan yi) ',ko:'(Mo-yeog beon-yeog) ',ru:'(Simulirowannyj perevod) ',ar:'(Tarjama muqadara) ',hi:'(Anuwad pradarshan) ',pt:'(Traducao simulada) ',en:text};
+  document.getElementById('trOutput').value=(demos[to]||demos.es)+text;
+};
+window.trAuto=function(){const text=document.getElementById('trInput').value.trim();if(!text)return;const phrasesList=phrases['en_'+document.getElementById('trTo').value]||phrases['en_es'];const found=phrasesList.find(p=>p.e.toLowerCase()===text.toLowerCase());if(found)document.getElementById('trOutput').value=found.t;};
+window.trSwap=function(){const f=document.getElementById('trFrom'),t=document.getElementById('trTo');const tmp=f.value;f.value=t.value;t.value=tmp;const tmp2=document.getElementById('trInput').value;document.getElementById('trInput').value=document.getElementById('trOutput').value;document.getElementById('trOutput').value=tmp2;loadPhrases();};
+window.trClear=function(){document.getElementById('trInput').value='';document.getElementById('trOutput').value='';};
+window.trCopy=function(){const t=document.getElementById('trOutput').value;if(t){JALAGEL.Utils.copyToClipboard(t);JALAGEL.Utils.toast('Copied!','success');}};
+document.getElementById('trTo').addEventListener('change',loadPhrases);
+document.getElementById('trFrom').addEventListener('change',loadPhrases);
+loadPhrases();
+})();
+</script>
+</div>

@@ -1,0 +1,124 @@
+<div class="app-container" data-app="calendar">
+<style>
+.cal-wrap{display:flex;flex-direction:column;height:100%;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #334155;flex-shrink:0;}
+.cal-nav{display:flex;align-items:center;gap:8px;}
+.cal-nav button{padding:6px 12px;border:1px solid #334155;border-radius:8px;background:#232344;color:#F1F5F9;cursor:pointer;font-size:14px;}
+.cal-nav button:hover{background:#7C3AED;border-color:#7C3AED;}
+.cal-title{font-size:18px;font-weight:700;color:#F1F5F9;}
+.cal-view-btns{display:flex;gap:4px;}
+.cal-view-btns button{padding:4px 12px;font-size:12px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#94A3B8;cursor:pointer;}
+.cal-view-btns button.active{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#334155;border:1px solid #334155;flex:1;overflow:auto;}
+.cal-day-h{text-align:center;padding:8px;font-size:12px;font-weight:600;color:#94A3B8;background:#1A1A2E;text-transform:uppercase;}
+.cal-cell{background:#1A1A2E;min-height:80px;padding:6px;cursor:pointer;position:relative;transition:background .15s;}
+.cal-cell:hover{background:#232344;}
+.cal-cell.other{background:#0f0f23;color:#64748B;}
+.cal-cell.today{background:rgba(124,58,237,0.15);}
+.cal-cell.today .cal-dn{color:#7C3AED;font-weight:700;}
+.cal-cell.selected{background:rgba(124,58,237,0.25);}
+.cal-dn{font-size:14px;margin-bottom:2px;}
+.cal-ev{font-size:10px;padding:2px 4px;border-radius:3px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cal-ev.purple{background:rgba(124,58,237,0.2);color:#A78BFA;}
+.cal-ev.green{background:rgba(16,185,129,0.2);color:#34D399;}
+.cal-ev.red{background:rgba(239,68,68,0.2);color:#F87171;}
+.cal-ev.amber{background:rgba(245,158,11,0.2);color:#FBBF24;}
+.cal-panel{width:280px;border-left:1px solid #334155;padding:16px;overflow:auto;background:#232344;}
+.cal-panel h3{font-size:16px;margin:0 0 12px;}
+.cal-ev-form{display:flex;flex-direction:column;gap:8px;}
+.cal-ev-form input,.cal-ev-form select,.cal-ev-form textarea{padding:8px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;}
+.cal-ev-form button{padding:8px 16px;border:none;border-radius:8px;background:#7C3AED;color:#fff;font-weight:600;cursor:pointer;}
+.cal-ev-list{margin-top:16px;}
+.cal-ev-item{padding:8px;border-radius:8px;margin-bottom:6px;font-size:12px;background:rgba(124,58,237,0.1);border-left:3px solid #7C3AED;cursor:pointer;}
+.cal-ev-item:hover{opacity:.85;}
+.cal-body{display:flex;flex:1;overflow:hidden;}
+@media(max-width:700px){.cal-panel{display:none;}}
+</style>
+<div class="cal-wrap">
+<div class="cal-header">
+  <div class="cal-nav">
+    <button onclick="calPrev()">&#9664;</button>
+    <button onclick="calToday()">Today</button>
+    <button onclick="calNext()">&#9654;</button>
+  </div>
+  <div class="cal-title" id="calTitle"></div>
+  <div class="cal-view-btns">
+    <button onclick="calSetView('month')" id="vMonth" class="active">Month</button>
+    <button onclick="calSetView('week')" id="vWeek">Week</button>
+  </div>
+</div>
+<div class="cal-body">
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#334155;">
+      <div class="cal-day-h">Sun</div><div class="cal-day-h">Mon</div><div class="cal-day-h">Tue</div><div class="cal-day-h">Wed</div><div class="cal-day-h">Thu</div><div class="cal-day-h">Fri</div><div class="cal-day-h">Sat</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+  <div class="cal-panel" id="calPanel">
+    <h3 id="calPanelDate">Events</h3>
+    <div class="cal-ev-form">
+      <input type="text" id="evTitle" placeholder="Event title">
+      <input type="time" id="evTime">
+      <select id="evColor"><option value="purple">Purple</option><option value="green">Green</option><option value="red">Red</option><option value="amber">Amber</option></select>
+      <button onclick="calAddEvent()">Add Event</button>
+    </div>
+    <div class="cal-ev-list" id="calEvList"></div>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+let cur=new Date(),view='month',selDate=null;
+let events=JALAGEL.Storage.get('calendar','events',[]);
+const $g=document.getElementById('calGrid'),$t=document.getElementById('calTitle');
+function render(){
+  $g.innerHTML='';
+  const y=cur.getFullYear(),m=cur.getMonth();
+  $t.textContent=new Date(y,m).toLocaleString('en',{month:'long',year:'numeric'});
+  if(view==='month') renderMonth(y,m);
+  else renderWeek(y,m);
+  if(selDate) calShowPanel(selDate);
+}
+function renderMonth(y,m){
+  const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),pdays=new Date(y,m,0).getDate();
+  for(let i=first-1;i>=0;i--){const d=pdays-i;const el=makeCell(d,true);el.onclick=()=>{cur=new Date(y,m-1,d);render();};$g.appendChild(el);}
+  for(let d=1;d<=days;d++){const el=makeCell(d,false,y,m,d);$g.appendChild(el);}
+  let n=1;while($g.children.length<42){const el=makeCell(n++,true);el.onclick=()=>{cur=new Date(y,m+1,n-1);render();};$g.appendChild(el);}
+}
+function renderWeek(y,m){
+  const sd=new Date(y,m,cur.getDate()-cur.getDay());
+  for(let i=0;i<7;i++){const d=new Date(sd);d.setDate(sd.getDate()+i);const el=makeCell(d.getDate(),false,d.getFullYear(),d.getMonth(),d.getDate());$g.appendChild(el);}
+  while($g.children.length<14){$g.appendChild(makeCell('',true));}
+}
+function makeCell(day,other,cy,cm,cd){
+  const el=document.createElement('div');el.className='cal-cell'+(other?' other':'')+(isToday(cy,cm,cd)?' today':'')+(selDate&&cd===selDate.getDate()&&cm===selDate.getMonth()&&cy===selDate.getFullYear()?' selected':'');
+  el.innerHTML='<div class="cal-dn">'+day+'</div>';
+  if(!other){
+    const de=getEvs(cy,cm,cd);
+    de.forEach(e=>{const ev=document.createElement('div');ev.className='cal-ev '+e.color;ev.textContent=e.time+' '+e.title;el.appendChild(ev);});
+    el.onclick=()=>{selDate=new Date(cy,cm,cd);document.querySelectorAll('.cal-cell').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');calShowPanel(selDate);};
+  }
+  return el;
+}
+function isToday(y,m,d){const n=new Date();return y===n.getFullYear()&&m===n.getMonth()&&d===n.getDate();}
+function getEvs(y,m,d){return events.filter(e=>{const de=new Date(e.date);return de.getFullYear()===y&&de.getMonth()===m&&de.getDate()===d;});}
+window.calPrev=function(){cur.setMonth(cur.getMonth()-1);render();};
+window.calNext=function(){cur.setMonth(cur.getMonth()+1);render();};
+window.calToday=function(){cur=new Date();render();};
+window.calSetView=function(v){view=v;document.querySelectorAll('.cal-view-btns button').forEach(b=>b.classList.remove('active'));document.getElementById(v==='month'?'vMonth':'vWeek').classList.add('active');render();};
+window.calShowPanel=function(d){
+  document.getElementById('calPanelDate').textContent=d.toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'});
+  const list=document.getElementById('calEvList');list.innerHTML='';
+  const de=getEvs(d.getFullYear(),d.getMonth(),d.getDate());
+  if(!de.length){list.innerHTML='<div style="color:#94A3B8;font-size:13px;text-align:center;padding:16px;">No events</div>';return;}
+  de.forEach((e,i)=>{const el=document.createElement('div');el.className='cal-ev-item';el.style.borderLeftColor=e.color==='purple'?'#7C3AED':e.color==='green'?'#10B981':e.color==='red'?'#EF4444':'#F59E0B';el.innerHTML='<strong>'+e.title+'</strong><br><span style="color:#94A3B8;">'+e.time+'</span>';el.onclick=()=>{if(confirm('Delete "'+e.title+'"?')){events.splice(events.indexOf(e),1);JALAGEL.Storage.set('calendar','events',events);render();}};list.appendChild(el);});
+};
+window.calAddEvent=function(){
+  const t=document.getElementById('evTitle').value;if(!t||!selDate)return;
+  events.push({id:Date.now(),title:t,time:document.getElementById('evTime').value||'All day',date:selDate.toISOString().split('T')[0],color:document.getElementById('evColor').value});
+  JALAGEL.Storage.set('calendar','events',events);document.getElementById('evTitle').value='';render();
+};
+selDate=new Date();render();
+})();
+</script>
+</div>

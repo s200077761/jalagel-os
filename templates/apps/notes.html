@@ -1,0 +1,94 @@
+<div class="app-container" data-app="notes">
+<style>
+.notes-wrap{display:flex;height:100%;}
+.notes-sidebar{width:240px;border-right:1px solid #334155;display:flex;flex-direction:column;background:#232344;flex-shrink:0;}
+.notes-header{padding:12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #334155;}
+.notes-header h3{margin:0;font-size:14px;}
+.notes-search{padding:8px 12px;border-bottom:1px solid #334155;}
+.notes-search input{width:100%;padding:6px 10px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-size:12px;outline:none;font-family:inherit;}
+.notes-list{flex:1;overflow:auto;}
+.notes-item{padding:10px 12px;border-bottom:1px solid rgba(51,65,85,0.3);cursor:pointer;transition:all .15s;}
+.notes-item:hover,.notes-item.active{background:rgba(124,58,237,0.12);}
+.notes-item-title{font-size:13px;font-weight:600;color:#F1F5F9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.notes-item-date{font-size:10px;color:#94A3B8;margin-top:2px;}
+.notes-item-pin{float:right;color:#F59E0B;font-size:11px;}
+.notes-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.notes-toolbar{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;background:#232344;}
+.notes-toolbar button,.notes-toolbar select{padding:5px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;cursor:pointer;}
+.notes-toolbar button:hover,.notes-toolbar select:hover{border-color:#7C3AED;}
+.notes-color-btns{display:flex;gap:4px;}
+.notes-color-btn{width:20px;height:20px;border-radius:50%;border:2px solid transparent;cursor:pointer;}
+.notes-color-btn.active{border-color:#F1F5F9;}
+.notes-title-input{width:100%;padding:12px 16px;border:none;border-bottom:1px solid #334155;background:transparent;color:#F1F5F9;font-size:18px;font-weight:700;outline:none;font-family:inherit;}
+.notes-editor{flex:1;padding:16px;border:none;background:transparent;color:#F1F5F9;font-size:14px;line-height:1.7;outline:none;resize:none;font-family:'Inter',sans-serif;overflow:auto;}
+</style>
+<div class="notes-wrap">
+<div class="notes-sidebar">
+  <div class="notes-header"><h3>Notes</h3><button onclick="notesNew()" title="New note"><i class="fa-solid fa-plus"></i></button></div>
+  <div class="notes-search"><input type="text" id="notesSearch" placeholder="Search notes..." oninput="notesFilter()"></div>
+  <div class="notes-list" id="notesList"></div>
+</div>
+<div class="notes-main" id="notesMain" style="background:#1A1A2E;">
+  <div class="notes-toolbar">
+    <button onclick="notesSave()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+    <button onclick="notesPin()"><i class="fa-solid fa-thumbtack"></i> Pin</button>
+    <button onclick="notesArchive()"><i class="fa-solid fa-box-archive"></i> Archive</button>
+    <button onclick="notesDelete()" style="color:#EF4444;"><i class="fa-solid fa-trash"></i></button>
+    <div class="notes-color-btns">
+      <div class="notes-color-btn active" style="background:#1A1A2E;" onclick="notesColor('#1A1A2E')"></div>
+      <div class="notes-color-btn" style="background:#7C3AED;" onclick="notesColor('#7C3AED')"></div>
+      <div class="notes-color-btn" style="background:#EC4899;" onclick="notesColor('#EC4899')"></div>
+      <div class="notes-color-btn" style="background:#06B6D4;" onclick="notesColor('#06B6D4')"></div>
+      <div class="notes-color-btn" style="background:#10B981;" onclick="notesColor('#10B981')"></div>
+      <div class="notes-color-btn" style="background:#F59E0B;" onclick="notesColor('#F59E0B')"></div>
+    </div>
+    <select onchange="notesSort(this.value)"><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="az">A-Z</option></select>
+  </div>
+  <input type="text" class="notes-title-input" id="notesTitle" placeholder="Note title...">
+  <textarea class="notes-editor" id="notesBody" placeholder="Start typing your note..."></textarea>
+</div>
+</div>
+<script>
+(function(){
+let notes=JALAGEL.Storage.get('notes','data',[{id:1,title:'Welcome to Notes',body:'This is your personal notes app. Create, edit, and organize your thoughts.
+
+Features:
+- Pin important notes
+- Color-code your notes
+- Search through all notes
+- Archive old notes',color:'#1A1A2E',pinned:true,archived:false,date:Date.now()},{id:2,title:'Shopping List',body:'- Milk
+- Eggs
+- Bread
+- Coffee
+- Batteries',color:'#1A1A2E',pinned:false,archived:false,date:Date.now()-86400000},{id:3,title:'Project Ideas',body:'1. AI-powered recipe finder
+2. Smart home dashboard
+3. Personal finance tracker
+4. Habit builder app',color:'#1A1A2E',pinned:false,archived:false,date:Date.now()-172800000}]);
+let activeId=1;
+function render(){
+  const list=document.getElementById('notesList');list.innerHTML='';
+  const q=document.getElementById('notesSearch').value.toLowerCase();
+  let n=notes.filter(x=>!x.archived&&(x.title.toLowerCase().includes(q)||x.body.toLowerCase().includes(q)));
+  if(!n.length){list.innerHTML='<div style="padding:24px;text-align:center;color:#94A3B8;font-size:13px;">No notes found</div>';return;}
+  const s=document.querySelector('.notes-toolbar select').value;
+  if(s==='newest')n.sort((a,b)=>b.date-a.date);if(s==='oldest')n.sort((a,b)=>a.date-b.date);if(s==='az')n.sort((a,b)=>a.title.localeCompare(b.title));
+  n.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+  n.forEach(note=>{
+    const d=document.createElement('div');d.className='notes-item'+(note.id===activeId?' active':'');d.style.borderLeft='3px solid '+(note.color==='#1A1A2E'?'#7C3AED':note.color);
+    d.innerHTML=(note.pinned?'<span class="notes-item-pin"><i class="fa-solid fa-thumbtack"></i></span>':'')+'<div class="notes-item-title">'+note.title+'</div><div class="notes-item-date">'+new Date(note.date).toLocaleDateString()+'</div>';
+    d.onclick=()=>{notesSave();activeId=note.id;loadActive();render();};list.appendChild(d);
+  });
+}
+function loadActive(){const n=notes.find(x=>x.id===activeId);if(n){document.getElementById('notesTitle').value=n.title||'';document.getElementById('notesBody').value=n.body||'';document.getElementById('notesMain').style.background=n.color||'#1A1A2E';}else{document.getElementById('notesTitle').value='';document.getElementById('notesBody').value='';}}
+window.notesNew=function(){notesSave();const id=Date.now();notes.unshift({id,title:'New Note',body:'',color:'#1A1A2E',pinned:false,archived:false,date:id});activeId=id;loadActive();render();};
+window.notesSave=function(){const n=notes.find(x=>x.id===activeId);if(n){n.title=document.getElementById('notesTitle').value||'Untitled';n.body=document.getElementById('notesBody').value;JALAGEL.Storage.set('notes','data',notes);render();}};
+window.notesPin=function(){const n=notes.find(x=>x.id===activeId);if(n){n.pinned=!n.pinned;JALAGEL.Storage.set('notes','data',notes);render();}};
+window.notesArchive=function(){const n=notes.find(x=>x.id===activeId);if(n){n.archived=true;JALAGEL.Storage.set('notes','data',notes);render();}};
+window.notesDelete=function(){if(!confirm('Delete this note?'))return;const i=notes.findIndex(x=>x.id===activeId);if(i>=0){notes.splice(i,1);activeId=notes[0]?notes[0].id:null;loadActive();JALAGEL.Storage.set('notes','data',notes);render();}};
+window.notesColor=function(c){const n=notes.find(x=>x.id===activeId);if(n){n.color=c;document.getElementById('notesMain').style.background=c;JALAGEL.Storage.set('notes','data',notes);render();document.querySelectorAll('.notes-color-btn').forEach(b=>b.classList.toggle('active',b.style.background===c));}};
+window.notesFilter=function(){render();};
+window.notesSort=function(v){render();};
+loadActive();render();
+})();
+</script>
+</div>

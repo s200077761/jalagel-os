@@ -1,0 +1,89 @@
+<div class="app-container" data-app="calculator">
+<style>
+.calc-wrap { display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:16px;gap:12px; }
+.calc-display { width:100%;max-width:360px;background:#0f0f23;border:1px solid #334155;border-radius:12px;padding:16px;text-align:right; }
+.calc-history { font-size:12px;color:#94A3B8;min-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.calc-main { font-size:2.2rem;font-weight:700;color:#F1F5F9;font-family:'JetBrains Mono',monospace;word-break:break-all; }
+.calc-sub { font-size:13px;color:#7C3AED;min-height:18px;margin-top:4px;font-family:'JetBrains Mono',monospace; }
+.calc-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:100%;max-width:360px; }
+.calc-btn { padding:14px 0;border:1px solid #334155;border-radius:10px;background:#232344;color:#F1F5F9;font-size:15px;font-weight:600;cursor:pointer;transition:all .1s;font-family:inherit; }
+.calc-btn:hover { background:#7C3AED;border-color:#7C3AED; }
+.calc-btn:active { transform:scale(0.95); }
+.calc-btn.wide { grid-column:span 2; }
+.calc-btn.tall { grid-row:span 2; }
+.calc-btn.accent { background:rgba(124,58,237,0.2);border-color:#7C3AED; }
+.calc-btn.equals { background:linear-gradient(135deg,#7C3AED,#6D28D9);border-color:transparent;color:#fff; }
+.calc-btn.equals:hover { box-shadow:0 0 15px rgba(124,58,237,0.4); }
+.calc-btn.danger { background:rgba(239,68,68,0.1);color:#EF4444;border-color:rgba(239,68,68,0.3); }
+.calc-btn.secondary { background:rgba(6,182,212,0.1);color:#06B6D4;border-color:rgba(6,182,212,0.3); }
+.calc-mode { display:flex;gap:4px;flex-wrap:wrap;justify-content:center; }
+.calc-mode-btn { padding:4px 10px;font-size:11px;border-radius:6px;border:1px solid #334155;background:#1A1A2E;color:#94A3B8;cursor:pointer; }
+.calc-mode-btn.active { background:#7C3AED;color:#fff;border-color:#7C3AED; }
+</style>
+<div class="calc-wrap">
+  <div class="calc-mode">
+    <button class="calc-mode-btn active" onclick="calcSetMode('std')">Standard</button>
+    <button class="calc-mode-btn" onclick="calcSetMode('sci')">Scientific</button>
+    <button class="calc-mode-btn" onclick="calcSetMode('prog')">Programmer</button>
+  </div>
+  <div class="calc-display">
+    <div class="calc-history" id="cHist"></div>
+    <div class="calc-main" id="cDisp">0</div>
+    <div class="calc-sub" id="cSub"></div>
+  </div>
+  <div class="calc-grid" id="cGrid">
+    <button class="calc-btn danger" onclick="calcClear()">AC</button>
+    <button class="calc-btn danger" onclick="calcBack()">⌫</button>
+    <button class="calc-btn secondary" onclick="calcOp('%')">%</button>
+    <button class="calc-btn secondary" onclick="calcOp('/')">÷</button>
+    <button class="calc-btn secondary" onclick="calcFn('recip')">1/x</button>
+    <button class="calc-btn" onclick="calcNum(7)">7</button>
+    <button class="calc-btn" onclick="calcNum(8)">8</button>
+    <button class="calc-btn" onclick="calcNum(9)">9</button>
+    <button class="calc-btn secondary" onclick="calcOp('*')">×</button>
+    <button class="calc-btn secondary" onclick="calcFn('sqrt')">√</button>
+    <button class="calc-btn" onclick="calcNum(4)">4</button>
+    <button class="calc-btn" onclick="calcNum(5)">5</button>
+    <button class="calc-btn" onclick="calcNum(6)">6</button>
+    <button class="calc-btn secondary" onclick="calcOp('-')">−</button>
+    <button class="calc-btn secondary" onclick="calcFn('sq')">x²</button>
+    <button class="calc-btn" onclick="calcNum(1)">1</button>
+    <button class="calc-btn" onclick="calcNum(2)">2</button>
+    <button class="calc-btn" onclick="calcNum(3)">3</button>
+    <button class="calc-btn secondary" onclick="calcOp('+')">+</button>
+    <button class="calc-btn secondary" onclick="calcFn('neg')">+/−</button>
+    <button class="calc-btn wide" onclick="calcNum(0)">0</button>
+    <button class="calc-btn" onclick="calcDot()">.</button>
+    <button class="calc-btn equals" onclick="calcEq()">=</button>
+    <button class="calc-btn secondary" onclick="calcMC()">MC</button>
+  </div>
+</div>
+<script>
+(function(){
+let disp='0',sub='',hist='',op=null,prev=null,fresh=true,mem=0,mode='std';
+const $d=document.getElementById('cDisp'),$s=document.getElementById('cSub'),$h=document.getElementById('cHist');
+const sciHtml=`<button class="calc-btn danger" onclick="calcClear()">AC</button><button class="calc-btn danger" onclick="calcBack()">⌫</button><button class="calc-btn secondary" onclick="calcOp('%')">%</button><button class="calc-btn secondary" onclick="calcOp('/')">÷</button><button class="calc-btn secondary" onclick="calcFn('sin')">sin</button>
+<button class="calc-btn" onclick="calcNum(7)">7</button><button class="calc-btn" onclick="calcNum(8)">8</button><button class="calc-btn" onclick="calcNum(9)">9</button><button class="calc-btn secondary" onclick="calcOp('*')">×</button><button class="calc-btn secondary" onclick="calcFn('cos')">cos</button>
+<button class="calc-btn" onclick="calcNum(4)">4</button><button class="calc-btn" onclick="calcNum(5)">5</button><button class="calc-btn" onclick="calcNum(6)">6</button><button class="calc-btn secondary" onclick="calcOp('-')">−</button><button class="calc-btn secondary" onclick="calcFn('tan')">tan</button>
+<button class="calc-btn" onclick="calcNum(1)">1</button><button class="calc-btn" onclick="calcNum(2)">2</button><button class="calc-btn" onclick="calcNum(3)">3</button><button class="calc-btn secondary" onclick="calcOp('+')">+</button><button class="calc-btn secondary" onclick="calcFn('log')">log</button>
+<button class="calc-btn" onclick="calcNum(0)">0</button><button class="calc-btn" onclick="calcNum('00')">00</button><button class="calc-btn" onclick="calcDot()">.</button><button class="calc-btn equals" onclick="calcEq()">=</button><button class="calc-btn secondary" onclick="calcFn('ln')">ln</button>
+<button class="calc-btn secondary" onclick="calcFn('pi')">π</button><button class="calc-btn secondary" onclick="calcFn('e')">e</button><button class="calc-btn secondary" onclick="calcFn('pow')">x^y</button><button class="calc-btn secondary" onclick="calcFn('fact')">n!</button><button class="calc-btn secondary" onclick="calcMC()">MC</button>`;
+const stdHtml=document.getElementById('cGrid').innerHTML;
+window.calcSetMode=function(m){mode=m;document.querySelectorAll('.calc-mode-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(m=='sci'?'Scientific':m=='prog'?'Programmer':'Standard')));document.getElementById('cGrid').innerHTML=m=='sci'?sciHtml:stdHtml;calcClear();};
+window.calcNum=function(n){if(fresh){disp=''+n;fresh=false;}else{disp=disp==='0'?''+n:disp+n;}$d.textContent=disp;};
+window.calcDot=function(){if(fresh){disp='0.';fresh=false;}else if(!disp.includes('.')){disp+='.';}$d.textContent=disp;};
+window.calcOp=function(o){let v=parseFloat(disp);if(prev!==null&&op){prev=calcDo(prev,v,op);disp=fmt(prev);}else{prev=v;}op=o;fresh=true;$s.textContent=fmt(prev)+' '+o;$d.textContent=disp;};
+window.calcEq=function(){if(prev===null||!op)return;let v=parseFloat(disp);let r=calcDo(prev,v,op);hist=fmt(prev)+' '+op+' '+fmt(v)+' = '+fmt(r);$h.textContent=hist;$s.textContent='';disp=fmt(r);prev=null;op=null;fresh=true;$d.textContent=disp;};
+window.calcClear=function(){disp='0';sub='';hist='';op=null;prev=null;fresh=true;$d.textContent='0';$s.textContent='';$h.textContent='';};
+window.calcBack=function(){if(fresh)return;disp=disp.length<=1?'0':disp.slice(0,-1);$d.textContent=disp;};
+window.calcMC=function(){mem=0;JALAGEL&&JALAGEL.Utils&&JALAGEL.Utils.toast('Memory cleared','info');};
+window.calcFn=function(f){let v=parseFloat(disp),r=v;switch(f){case'sqrt':r=Math.sqrt(v);break;case'sq':r=v*v;break;case'recip':r=1/v;break;case'neg':r=-v;break;case'sin':r=Math.sin(v);break;case'cos':r=Math.cos(v);break;case'tan':r=Math.tan(v);break;case'log':r=Math.log10(v);break;case'ln':r=Math.log(v);break;case'pi':r=Math.PI;fresh=false;break;case'e':r=Math.E;fresh=false;break;case'pow':prev=v;op='^';fresh=true;$s.textContent=fmt(v)+' ^';return;case'fact':r=fact(v|0);break;}disp=String(+r.toFixed(10)).replace(/\.0+$/,'').replace(/(\.\d*?)0+$/,'$1');$d.textContent=disp;fresh=true;};
+function fact(n){return n<=1?1:n*fact(n-1);}
+function calcDo(a,b,o){switch(o){case'+':return a+b;case'-':return a-b;case'*':return a*b;case'/':return b===0?NaN:a/b;case'%':return a%b;case'^':return Math.pow(a,b);}return 0;}
+function fmt(n){if(isNaN(n))return'Error';if(!isFinite(n))return'∞';return String(+n.toFixed(10)).replace(/\.0+$/,'').replace(/(\.\d*?)0+$/,'$1');}
+document.addEventListener('keydown',e=>{
+const k=e.key;if(k>='0'&&k<='9')calcNum(k);if(k==='.')calcDot();if(k==='+'||k==='-'||k==='*'||k==='/')calcOp(k);if(k==='Enter'||k==='='){e.preventDefault();calcEq();}if(k==='Backspace')calcBack();if(k==='Escape')calcClear();
+});
+})();
+</script>
+</div>

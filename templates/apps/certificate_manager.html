@@ -1,0 +1,69 @@
+<div class="app-container" data-app="certificate-manager">
+<style>
+.cm-wrap{display:flex;flex-direction:column;height:100%;padding:24px;overflow:auto;}
+.cm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px;}
+.cm-card{background:#232344;border:1px solid #334155;border-radius:12px;padding:20px;transition:all .15s;position:relative;}
+.cm-card:hover{border-color:rgba(124,58,237,0.3);transform:translateY(-2px);}
+.cm-status{position:absolute;top:12px;right:12px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.cm-status.active{background:rgba(16,185,129,0.15);color:#10B981;}
+.cm-status.warning{background:rgba(245,158,11,0.15);color:#F59E0B;}
+.cm-status.danger{background:rgba(239,68,68,0.15);color:#EF4444;}
+.cm-type{font-size:12px;color:#94A3B8;margin-bottom:4px;}
+.cm-domain{font-size:16px;font-weight:700;color:#F1F5F9;margin-bottom:8px;}
+.cm-meta{font-size:12px;color:#94A3B8;display:flex;flex-direction:column;gap:4px;}
+.cm-meta span{display:flex;align-items:center;gap:6px;}
+.cm-actions{display:flex;gap:6px;margin-top:12px;}
+.cm-actions button{padding:6px 10px;border:1px solid #334155;border-radius:6px;background:transparent;color:#F1F5F9;font-size:11px;cursor:pointer;font-family:inherit;}
+.cm-actions button:hover{background:#7C3AED;border-color:#7C3AED;}
+.cm-tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.cm-tool{background:#232344;border:1px solid #334155;border-radius:12px;padding:16px;}
+.cm-tool h4{margin:0 0 12px;font-size:13px;}
+</style>
+<div class="cm-wrap">
+<h2 style="margin:0 0 16px;"><i class="fa-solid fa-shield-halved" style="color:#10B981;"></i> Certificate Manager</h2>
+<div style="display:flex;gap:8px;margin-bottom:16px;">
+  <button class="app-btn primary" onclick="cmGenerate()"><i class="fa-solid fa-plus"></i> Generate CSR</button>
+  <button class="app-btn" onclick="cmCheck()"><i class="fa-solid fa-magnifying-glass"></i> SSL Check</button>
+  <button class="app-btn" onclick="cmRenew()"><i class="fa-solid fa-rotate"></i> Renew All</button>
+</div>
+<h3 style="font-size:14px;margin-bottom:12px;">Your Certificates</h3>
+<div class="cm-grid" id="cmGrid"></div>
+<div class="cm-tools">
+  <div class="cm-tool">
+    <h4><i class="fa-solid fa-file-certificate" style="color:#7C3AED;"></i> Generate CSR</h4>
+    <input type="text" id="cmCsrCn" placeholder="Common Name (e.g., example.com)" style="width:100%;padding:8px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:12px;margin-bottom:8px;">
+    <input type="text" id="cmCsrO" placeholder="Organization" style="width:100%;padding:8px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:12px;margin-bottom:8px;">
+    <button class="app-btn primary" onclick="cmGenCsr()" style="width:100%;">Generate</button>
+    <div id="cmCsrOut" style="margin-top:8px;font-family:monospace;font-size:11px;color:#94A3B8;word-break:break-all;"></div>
+  </div>
+  <div class="cm-tool">
+    <h4><i class="fa-solid fa-check-double" style="color:#10B981;"></i> SSL Checker</h4>
+    <input type="text" id="cmCheckHost" placeholder="Hostname" value="jalagel.com" style="width:100%;padding:8px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:12px;margin-bottom:8px;">
+    <button class="app-btn primary" onclick="cmCheckSsl()" style="width:100%;">Check SSL</button>
+    <div id="cmCheckOut" style="margin-top:8px;font-size:11px;color:#94A3B8;"></div>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+let certs=[{id:1,domain:'jalagel.com',type:'DV SSL',issuer:'Let\'s Encrypt',expiry:'2024-12-15',status:'active'},{id:2,domain:'*.jalagel.com',type:'Wildcard SSL',issuer:'Let\'s Encrypt',expiry:'2024-11-01',status:'warning'},{id:3,domain:'api.jalagel.com',type:'EV SSL',issuer:'DigiCert',expiry:'2024-10-20',status:'danger'},{id:4,domain:'store.jalagel.com',type:'DV SSL',issuer:'Let\'s Encrypt',expiry:'2025-01-30',status:'active'}];
+function render(){const g=document.getElementById('cmGrid');g.innerHTML='';
+  certs.forEach(c=>{
+    const d=document.createElement('div');d.className='cm-card';
+    const days=Math.floor((new Date(c.expiry)-new Date())/86400000);
+    d.innerHTML='<span class="cm-status '+(days>60?'active':days>30?'warning':'danger')+'">'+(days>60?'Active':days>30?'Expiring Soon':'Expired')+'</span><div class="cm-type">'+c.type+' - '+c.issuer+'</div><div class="cm-domain">'+c.domain+'</div><div class="cm-meta"><span><i class="fa-solid fa-calendar"></i> Expires: '+c.expiry+' ('+days+' days)</span><span><i class="fa-solid fa-key"></i> 2048-bit RSA</span></div><div class="cm-actions"><button onclick="cmRenewOne('+c.id+')">Renew</button><button onclick="cmDownload('+c.id+')">Download</button><button onclick="cmRevoke('+c.id+')">Revoke</button></div>';
+    g.appendChild(d);
+  });
+}
+window.cmGenerate=function(){JALAGEL.Utils.toast('CSR generator opened','success');};
+window.cmGenCsr=function(){const cn=document.getElementById('cmCsrCn').value;if(!cn)return;const csr='-----BEGIN CERTIFICATE REQUEST-----\nMIICvDCCAaQCAQAwdzELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWEx\nFjAUBgNVBAcMDVNhbiBGcmFuY2lzY28xEzARBgNVBAoMCEpBTEFHRUwgMRMwEQYD\nVQQDDApjZXJ0aWZpY2F0ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB\n-----END CERTIFICATE REQUEST-----';document.getElementById('cmCsrOut').textContent='CSR for '+cn+':\n'+csr.substring(0,80)+'...';JALAGEL.Utils.toast('CSR generated','success');};
+window.cmCheck=function(){};
+window.cmCheckSsl=function(){const h=document.getElementById('cmCheckHost').value;const r=document.getElementById('cmCheckOut');r.innerHTML='<div style="color:#10B981;"><i class="fa-solid fa-check-circle"></i> SSL valid for '+h+'</div><div>Protocol: TLS 1.3</div><div>Cipher: AES-256-GCM</div><div>Grade: A+</div><div>Expiry: 89 days</div>';};
+window.cmRenew=function(){certs.forEach(c=>{const d=new Date(c.expiry);d.setFullYear(d.getFullYear()+1);c.expiry=d.toISOString().split('T')[0];});render();JALAGEL.Utils.toast('All certificates renewed','success');};
+window.cmRenewOne=function(id){const c=certs.find(x=>x.id===id);if(c){const d=new Date(c.expiry);d.setFullYear(d.getFullYear()+1);c.expiry=d.toISOString().split('T')[0];render();JALAGEL.Utils.toast(c.domain+' renewed','success');}};
+window.cmDownload=function(id){const c=certs.find(x=>x.id===id);if(c){JALAGEL.Utils.downloadText('-----BEGIN CERTIFICATE-----\n'+c.domain+'\n-----END CERTIFICATE-----',c.domain+'.pem','text/plain');JALAGEL.Utils.toast('Downloaded '+c.domain+'.pem','success');}};
+window.cmRevoke=function(id){if(confirm('Revoke this certificate?')){certs=certs.filter(x=>x.id!==id);render();JALAGEL.Utils.toast('Certificate revoked','info');}};
+render();
+})();
+</script>
+</div>

@@ -1,0 +1,61 @@
+<div class="app-container" data-app="news">
+<style>
+.nr-wrap{display:flex;flex-direction:column;height:100%;}
+.nr-toolbar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;}
+.nr-cats{display:flex;gap:6px;}
+.nr-cats button{padding:4px 12px;border:1px solid #334155;border-radius:6px;background:transparent;color:#94A3B8;font-size:12px;font-family:inherit;cursor:pointer;}
+.nr-cats button.active{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+.nr-list{flex:1;overflow:auto;padding:16px;}
+.nr-item{display:flex;gap:16px;padding:16px;background:#232344;border:1px solid #334155;border-radius:12px;margin-bottom:12px;cursor:pointer;transition:all .15s;}
+.nr-item:hover{border-color:rgba(124,58,237,0.3);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,0.15);}
+.nr-img{width:120px;height:80px;background:linear-gradient(135deg,#7C3AED,#EC4899);border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:2rem;color:rgba(255,255,255,0.3);}
+.nr-content{flex:1;min-width:0;}
+.nr-title{font-size:15px;font-weight:600;color:#F1F5F9;margin-bottom:6px;}
+.nr-excerpt{font-size:13px;color:#94A3B8;line-height:1.5;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.nr-meta{display:flex;gap:12px;margin-top:8px;font-size:11px;color:#64748B;}
+.nr-meta .cat{color:#7C3AED;font-weight:600;}
+</style>
+<div class="nr-wrap">
+<div class="nr-toolbar">
+  <div class="nr-cats">
+    <button class="active" onclick="nrCat('all')">All</button>
+    <button onclick="nrCat('tech')">Tech</button>
+    <button onclick="nrCat('science')">Science</button>
+    <button onclick="nrCat('business')">Business</button>
+    <button onclick="nrCat('design')">Design</button>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:6px;">
+    <button class="app-btn sm" onclick="nrBookmark()"><i class="fa-solid fa-bookmark"></i> Saved</button>
+    <button class="app-btn sm" onclick="nrRefresh()"><i class="fa-solid fa-rotate"></i></button>
+  </div>
+</div>
+<div class="nr-list" id="nrList"></div>
+</div>
+<script>
+(function(){
+const articles=[
+  {id:1,title:'JALAGEL OS Pro: The Future of Web-Based Operating Systems',excerpt:'A deep dive into how JALAGEL OS is redefining what a browser-based OS can achieve with 50+ fully functional applications.',cat:'tech',time:'2h ago',saved:false},
+  {id:2,title:'Understanding CSS Container Queries',excerpt:'Container queries are changing responsive design. Learn how to use them effectively in your web projects.',cat:'tech',time:'4h ago',saved:false},
+  {id:3,title:'The Science of Quantum Computing',excerpt:'Researchers have made a breakthrough in quantum error correction that could accelerate practical quantum computing.',cat:'science',time:'6h ago',saved:false},
+  {id:4,title:'Global Markets Rally on Tech Earnings',excerpt:'Major indices hit record highs as technology companies report better-than-expected quarterly earnings.',cat:'business',time:'8h ago',saved:false},
+  {id:5,title:'Minimalist Design Trends for 2024',excerpt:'Why less is more continues to dominate the design world and how to apply minimalism to your projects.',cat:'design',time:'12h ago',saved:false},
+  {id:6,title:'Python 3.12 Performance Improvements',excerpt:'The latest Python release brings significant speed improvements and new language features for developers.',cat:'tech',time:'1d ago',saved:false},
+  {id:7,title:'NASA Discovers New Exoplanet',excerpt:'A potentially habitable exoplanet has been found just 40 light-years from Earth using the James Webb telescope.',cat:'science',time:'1d ago',saved:false},
+  {id:8,title:'Startup Funding Trends in 2024',excerpt:'Venture capital investments are shifting toward AI and sustainable technology startups this year.',cat:'business',time:'2d ago',saved:false},
+];
+let cat='all';
+function render(){const l=document.getElementById('nrList');l.innerHTML='';
+  const f=cat==='all'?articles:articles.filter(a=>a.cat===cat);
+  f.forEach(a=>{const d=document.createElement('div');d.className='nr-item';
+    d.innerHTML='<div class="nr-img"><i class="fa-solid fa-newspaper"></i></div><div class="nr-content"><div class="nr-title">'+a.title+'</div><div class="nr-excerpt">'+a.excerpt+'</div><div class="nr-meta"><span class="cat">'+a.cat+'</span><span>'+a.time+'</span><span onclick="event.stopPropagation();nrSave('+a.id+')" style="cursor:pointer;">'+(a.saved?'<i class="fa-solid fa-bookmark" style="color:#7C3AED;"></i>':'<i class="fa-regular fa-bookmark"></i>')+'</span></div></div>';
+    d.onclick=()=>{window.open('https://jalagel.com/news/'+a.id,'_blank');};l.appendChild(d);
+  });
+}
+window.nrCat=function(c){cat=c;document.querySelectorAll('.nr-cats button').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');render();};
+window.nrSave=function(id){const a=articles.find(x=>x.id===id);if(a){a.saved=!a.saved;render();}};
+window.nrBookmark=function(){cat='saved';document.querySelectorAll('.nr-cats button').forEach(b=>b.classList.remove('active'));render();};
+window.nrRefresh=function(){render();JALAGEL.Utils.toast('Feed refreshed','success');};
+render();
+})();
+</script>
+</div>

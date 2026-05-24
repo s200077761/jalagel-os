@@ -1,0 +1,56 @@
+<div class="app-container" data-app="typing-test">
+<style>
+.tt-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:24px;gap:20px;}
+.tt-stats{display:flex;gap:24px;margin-bottom:16px;}
+.tt-stat{text-align:center;}
+.tt-stat .val{font-size:3rem;font-weight:700;color:#7C3AED;font-family:'JetBrains Mono',monospace;}
+.tt-stat .lbl{font-size:12px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.05em;}
+.tt-display{width:100%;max-width:700px;padding:20px;background:#232344;border:2px solid #334155;border-radius:12px;font-size:18px;line-height:2;color:#64748B;font-family:'JetBrains Mono',monospace;min-height:100px;position:relative;}
+.tt-display .correct{color:#10B981;}.tt-display .wrong{color:#EF4444;background:rgba(239,68,68,0.15);}
+.tt-input{width:100%;max-width:700px;padding:14px 20px;border:2px solid #334155;border-radius:12px;background:#1A1A2E;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:16px;outline:none;text-align:center;}
+.tt-input:focus{border-color:#7C3AED;}
+.tt-input:disabled{opacity:.5;}
+.tt-controls{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.tt-diff{display:flex;gap:8px;}
+.tt-diff button{padding:6px 14px;border:1px solid #334155;border-radius:6px;background:transparent;color:#94A3B8;font-size:12px;font-family:inherit;cursor:pointer;}
+.tt-diff button.active{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+</style>
+<div class="tt-wrap">
+<h2 style="margin:0;"><i class="fa-solid fa-keyboard" style="color:#7C3AED;"></i> Typing Speed Test</h2>
+<div class="tt-stats">
+  <div class="tt-stat"><div class="val" id="ttWpm">0</div><div class="lbl">WPM</div></div>
+  <div class="tt-stat"><div class="val" id="ttAcc">100</div><div class="lbl">Accuracy %</div></div>
+  <div class="tt-stat"><div class="val" id="ttTime">60</div><div class="lbl">Seconds</div></div>
+</div>
+<div class="tt-diff">
+  <button onclick="ttSetDiff('easy')" id="ttd-easy">Easy</button>
+  <button class="active" onclick="ttSetDiff('medium')" id="ttd-medium">Medium</button>
+  <button onclick="ttSetDiff('hard')" id="ttd-hard">Hard</button>
+</div>
+<div class="tt-display" id="ttText">The quick brown fox jumps over the lazy dog while programming in Python creates elegant solutions.</div>
+<input type="text" class="tt-input" id="ttInput" placeholder="Start typing..." oninput="ttType()" disabled>
+<div class="tt-controls">
+  <button class="app-btn primary" onclick="ttStart()" id="ttStart">Start Test</button>
+  <button class="app-btn" onclick="ttReset()">Reset</button>
+</div>
+</div>
+<script>
+(function(){
+const texts={easy:['The cat sat on the mat.','A big red ball bounced high.','The sun is bright today.','I like to read good books.','We went to the park.'],medium:['The quick brown fox jumps over the lazy dog while programming in Python creates elegant solutions.','Technology transforms how we interact with digital systems and each other every single day.','Building scalable applications requires careful planning and thoughtful architecture decisions.'],hard:['Zephyr quintupled the jinxed wizards voracious appetite for phony black jack.','The sixth sheik\'s sixth sheep\'s sick and the psychiatrist psychoanalyzed the cryptic statistics.']};
+let diff='medium',started=false,timeLeft=60,timer=null,totalChars=0,correctChars=0,targetText='';
+function pickText(){const pool=texts[diff];targetText=pool[Math.floor(Math.random()*pool.length)];document.getElementById('ttText').innerHTML=targetText.split('').map(c=>'<span>'+c+'</span>').join('');}
+window.ttSetDiff=function(d){diff=d;document.querySelectorAll('.tt-diff button').forEach(b=>b.classList.remove('active'));document.getElementById('ttd-'+d).classList.add('active');ttReset();};
+window.ttStart=function(){if(started)return;started=true;pickText();document.getElementById('ttInput').disabled=false;document.getElementById('ttInput').value='';document.getElementById('ttInput').focus();document.getElementById('ttStart').disabled=true;
+  timer=setInterval(()=>{timeLeft--;document.getElementById('ttTime').textContent=timeLeft;if(timeLeft<=0)ttEnd();},1000);
+};
+window.ttType=function(){const input=document.getElementById('ttInput').value;const spans=document.getElementById('ttText').querySelectorAll('span');
+  let correct=0;spans.forEach((span,i)=>{if(i<input.length){if(input[i]===targetText[i]){span.className='correct';correct++;}else{span.className='wrong';}}else{span.className='';}});
+  correctChars=correct;totalChars=input.length;const elapsed=60-timeLeft||1;const wpm=Math.round((correct/5)/(elapsed/60));document.getElementById('ttWpm').textContent=wpm;document.getElementById('ttAcc').textContent=totalChars>0?Math.round((correct/totalChars)*100):100;
+  if(input===targetText)pickText();
+};
+window.ttEnd=function(){clearInterval(timer);document.getElementById('ttInput').disabled=true;document.getElementById('ttStart').disabled=false;const wpm=document.getElementById('ttWpm').textContent;JALAGEL.Utils.toast('Test complete! WPM: '+wpm,'success');};
+window.ttReset=function(){clearInterval(timer);started=false;timeLeft=60;document.getElementById('ttWpm').textContent='0';document.getElementById('ttAcc').textContent='100';document.getElementById('ttTime').textContent='60';document.getElementById('ttInput').disabled=true;document.getElementById('ttInput').value='';document.getElementById('ttStart').disabled=false;pickText();};
+pickText();
+})();
+</script>
+</div>

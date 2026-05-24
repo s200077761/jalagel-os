@@ -1,0 +1,84 @@
+<div class="app-container" data-app="timer">
+<style>
+.tm-wrap{display:flex;flex-direction:column;height:100%;padding:24px;overflow:auto;}
+.tm-tabs{display:flex;gap:4px;margin-bottom:24px;}
+.tm-tab{padding:10px 20px;border:1px solid #334155;border-radius:8px;background:transparent;color:#94A3B8;font-size:13px;font-family:inherit;cursor:pointer;}
+.tm-tab.active{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+.tm-section{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;}
+.tm-section.active{display:flex;}
+.tm-display{font-family:'JetBrains Mono',monospace;font-size:5rem;font-weight:700;color:#F1F5F9;text-align:center;margin-bottom:24px;}
+.tm-display.timer{color:#EF4444;}
+.tm-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.tm-btns button{padding:12px 24px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;color:#fff;transition:all .15s;}
+.tm-start{background:#10B981;}.tm-start:hover{background:#059669;}
+.tm-stop{background:#EF4444;}.tm-stop:hover{background:#DC2626;}
+.tm-reset{background:#334155;}.tm-reset:hover{background:#475569;}
+.tm-lap{background:#7C3AED;}.tm-lap:hover{background:#6D28D9;}
+.tm-laps{max-height:200px;overflow:auto;width:100%;max-width:300px;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:13px;}
+.tm-lap-row{display:flex;justify-content:space-between;padding:6px 12px;border-bottom:1px solid #334155;}
+.tm-presets{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;}
+.tm-presets button{padding:8px 14px;border:1px solid #334155;border-radius:8px;background:#232344;color:#F1F5F9;font-size:12px;cursor:pointer;font-family:inherit;}
+.tm-presets button:hover{background:#7C3AED;border-color:#7C3AED;}
+.tm-inputs{display:flex;gap:8px;align-items:center;margin-bottom:16px;}
+.tm-inputs input{width:80px;text-align:center;padding:12px;border:1px solid #334155;border-radius:10px;background:#1A1A2E;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:1.5rem;}
+</style>
+<div class="tm-wrap">
+<h2 style="margin:0 0 16px;"><i class="fa-solid fa-stopwatch" style="color:#7C3AED;"></i> Timer & Stopwatch</h2>
+<div class="tm-tabs">
+  <button class="tm-tab active" onclick="tmTab('stopwatch')" id="tmt-sw">Stopwatch</button>
+  <button class="tm-tab" onclick="tmTab('timer')" id="tmt-tm">Timer</button>
+</div>
+<div class="tm-section active" id="sec-sw">
+  <div class="tm-display" id="swDisp">00:00:00.00</div>
+  <div class="tm-btns">
+    <button class="tm-start" onclick="swStart()">Start</button>
+    <button class="tm-stop" onclick="swStop()">Stop</button>
+    <button class="tm-reset" onclick="swReset()">Reset</button>
+    <button class="tm-lap" onclick="swLap()">Lap</button>
+  </div>
+  <div class="tm-laps" id="swLaps"></div>
+</div>
+<div class="tm-section" id="sec-tm">
+  <div class="tm-presets">
+    <button onclick="tmPreset(1)">1 min</button>
+    <button onclick="tmPreset(5)">5 min</button>
+    <button onclick="tmPreset(10)">10 min</button>
+    <button onclick="tmPreset(15)">15 min</button>
+    <button onclick="tmPreset(25)">25 min</button>
+    <button onclick="tmPreset(30)">30 min</button>
+  </div>
+  <div class="tm-inputs">
+    <input type="number" id="tmH" placeholder="00" min="0" max="99" value="0"><span style="font-size:1.5rem;color:#94A3B8;">:</span>
+    <input type="number" id="tmM" placeholder="00" min="0" max="59" value="5"><span style="font-size:1.5rem;color:#94A3B8;">:</span>
+    <input type="number" id="tmS" placeholder="00" min="0" max="59" value="0">
+  </div>
+  <div class="tm-display timer" id="tmDisp">05:00</div>
+  <div class="tm-btns">
+    <button class="tm-start" onclick="tmStart()">Start</button>
+    <button class="tm-stop" onclick="tmStop()">Stop</button>
+    <button class="tm-reset" onclick="tmReset()">Reset</button>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+let swRunning=false,swStart=0,swElapsed=0,swInt,tmLeft=0,tmRunning=false,tmInt;
+function pad(n){return n<10?'0'+n:n;}
+function fmt(ms){const cs=Math.floor(ms/10);const s=Math.floor(cs/100)%60;const m=Math.floor(cs/6000)%60;const h=Math.floor(cs/360000);return pad(h)+':'+pad(m)+':'+pad(s)+'.'+pad(cs%100);}
+function fmtSec(s){const m=Math.floor(s/60),sec=s%60;return pad(m)+':'+pad(sec);}
+window.tmTab=function(t){
+  document.querySelectorAll('.tm-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tm-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tmt-'+t).classList.add('active');document.getElementById('sec-'+t).classList.add('active');
+};
+window.swStart=function(){if(swRunning)return;swRunning=true;swStart=Date.now()-swElapsed;swInt=setInterval(()=>{swElapsed=Date.now()-swStart;document.getElementById('swDisp').textContent=fmt(swElapsed);},10);};
+window.swStop=function(){swRunning=false;clearInterval(swInt);};
+window.swReset=function(){swRunning=false;clearInterval(swInt);swElapsed=0;document.getElementById('swDisp').textContent='00:00:00.00';document.getElementById('swLaps').innerHTML='';};
+window.swLap=function(){const el=document.createElement('div');el.className='tm-lap-row';el.innerHTML='<span>Lap '+(document.querySelectorAll('.tm-lap-row').length+1)+'</span><span>'+document.getElementById('swDisp').textContent+'</span>';document.getElementById('swLaps').prepend(el);};
+window.tmPreset=function(m){document.getElementById('tmM').value=m;document.getElementById('tmH').value=0;document.getElementById('tmS').value=0;tmLeft=m*60;document.getElementById('tmDisp').textContent=fmtSec(tmLeft);};
+window.tmStart=function(){if(tmRunning)return;const m=parseInt(document.getElementById('tmM').value)||0,s=parseInt(document.getElementById('tmS').value)||0,h=parseInt(document.getElementById('tmH').value)||0;if(tmLeft===0)tmLeft=h*3600+m*60+s;if(tmLeft<=0)return;tmRunning=true;tmInt=setInterval(()=>{tmLeft--;document.getElementById('tmDisp').textContent=fmtSec(tmLeft);if(tmLeft<=0){clearInterval(tmInt);tmRunning=false;document.getElementById('tmDisp').textContent='DONE!';JALAGEL.Utils.toast('Timer finished!','success');}},1000);};
+window.tmStop=function(){tmRunning=false;clearInterval(tmInt);};
+window.tmReset=function(){tmRunning=false;clearInterval(tmInt);tmLeft=0;document.getElementById('tmDisp').textContent='00:00';document.getElementById('tmM').value=5;document.getElementById('tmS').value=0;document.getElementById('tmH').value=0;};
+})();
+</script>
+</div>

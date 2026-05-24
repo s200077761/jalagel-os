@@ -1,0 +1,71 @@
+<div class="app-container" data-app="camera">
+<style>
+.cam-wrap{display:flex;flex-direction:column;height:100%;align-items:center;justify-content:center;gap:16px;padding:16px;}
+.cam-viewport{position:relative;width:100%;max-width:640px;aspect-ratio:4/3;background:#0f0f23;border:2px solid #334155;border-radius:16px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.cam-viewport video{width:100%;height:100%;object-fit:cover;display:none;}
+.cam-viewport canvas{width:100%;height:100%;object-fit:cover;display:none;}
+.cam-viewport .placeholder{color:#94A3B8;text-align:center;}
+.cam-viewport .countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:6rem;font-weight:800;color:#F1F5F9;text-shadow:0 0 20px rgba(124,58,237,0.5);z-index:10;}
+.cam-controls{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.cam-controls button{padding:10px 20px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.cam-snap{width:60px;height:60px;border-radius:50%;background:#EF4444;border:4px solid #334155;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;padding:0;}
+.cam-snap:hover{transform:scale(1.1);box-shadow:0 0 20px rgba(239,68,68,0.4);}
+.cam-gallery{display:flex;gap:8px;overflow-x:auto;padding:8px;width:100%;max-width:640px;}
+.cam-gallery img{height:80px;border-radius:8px;border:2px solid #334155;cursor:pointer;transition:all .15s;}
+.cam-gallery img:hover{border-color:#7C3AED;transform:scale(1.05);}
+.cam-filters{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.cam-filters button{padding:6px 12px;border:1px solid #334155;border-radius:6px;background:#232344;color:#94A3B8;font-size:12px;cursor:pointer;font-family:inherit;}
+.cam-filters button:hover,.cam-filters button.active{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+</style>
+<div class="cam-wrap">
+<div class="cam-viewport" id="camViewport">
+  <div class="placeholder" id="camPlaceholder"><i class="fa-solid fa-camera" style="font-size:3rem;opacity:.3;display:block;margin-bottom:12px;"></i>Click Start to enable camera</div>
+  <video id="camVideo" autoplay playsinline></video>
+  <canvas id="camCanvas"></canvas>
+  <div class="countdown" id="camCountdown" style="display:none;"></div>
+</div>
+<div class="cam-filters">
+  <button class="active" onclick="camFilter('none')">Normal</button>
+  <button onclick="camFilter('grayscale(100%)')">B&W</button>
+  <button onclick="camFilter('sepia(100%)')">Sepia</button>
+  <button onclick="camFilter('brightness(1.3)')">Bright</button>
+  <button onclick="camFilter('contrast(1.5)')">Contrast</button>
+  <button onclick="camFilter('invert(1)')">Invert</button>
+  <button onclick="camFilter('saturate(2)')">Vivid</button>
+</div>
+<div class="cam-controls">
+  <button class="app-btn primary" onclick="camStart()" id="camStartBtn"><i class="fa-solid fa-video"></i> Start Camera</button>
+  <button class="cam-snap" onclick="camCapture()" id="camSnapBtn" style="display:none;"><i class="fa-solid fa-camera"></i></button>
+  <button class="app-btn" onclick="camStop()" id="camStopBtn" style="display:none;"><i class="fa-solid fa-video-slash"></i> Stop</button>
+  <select id="camTimer" style="padding:8px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;">
+    <option value="0">No Timer</option><option value="3">3s Timer</option><option value="5">5s Timer</option><option value="10">10s Timer</option>
+  </select>
+</div>
+<div class="cam-gallery" id="camGallery"></div>
+</div>
+<script>
+(function(){
+let stream=null,photos=[];
+const v=document.getElementById('camVideo'),c=document.getElementById('camCanvas'),ctx=c.getContext('2d');
+window.camStart=async function(){
+  try{stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+    v.srcObject=stream;v.style.display='block';document.getElementById('camPlaceholder').style.display='none';
+    document.getElementById('camStartBtn').style.display='none';document.getElementById('camSnapBtn').style.display='flex';document.getElementById('camStopBtn').style.display='inline-flex';
+  }catch(e){JALAGEL.Utils.toast('Camera not available: '+e.message,'error');}
+};
+window.camStop=function(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+  v.style.display='none';document.getElementById('camPlaceholder').style.display='block';document.getElementById('camCanvas').style.display='none';
+  document.getElementById('camStartBtn').style.display='inline-flex';document.getElementById('camSnapBtn').style.display='none';document.getElementById('camStopBtn').style.display='none';
+};
+window.camCapture=async function(){
+  const t=parseInt(document.getElementById('camTimer').value);
+  if(t>0){const cd=document.getElementById('camCountdown');cd.style.display='flex';for(let i=t;i>0;i--){cd.textContent=i;await new Promise(r=>setTimeout(r,1000));}cd.style.display='none';}
+  c.width=v.videoWidth||640;c.height=v.videoHeight||480;ctx.filter=v.style.filter||'none';ctx.drawImage(v,0,0,c.width,c.height);
+  const data=c.toDataURL('image/png');photos.push(data);renderGallery();
+  JALAGEL.Utils.toast('Photo captured!','success');
+};
+window.camFilter=function(f){document.querySelectorAll('.cam-filters button').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');v.style.filter=f;};
+function renderGallery(){const g=document.getElementById('camGallery');g.innerHTML='';photos.forEach(p=>{const img=document.createElement('img');img.src=p;img.onclick=()=>{const a=document.createElement('a');a.download='photo.png';a.href=p;a.click();};g.appendChild(img);});}
+})();
+</script>
+</div>

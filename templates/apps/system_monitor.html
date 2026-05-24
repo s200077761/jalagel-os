@@ -1,0 +1,72 @@
+<div class="app-container" data-app="system-monitor">
+<style>
+.sm-wrap{display:flex;flex-direction:column;height:100%;overflow:auto;padding:24px;}
+.sm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:24px;}
+.sm-card{background:#232344;border:1px solid #334155;border-radius:12px;padding:20px;transition:all .15s;}
+.sm-card:hover{border-color:rgba(124,58,237,0.3);}
+.sm-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.sm-card-title{font-size:13px;color:#94A3B8;display:flex;align-items:center;gap:8px;}
+.sm-card-value{font-size:2rem;font-weight:700;color:#F1F5F9;font-family:'JetBrains Mono',monospace;}
+.sm-card-unit{font-size:14px;color:#94A3B8;margin-left:4px;}
+.sm-bar{height:8px;background:#334155;border-radius:4px;overflow:hidden;margin-top:8px;}
+.sm-bar-fill{height:100%;border-radius:4px;transition:width .5s ease;}
+.sm-chart{height:200px;background:#232344;border:1px solid #334155;border-radius:12px;padding:16px;position:relative;overflow:hidden;margin-bottom:16px;}
+.sm-chart canvas{width:100%;height:100%;}
+.sm-processes{flex:1;overflow:auto;}
+.sm-processes table{width:100%;border-collapse:collapse;font-size:13px;}
+.sm-processes th,.sm-processes td{padding:8px 12px;border-bottom:1px solid rgba(51,65,85,0.3);text-align:left;}
+.sm-processes th{color:#94A3B8;font-weight:600;font-size:12px;position:sticky;top:0;background:#1A1A2E;}
+.sm-tabs{display:flex;gap:4px;margin-bottom:16px;}
+.sm-tab{padding:6px 14px;border:1px solid #334155;border-radius:6px;background:transparent;color:#94A3B8;font-size:12px;font-family:inherit;cursor:pointer;}
+.sm-tab.active{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+</style>
+<div class="sm-wrap">
+<h2 style="margin:0 0 16px;"><i class="fa-solid fa-chart-line" style="color:#7C3AED;"></i> System Monitor</h2>
+<div class="sm-grid">
+  <div class="sm-card"><div class="sm-card-header"><span class="sm-card-title"><i class="fa-solid fa-microchip" style="color:#7C3AED;"></i> CPU</span><span class="app-badge purple" id="smCpuBadge">0%</span></div><div class="sm-card-value"><span id="smCpu">0</span><span class="sm-card-unit">%</span></div><div class="sm-bar"><div class="sm-bar-fill" id="smCpuBar" style="width:0%;background:#7C3AED;"></div></div></div>
+  <div class="sm-card"><div class="sm-card-header"><span class="sm-card-title"><i class="fa-solid fa-memory" style="color:#06B6D4;"></i> RAM</span><span class="app-badge blue" id="smRamBadge">0%</span></div><div class="sm-card-value"><span id="smRam">0</span><span class="sm-card-unit"> GB</span></div><div class="sm-bar"><div class="sm-bar-fill" id="smRamBar" style="width:0%;background:#06B6D4;"></div></div></div>
+  <div class="sm-card"><div class="sm-card-header"><span class="sm-card-title"><i class="fa-solid fa-hard-drive" style="color:#10B981;"></i> Disk</span><span class="app-badge green" id="smDiskBadge">0%</span></div><div class="sm-card-value"><span id="smDisk">0</span><span class="sm-card-unit">%</span></div><div class="sm-bar"><div class="sm-bar-fill" id="smDiskBar" style="width:0%;background:#10B981;"></div></div></div>
+  <div class="sm-card"><div class="sm-card-header"><span class="sm-card-title"><i class="fa-solid fa-network-wired" style="color:#F59E0B;"></i> Network</span><span class="app-badge amber">Active</span></div><div class="sm-card-value"><span id="smNet">0</span><span class="sm-card-unit"> KB/s</span></div><div class="sm-bar"><div class="sm-bar-fill" id="smNetBar" style="width:0%;background:#F59E0B;"></div></div></div>
+</div>
+<div class="sm-tabs">
+  <button class="sm-tab active" onclick="smTab('cpu')">CPU History</button>
+  <button class="sm-tab" onclick="smTab('ram')">RAM History</button>
+</div>
+<div class="sm-chart"><canvas id="smChart"></canvas></div>
+<div class="sm-processes">
+  <h3 style="font-size:14px;margin-bottom:8px;">Processes</h3>
+  <table><thead><tr><th>Name</th><th>PID</th><th>CPU</th><th>Memory</th><th>Status</th></tr></thead>
+  <tbody id="smProcs"></tbody></table>
+</div>
+</div>
+<script>
+(function(){
+const canvas=document.getElementById('smChart'),ctx=canvas.getContext('2d');let w,h;function resize(){const r=canvas.parentElement.getBoundingClientRect();canvas.width=r.width-32;canvas.height=r.height-32;w=canvas.width;h=canvas.height;}resize();window.addEventListener('resize',resize);
+let cpuHist=Array(60).fill(0),ramHist=Array(60).fill(0),tab='cpu';
+const procs=[{n:'jalagel-os',p:1,c:12,m:'128 MB',s:'running'},{n:'python3',p:245,c:8,m:'64 MB',s:'running'},{n:'nginx',p:88,c:3,m:'32 MB',s:'running'},{n:'postgres',p:102,c:5,m:'48 MB',s:'running'},{n:'redis',p:67,c:2,m:'16 MB',s:'running'},{n:'node',p:312,c:15,m:'96 MB',s:'running'},{n:'celery',p:156,c:4,m:'40 MB',s:'sleeping'},{n:'webpack',p:289,c:22,m:'156 MB',s:'running'}];
+function drawChart(data,color,label){
+  ctx.clearRect(0,0,w,h);ctx.fillStyle='#232344';ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle='rgba(148,163,184,0.1)';ctx.lineWidth=1;
+  for(let i=0;i<5;i++){const y=h-(h/4)*i;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+  ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();
+  const step=w/(data.length-1);data.forEach((v,i)=>{const x=i*step,y=h-(v/100)*h;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.stroke();
+  ctx.fillStyle=color;ctx.globalAlpha=0.1;ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.closePath();ctx.fill();ctx.globalAlpha=1;
+  ctx.fillStyle='#94A3B8';ctx.font='11px Inter';ctx.fillText(label,10,15);
+}
+function tick(){
+  const cpu=20+Math.random()*40+Math.sin(Date.now()/5000)*15;const ram=45+Math.random()*20+Math.sin(Date.now()/8000)*10;
+  cpuHist.shift();cpuHist.push(cpu);ramHist.shift();ramHist.push(ram);
+  document.getElementById('smCpu').textContent=cpu.toFixed(1);document.getElementById('smCpuBar').style.width=cpu+'%';
+  document.getElementById('smCpuBadge').textContent=cpu.toFixed(0)+'%';
+  document.getElementById('smRam').textContent=(ram/10).toFixed(1);document.getElementById('smRamBar').style.width=ram+'%';
+  document.getElementById('smRamBadge').textContent=ram.toFixed(0)+'%';
+  const disk=30+Math.random()*20;document.getElementById('smDisk').textContent=disk.toFixed(0);document.getElementById('smDiskBar').style.width=disk+'%';document.getElementById('smDiskBadge').textContent=disk.toFixed(0)+'%';
+  const net=100+Math.random()*500;document.getElementById('smNet').textContent=net.toFixed(0);document.getElementById('smNetBar').style.width=Math.min(100,net/10)+'%';
+  drawChart(tab==='cpu'?cpuHist:ramHist,tab==='cpu'?'#7C3AED':'#06B6D4',tab==='cpu'?'CPU Usage %':'RAM Usage %');
+}
+function renderProcs(){const t=document.getElementById('smProcs');t.innerHTML='';procs.forEach(p=>{t.innerHTML+='<tr><td>'+p.n+'</td><td>'+p.p+'</td><td>'+p.c+'%</td><td>'+p.m+'</td><td><span class="app-badge '+(p.s==='running'?'green':'amber')+'">'+p.s+'</span></td></tr>';});}
+window.smTab=function(t){tab=t;document.querySelectorAll('.sm-tab').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');};
+setInterval(tick,1000);tick();renderProcs();
+})();
+</script>
+</div>

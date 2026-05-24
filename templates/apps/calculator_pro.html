@@ -1,0 +1,93 @@
+<div class="app-container" data-app="calculator-pro">
+<style>
+.sc-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:16px;gap:12px;}
+.sc-display{width:100%;max-width:460px;background:#0f0f23;border:1px solid #334155;border-radius:12px;padding:16px;text-align:right;}
+.sc-main{font-size:2rem;font-weight:700;color:#F1F5F9;font-family:'JetBrains Mono',monospace;word-break:break-all;min-height:40px;}
+.sc-sub{font-size:13px;color:#94A3B8;font-family:'JetBrains Mono',monospace;min-height:18px;margin-top:4px;}
+.sc-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;width:100%;max-width:460px;}
+.sc-btn{padding:12px 0;border:1px solid #334155;border-radius:8px;background:#232344;color:#F1F5F9;font-size:13px;font-weight:600;cursor:pointer;transition:all .1s;font-family:inherit;}
+.sc-btn:hover{background:#7C3AED;border-color:#7C3AED;}
+.sc-btn:active{transform:scale(0.95);}
+.sc-btn.accent{background:rgba(124,58,237,0.2);border-color:#7C3AED;}
+.sc-btn.equals{background:linear-gradient(135deg,#7C3AED,#6D28D9);border-color:transparent;}
+.sc-btn.equals:hover{box-shadow:0 0 15px rgba(124,58,237,0.4);}
+.sc-btn.danger{background:rgba(239,68,68,0.1);color:#EF4444;border-color:rgba(239,68,68,0.3);}
+.sc-tabs{display:flex;gap:4px;margin-bottom:4px;}
+.sc-tab{padding:4px 10px;font-size:11px;border-radius:6px;border:1px solid #334155;background:#1A1A2E;color:#94A3B8;cursor:pointer;}
+.sc-tab.active{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+</style>
+<div class="sc-wrap">
+<div class="sc-tabs">
+  <button class="sc-tab active" onclick="scMode('basic')">Basic</button>
+  <button class="sc-tab" onclick="scMode('sci')">Scientific</button>
+  <button class="sc-tab" onclick="scMode('solve')">Solver</button>
+</div>
+<div class="sc-display"><div class="sc-main" id="scDisp">0</div><div class="sc-sub" id="scSub"></div></div>
+<div class="sc-grid" id="scGrid"></div>
+</div>
+<script>
+(function(){
+let disp='0',sub='',fresh=true;
+const basicBtns=[
+  ['AC','C','(',')','%','/'],
+  ['7','8','9','*','1/x','sqrt'],
+  ['4','5','6','-','x^2','x^y'],
+  ['1','2','3','+','log','ln'],
+  ['0','.','=','sin','cos','tan']
+];
+const sciBtns=[
+  ['AC','C','(',')','%','pi','e'],
+  ['7','8','9','/','sin','cos','tan'],
+  ['4','5','6','*','asin','acos','atan'],
+  ['1','2','3','-','log','ln','log2'],
+  ['0','.','=','+','n!','floor','ceil']
+];
+const solveBtns=[
+  ['2x+5=13','3x-7=8','x^2=16'],
+  ['ax+b=c','x/4=3','5x+2=3x+10'],
+  ['x^2+5x+6=0','x^2-4=0','2x^2+3x-5=0']
+];
+function render(grid){
+  const g=document.getElementById('scGrid');g.innerHTML='';
+  grid.forEach(row=>{row.forEach(label=>{const b=document.createElement('button');b.className='sc-btn'+(label==='='?' equals':['AC','C'].includes(label)?' danger':['sin','cos','tan','log','ln','sqrt','pi','e','asin','acos','atan','log2','n!','floor','ceil','x^2','x^y','1/x'].includes(label)?' accent':'');b.textContent=label;b.onclick=()=>scClick(label);g.appendChild(b);});});
+}
+window.scMode=function(m){
+  document.querySelectorAll('.sc-tab').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');
+  if(m==='basic')render(basicBtns);
+  else if(m==='sci')render(sciBtns);
+  else{const g=document.getElementById('scGrid');g.innerHTML='<div style="grid-column:span 6;font-size:13px;color:#94A3B8;padding:8px;">Click an equation to solve:</div>';solveBtns.forEach(row=>{row.forEach(eq=>{const b=document.createElement('button');b.className='sc-btn';b.style.gridColumn='span 2';b.textContent=eq;b.onclick=()=>scSolve(eq);g.appendChild(b);});});}
+};
+window.scClick=function(label){
+  if(label==='AC'){disp='0';sub='';fresh=true;}
+  else if(label==='C'){disp=disp.length<=1?'0':disp.slice(0,-1);}
+  else if(label==='='){scEval();}
+  else if(label==='pi'){disp=fresh?'3.14159':disp+'3.14159';fresh=false;}
+  else if(label==='e'){disp=fresh?'2.71828':disp+'2.71828';fresh=false;}
+  else if(label==='sqrt'){sub='sqrt('+disp+')';disp=String(Math.sqrt(parseFloat(disp)));fresh=true;}
+  else if(label==='x^2'){sub='('+disp+')^2';disp=String(Math.pow(parseFloat(disp),2));fresh=true;}
+  else if(label==='x^y'){sub=disp+'^';fresh=true;}
+  else if(label==='1/x'){disp=String(1/parseFloat(disp));fresh=true;}
+  else if(label==='sin'){disp=String(Math.sin(parseFloat(disp)));fresh=true;}
+  else if(label==='cos'){disp=String(Math.cos(parseFloat(disp)));fresh=true;}
+  else if(label==='tan'){disp=String(Math.tan(parseFloat(disp)));fresh=true;}
+  else if(label==='asin'){disp=String(Math.asin(parseFloat(disp)));fresh=true;}
+  else if(label==='acos'){disp=String(Math.acos(parseFloat(disp)));fresh=true;}
+  else if(label==='atan'){disp=String(Math.atan(parseFloat(disp)));fresh=true;}
+  else if(label==='log'){disp=String(Math.log10(parseFloat(disp)));fresh=true;}
+  else if(label==='ln'){disp=String(Math.log(parseFloat(disp)));fresh=true;}
+  else if(label==='log2'){disp=String(Math.log2(parseFloat(disp)));fresh=true;}
+  else if(label==='n!'){const n=parseInt(disp);let r=1;for(let i=2;i<=n;i++)r*=i;disp=String(r);fresh=true;}
+  else if(label==='floor'){disp=String(Math.floor(parseFloat(disp)));fresh=true;}
+  else if(label==='ceil'){disp=String(Math.ceil(parseFloat(disp)));fresh=true;}
+  else{if(fresh){disp=label;fresh=false;}else{disp+=label;}}
+  document.getElementById('scDisp').textContent=disp;document.getElementById('scSub').textContent=sub;
+};
+window.scSolve=function(eq){
+  const solutions={'2x+5=13':'x = 4','3x-7=8':'x = 5','x^2=16':'x = 4 or x = -4','ax+b=c':'x = (c-b)/a','x/4=3':'x = 12','5x+2=3x+10':'x = 4','x^2+5x+6=0':'x = -2 or x = -3','x^2-4=0':'x = 2 or x = -2','2x^2+3x-5=0':'x = 1 or x = -2.5'};
+  document.getElementById('scDisp').textContent=solutions[eq]||'x = ?';document.getElementById('scSub').textContent=eq;
+};
+function scEval(){try{disp=String(eval(disp.replace('^','**')));fresh=true;document.getElementById('scDisp').textContent=disp;}catch(e){document.getElementById('scDisp').textContent='Error';}}
+render(basicBtns);
+})();
+</script>
+</div>

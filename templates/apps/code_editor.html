@@ -1,0 +1,90 @@
+<div class="app-container" data-app="code-editor">
+<style>
+.ce-wrap{display:flex;flex-direction:column;height:100%;}
+.ce-toolbar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;}
+.ce-toolbar select,.ce-toolbar button{padding:5px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;cursor:pointer;}
+.ce-toolbar button:hover{background:#7C3AED;border-color:#7C3AED;}
+.ce-tabs{display:flex;gap:0;background:#1A1A2E;border-bottom:1px solid #334155;overflow-x:auto;flex-shrink:0;}
+.ce-tab{display:flex;align-items:center;gap:6px;padding:6px 14px;background:#1A1A2E;border-right:1px solid #334155;font-size:12px;color:#94A3B8;cursor:pointer;white-space:nowrap;}
+.ce-tab.active{background:#232344;color:#F1F5F9;border-bottom:2px solid #7C3AED;}
+.ce-tab .close{font-size:10px;padding:2px 4px;border-radius:3px;}
+.ce-tab .close:hover{background:rgba(239,68,68,0.3);}
+.ce-body{flex:1;display:flex;overflow:hidden;position:relative;}
+.ce-sidebar{width:200px;border-right:1px solid #334155;padding:8px;overflow:auto;background:#1A1A2E;flex-shrink:0;}
+.ce-sf{padding:6px 8px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;color:#94A3B8;}
+.ce-sf:hover{background:rgba(124,58,237,0.1);color:#F1F5F9;}
+.ce-editor{flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden;}
+.ce-textarea{width:100%;height:100%;padding:12px 16px;background:#0f0f23;color:#F1F5F9;font-family:'JetBrains Mono','Fira Code',monospace;font-size:13px;line-height:1.6;border:none;outline:none;resize:none;white-space:pre;overflow:auto;tab-size:2;}
+.ce-findbar{display:none;position:absolute;bottom:0;left:0;right:0;background:#232344;border-top:1px solid #334155;padding:6px 12px;gap:8px;align-items:center;z-index:10;}
+.ce-findbar.show{display:flex;}
+.ce-findbar input{padding:4px 8px;border:1px solid #334155;border-radius:4px;background:#1A1A2E;color:#F1F5F9;font-size:12px;}
+/* Syntax highlighting overlay */
+.ce-highlight{position:absolute;top:0;left:0;width:100%;height:100%;padding:12px 16px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:13px;line-height:1.6;white-space:pre;overflow:auto;pointer-events:none;color:transparent;z-index:1;}
+</style>
+<div class="ce-wrap">
+<div class="ce-toolbar">
+  <button onclick="ceNew()" title="New File"><i class="fa-solid fa-plus"></i></button>
+  <button onclick="ceOpen()" title="Open"><i class="fa-solid fa-folder-open"></i></button>
+  <button onclick="ceSave()" title="Save"><i class="fa-solid fa-floppy-disk"></i></button>
+  <select id="ceLang"><option value="text">Plain Text</option><option value="python">Python</option><option value="javascript">JavaScript</option><option value="html">HTML</option><option value="css">CSS</option><option value="json">JSON</option></select>
+  <select id="ceTheme"><option value="dark">Dark</option><option value="darker">Darker</option><option value="ocean">Ocean</option></select>
+  <button onclick="ceFormat()" title="Format"><i class="fa-solid fa-align-left"></i> Format</button>
+  <button onclick="ceFind()" title="Find"><i class="fa-solid fa-magnifying-glass"></i></button>
+  <span id="ceInfo" style="margin-left:auto;font-size:11px;color:#94A3B8;">Ln 1, Col 1</span>
+</div>
+<div class="ce-tabs" id="ceTabs">
+  <div class="ce-tab active" data-i="0" onclick="ceSwitch(0)">untitled.txt <span class="close" onclick="ceClose(0,event)">×</span></div>
+</div>
+<div class="ce-body">
+  <div class="ce-sidebar">
+    <div style="font-size:11px;font-weight:600;color:#7C3AED;margin-bottom:8px;padding:0 8px;">EXPLORER</div>
+    <div class="ce-sf" onclick="ceNew()"><i class="fa-solid fa-file-plus" style="color:#06B6D4;"></i> New File</div>
+    <div class="ce-sf" onclick="ceOpen()"><i class="fa-solid fa-folder-open" style="color:#F59E0B;"></i> Open File</div>
+    <div style="font-size:11px;font-weight:600;color:#94A3B8;margin:12px 0 4px;padding:0 8px;">OPEN FILES</div>
+    <div id="ceFileList"></div>
+  </div>
+  <div class="ce-editor" id="ceEditorWrap">
+    <textarea class="ce-textarea" id="ceTa" spellcheck="false" placeholder="// Start coding..."></textarea>
+    <div class="ce-findbar" id="ceFindBar">
+      <input type="text" id="ceFindInput" placeholder="Find..." onkeydown="if(event.key==='Enter')ceDoFind()">
+      <input type="text" id="ceReplaceInput" placeholder="Replace...">
+      <button onclick="ceDoFind()">Find</button>
+      <button onclick="ceDoReplace()">Replace</button>
+      <button onclick="ceDoReplaceAll()">All</button>
+      <button onclick="document.getElementById('ceFindBar').classList.remove('show')">Close</button>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+let tabs=[{name:'untitled.txt',lang:'text',content:'',dirty:false}],active=0;
+const $ta=document.getElementById('ceTa'),$tabs=document.getElementById('ceTabs');
+$ta.addEventListener('input',()=>{tabs[active].content=$ta.value;tabs[active].dirty=true;updateTab();updateInfo();});
+$ta.addEventListener('keydown',e=>{
+  if(e.key==='Tab'){e.preventDefault();const s=$ta.selectionStart,e2=$ta.selectionEnd;$ta.value=$ta.value.substring(0,s)+'  '+$ta.value.substring(e2);$ta.selectionStart=$ta.selectionEnd=s+2;tabs[active].content=$ta.value;}
+  if((e.ctrlKey||e.metaKey)&&e.key==='f'){e.preventDefault();document.getElementById('ceFindBar').classList.add('show');document.getElementById('ceFindInput').focus();}
+});
+$ta.addEventListener('click',updateInfo);$ta.addEventListener('keyup',updateInfo);
+function updateInfo(){const v=$ta.value,p=$ta.selectionStart;const ln=v.substring(0,p).split('\n').length;const col=p-v.lastIndexOf('\n',p-1);document.getElementById('ceInfo').textContent='Ln '+ln+', Col '+col;}
+function updateTab(){const t=$tabs.children[active];if(t)t.innerHTML=tabs[active].name+(tabs[active].dirty?' *':'')+' <span class="close" onclick="ceClose('+active+',event)">×</span>';}
+function renderTabs(){$tabs.innerHTML='';tabs.forEach((t,i)=>{const d=document.createElement('div');d.className='ce-tab'+(i===active?' active':'');d.dataset.i=i;d.innerHTML=t.name+(t.dirty?' *':'')+' <span class="close" onclick="ceClose('+i+',event)">×</span>';d.onclick=()=>ceSwitch(i);$tabs.appendChild(d);});renderFileList();}
+function renderFileList(){const fl=document.getElementById('ceFileList');fl.innerHTML='';tabs.forEach((t,i)=>{const d=document.createElement('div');d.className='ce-sf';d.innerHTML='<i class="fa-solid fa-file-code" style="color:'+(t.lang==='python'?'#F59E0B':t.lang==='javascript'?'#F1F5F9':t.lang==='html'?'#EF4444':t.lang==='css'?'#3B82F6':'#94A3B8')+';"></i> '+t.name;d.onclick=()=>ceSwitch(i);fl.appendChild(d);});}
+window.ceSwitch=function(i){tabs[active].content=$ta.value;active=i;$ta.value=tabs[i].content||'';document.getElementById('ceLang').value=tabs[i].lang||'text';renderTabs();};
+window.ceNew=function(){tabs.push({name:'untitled'+(tabs.length)+'.txt',lang:'text',content:'',dirty:false});active=tabs.length-1;$ta.value='';renderTabs();};
+window.ceClose=function(i,e){e.stopPropagation();if(tabs.length<=1){tabs[0]={name:'untitled.txt',lang:'text',content:'',dirty:false};active=0;$ta.value='';renderTabs();return;}tabs.splice(i,1);if(active>=tabs.length)active=tabs.length-1;$ta.value=tabs[active].content||'';renderTabs();};
+window.ceSave=function(){tabs[active].dirty=false;const blob=new Blob([$ta.value],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=tabs[active].name;a.click();URL.revokeObjectURL(a.href);updateTab();JALAGEL.Utils.toast('Saved '+tabs[active].name,'success');};
+window.ceOpen=function(){const inp=document.createElement('input');inp.type='file';inp.accept='.txt,.py,.js,.html,.css,.json';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{tabs.push({name:f.name,lang:guessLang(f.name),content:ev.target.result,dirty:false});active=tabs.length-1;$ta.value=ev.target.result;document.getElementById('ceLang').value=guessLang(f.name);renderTabs();};r.readAsText(f);};inp.click();};
+window.ceFind=function(){document.getElementById('ceFindBar').classList.toggle('show');if(document.getElementById('ceFindBar').classList.contains('show'))document.getElementById('ceFindInput').focus();};
+window.ceDoFind=function(){const q=document.getElementById('ceFindInput').value;if(!q)return;const i=$ta.value.indexOf(q,$ta.selectionEnd);if(i>=0){$ta.selectionStart=i;$ta.selectionEnd=i+q.length;$ta.focus();}};
+window.ceDoReplace=function(){const q=document.getElementById('ceFindInput').value,r=document.getElementById('ceReplaceInput').value;if(!q)return;const s=$ta.selectionStart;if($ta.value.substring(s,s+q.length)===q){$ta.value=$ta.value.substring(0,s)+r+$ta.value.substring(s+q.length);tabs[active].content=$ta.value;}};
+window.ceDoReplaceAll=function(){const q=document.getElementById('ceFindInput').value,r=document.getElementById('ceReplaceInput').value;if(!q)return;$ta.value=$ta.value.split(q).join(r);tabs[active].content=$ta.value;};
+window.ceFormat=function(){try{if(tabs[active].lang==='json'){$ta.value=JSON.stringify(JSON.parse($ta.value),null,2);tabs[active].content=$ta.value;}}catch(e){JALAGEL.Utils.toast('Invalid JSON','error');}};
+document.getElementById('ceLang').addEventListener('change',e=>{tabs[active].lang=e.target.value;});
+document.getElementById('ceTheme').addEventListener('change',e=>{const t=e.target.value;const c={dark:'#0f0f23',darker:'#000000',ocean:'#0a1628'};$ta.style.background=c[t]||c.dark;});
+function guessLang(n){if(n.endsWith('.py'))return'python';if(n.endsWith('.js'))return'javascript';if(n.endsWith('.html')||n.endsWith('.htm'))return'html';if(n.endsWith('.css'))return'css';if(n.endsWith('.json'))return'json';return'text';}
+$ta.value='// JALAGEL OS Code Editor\n// Select a language from the dropdown\n// Press Ctrl+F to find in file\n\nfunction hello() {\n  console.log("Hello, World!");\n}\n\nhello();';
+tabs[0].content=$ta.value;
+})();
+</script>
+</div>

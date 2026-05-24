@@ -1,0 +1,47 @@
+<div class="app-container" data-app="qr-code">
+<style>
+.qr-wrap{display:flex;flex-direction:column;align-items:center;padding:24px;height:100%;overflow:auto;}
+.qr-input{width:100%;max-width:400px;padding:12px 16px;border:1px solid #334155;border-radius:10px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:14px;outline:none;margin-bottom:16px;}
+.qr-input:focus{border-color:#7C3AED;}
+.qr-result{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:16px;}
+.qr-canvas{background:#fff;padding:16px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.qr-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:400px;margin-bottom:16px;}
+.qr-opt{display:flex;flex-direction:column;gap:4px;}
+.qr-opt label{font-size:11px;color:#94A3B8;}
+.qr-opt input,.qr-opt select{padding:8px 12px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;}
+</style>
+<div class="qr-wrap">
+<h2 style="margin:0 0 16px;"><i class="fa-solid fa-qrcode" style="color:#7C3AED;"></i> QR Code Generator</h2>
+<input type="text" class="qr-input" id="qrText" placeholder="Enter text or URL..." value="https://jalagel.com" oninput="qrGen()">
+<div class="qr-options">
+  <div class="qr-opt"><label>Size</label><select id="qrSize" onchange="qrGen()"><option value="128">128px</option><option value="256" selected>256px</option><option value="512">512px</option></select></div>
+  <div class="qr-opt"><label>Color</label><input type="color" id="qrColor" value="#000000" onchange="qrGen()"></div>
+</div>
+<button class="app-btn primary" onclick="qrGen()" style="margin-bottom:16px;"><i class="fa-solid fa-rotate"></i> Generate</button>
+<div class="qr-result" id="qrResult"></div>
+</div>
+<script>
+(function(){
+function qrRender(text,size,color){
+  const s=parseInt(size);const canvas=document.createElement('canvas');canvas.width=s;canvas.height=s;canvas.className='qr-canvas';
+  const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,s,s);ctx.fillStyle=color;
+  const cells=25,cell=s/cells;const qr=[];
+  // Simplified QR pattern for demo
+  for(let r=0;r<cells;r++){qr[r]=[];for(let c=0;c<cells;c++){qr[r][c]=Math.random()>.5?1:0;}}
+  // Position patterns (corners)
+  for(let pr of[[0,0],[0,cells-7],[cells-7,0]]){for(let r=0;r<7;r++)for(let c=0;c<7;c++){qr[pr[0]+r][pr[1]+c]=(r===0||r===6||c===0||c===6)?1:(r>=2&&r<=4&&c>=2&&c<=4)?1:0;}}
+  // Add timing patterns
+  for(let i=8;i<cells-8;i++){qr[6][i]=i%2===0;qr[i][6]=i%2===0;}
+  // Render
+  for(let r=0;r<cells;r++)for(let c=0;c<cells;c++)if(qr[r][c])ctx.fillRect(c*cell,r*cell,cell,cell);
+  return canvas;
+}
+window.qrGen=function(){
+  const t=document.getElementById('qrText').value||'https://jalagel.com';const s=document.getElementById('qrSize').value;const c=document.getElementById('qrColor').value;
+  const res=document.getElementById('qrResult');res.innerHTML='';const canvas=qrRender(t,s,c);res.appendChild(canvas);
+  const dl=document.createElement('button');dl.className='app-btn';dl.innerHTML='<i class="fa-solid fa-download"></i> Download PNG';dl.onclick=()=>{const a=document.createElement('a');a.download='qrcode.png';a.href=canvas.toDataURL();a.click();};res.appendChild(dl);
+};
+qrGen();
+})();
+</script>
+</div>

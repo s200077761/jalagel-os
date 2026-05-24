@@ -1,0 +1,51 @@
+<div class="app-container" data-app="screenshot">
+<style>
+.sc-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:24px;gap:24px;overflow:auto;}
+.sc-preview{width:100%;max-width:700px;aspect-ratio:16/9;background:#232344;border:2px dashed #334155;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.sc-preview img{max-width:100%;max-height:100%;object-fit:contain;}
+.sc-preview .placeholder{color:#94A3B8;text-align:center;}
+.sc-controls{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.sc-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:500px;}
+.sc-opt{background:#232344;border:1px solid #334155;border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all .15s;}
+.sc-opt:hover{border-color:#7C3AED;background:rgba(124,58,237,0.1);}
+.sc-opt i{font-size:1.5rem;color:#7C3AED;margin-bottom:8px;display:block;}
+.sc-opt-title{font-size:13px;font-weight:600;color:#F1F5F9;}
+.sc-opt-desc{font-size:11px;color:#94A3B8;margin-top:4px;}
+</style>
+<div class="sc-wrap">
+<h2 style="margin:0;"><i class="fa-solid fa-camera-retro" style="color:#7C3AED;"></i> Screenshot Tool</h2>
+<div class="sc-preview" id="scPreview">
+  <div class="placeholder" id="scPlaceholder"><i class="fa-solid fa-image" style="font-size:3rem;opacity:.3;display:block;margin-bottom:12px;"></i>Upload or capture a screenshot</div>
+  <canvas id="scCanvas" style="display:none;"></canvas>
+</div>
+<div class="sc-controls">
+  <button class="app-btn primary" onclick="scUpload()"><i class="fa-solid fa-upload"></i> Upload Image</button>
+  <button class="app-btn" onclick="scCapture()" title="Capture desktop area"><i class="fa-solid fa-camera"></i> Capture</button>
+  <button class="app-btn" onclick="scCrop()" id="scCropBtn" disabled><i class="fa-solid fa-crop"></i> Crop</button>
+  <button class="app-btn" onclick="scFilter()" id="scFilterBtn" disabled><i class="fa-solid fa-wand-magic-sparkles"></i> Filter</button>
+  <button class="app-btn" onclick="scDownload()" id="scDlBtn" disabled><i class="fa-solid fa-download"></i> Download</button>
+</div>
+<div class="sc-options">
+  <div class="sc-opt" onclick="scUpload()"><i class="fa-solid fa-file-image"></i><div class="sc-opt-title">From File</div><div class="sc-opt-desc">Upload an image</div></div>
+  <div class="sc-opt" onclick="scCapture()"><i class="fa-solid fa-desktop"></i><div class="sc-opt-title">From Desktop</div><div class="sc-opt-desc">Capture screen area</div></div>
+  <div class="sc-opt" onclick="scDemo()"><i class="fa-solid fa-palette"></i><div class="sc-opt-title">Demo Image</div><div class="sc-opt-desc">Load a sample image</div></div>
+  <div class="sc-opt" onclick="scFullPage()"><i class="fa-solid fa-expand"></i><div class="sc-opt-title">Full Page</div><div class="sc-opt-desc">Capture full page</div></div>
+</div>
+</div>
+<script>
+(function(){
+let img=null,originalImg=null;
+window.scUpload=function(){const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{loadImg(ev.target.result);};r.readAsDataURL(f);};i.click();};
+window.scCapture=function(){JALAGEL.Utils.toast('In a real app, this would capture a screen area','info');};
+window.scFullPage=function(){JALAGEL.Utils.toast('In a real app, this would capture the full page','info');};
+window.scDemo=function(){const c=document.getElementById('scCanvas');const ctx=c.getContext('2d');c.width=640;c.height=360;ctx.fillStyle='#0f0f23';ctx.fillRect(0,0,c.width,c.height);
+  for(let i=0;i<50;i++){ctx.fillStyle='rgba(124,58,237,'+(0.1+Math.random()*0.3)+')';ctx.beginPath();ctx.arc(Math.random()*c.width,Math.random()*c.height,Math.random()*80+20,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='#F1F5F9';ctx.font='bold 24px Inter';ctx.fillText('JALAGEL OS Pro',40,60);ctx.font='14px Inter';ctx.fillStyle='#94A3B8';ctx.fillText('Screenshot Demo',40,85);
+  const data=c.toDataURL();loadImg(data);};
+function loadImg(src){const canvas=document.getElementById('scCanvas');const ctx=canvas.getContext('2d');const image=new Image();image.onload=function(){canvas.width=image.width;canvas.height=image.height;ctx.drawImage(image,0,0);canvas.style.display='block';document.getElementById('scPlaceholder').style.display='none';img=image;originalImg=image;document.getElementById('scCropBtn').disabled=false;document.getElementById('scFilterBtn').disabled=false;document.getElementById('scDlBtn').disabled=false;};image.src=src;}
+window.scCrop=function(){if(!img)return;const c=document.getElementById('scCanvas');const ctx=c.getContext('2d');const w=c.width,h=c.height;const imageData=ctx.getImageData(w*0.1,h*0.1,w*0.8,h*0.8);c.width=w*0.8;c.height=h*0.8;ctx.putImageData(imageData,0,0);JALAGEL.Utils.toast('Cropped to 80%','success');};
+window.scFilter=function(){if(!img)return;const filters=['grayscale(100%)','sepia(100%)','invert(100%)','brightness(1.5)','contrast(1.5)','blur(2px)'];const f=filters[Math.floor(Math.random()*filters.length)];const c=document.getElementById('scCanvas');c.style.filter=f;JALAGEL.Utils.toast('Applied: '+f,'success');};
+window.scDownload=function(){const c=document.getElementById('scCanvas');if(c.style.display==='none')return;const a=document.createElement('a');a.download='screenshot.png';a.href=c.toDataURL();a.click();JALAGEL.Utils.toast('Downloaded','success');};
+})();
+</script>
+</div>

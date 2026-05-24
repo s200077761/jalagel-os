@@ -1,0 +1,36 @@
+<div class="app-container" data-app="hash-generator">
+<style>
+.hg-wrap{display:flex;flex-direction:column;height:100%;padding:24px;overflow:auto;}
+.hg-input{width:100%;padding:12px 16px;border:1px solid #334155;border-radius:10px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:14px;outline:none;margin-bottom:16px;}
+.hg-input:focus{border-color:#7C3AED;}
+.hg-grid{display:grid;grid-template-columns:1fr;gap:12px;}
+.hg-card{background:#232344;border:1px solid #334155;border-radius:12px;padding:16px;}
+.hg-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.hg-algo{font-size:14px;font-weight:600;color:#7C3AED;}
+.hg-hash{font-family:'JetBrains Mono',monospace;font-size:13px;color:#F1F5F9;background:#0f0f23;padding:10px;border-radius:8px;word-break:break-all;border:1px solid #334155;}
+.hg-file{margin-bottom:16px;padding:16px;background:#232344;border-radius:12px;border:1px solid #334155;}
+</style>
+<div class="hg-wrap">
+<h2 style="margin:0 0 16px;"><i class="fa-solid fa-fingerprint" style="color:#EC4899;"></i> Hash Generator</h2>
+<textarea class="hg-input" id="hgText" rows="3" placeholder="Enter text to hash..." oninput="hgUpdate()">JALAGEL OS Pro</textarea>
+<div class="hg-file">
+  <label style="font-size:13px;color:#94A3B8;margin-bottom:8px;display:block;">Or hash a file:</label>
+  <input type="file" id="hgFile" onchange="hgFile()" style="color:#F1F5F9;font-size:12px;">
+</div>
+<div class="hg-grid" id="hgGrid"></div>
+</div>
+<script>
+(function(){
+async function hash(text,algo){const enc=new TextEncoder();const buf=await crypto.subtle.digest(algo,enc.encode(text));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+async function hashFile(file,algo){const buf=await file.arrayBuffer();const hash=await crypto.subtle.digest(algo,buf);return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');}
+window.hgUpdate=async function(){const t=document.getElementById('hgText').value;const g=document.getElementById('hgGrid');g.innerHTML='';
+  for(const algo of['SHA-1','SHA-256','SHA-384','SHA-512']){const h=await hash(t,algo);const d=document.createElement('div');d.className='hg-card';d.innerHTML='<div class="hg-card-header"><span class="hg-algo">'+algo+'</span><button class="app-btn sm" onclick="hgCopy(this)">Copy</button></div><div class="hg-hash">'+h+'</div>';g.appendChild(d);}
+};
+window.hgFile=async function(){const f=document.getElementById('hgFile').files[0];if(!f)return;const g=document.getElementById('hgGrid');g.innerHTML='';
+  for(const algo of['SHA-1','SHA-256','SHA-384','SHA-512']){const h=await hashFile(f,algo);const d=document.createElement('div');d.className='hg-card';d.innerHTML='<div class="hg-card-header"><span class="hg-algo">'+algo+' ('+f.name+')</span><button class="app-btn sm" onclick="hgCopy(this)">Copy</button></div><div class="hg-hash">'+h+'</div>';g.appendChild(d);}
+};
+window.hgCopy=function(btn){const hash=btn.parentElement.nextElementSibling.textContent;JALAGEL.Utils.copyToClipboard(hash);JALAGEL.Utils.toast('Copied!','success');};
+hgUpdate();
+})();
+</script>
+</div>

@@ -1,0 +1,74 @@
+<div class="app-container" data-app="text-editor">
+<style>
+.te-wrap{display:flex;flex-direction:column;height:100%;}
+.te-toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;}
+.te-toolbar button{padding:5px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;cursor:pointer;}
+.te-toolbar button:hover{background:#7C3AED;border-color:#7C3AED;}
+.te-toolbar button.active{background:#7C3AED;border-color:#7C3AED;}
+.te-toolbar input[type=number]{width:50px;padding:4px 6px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;}
+.te-body{flex:1;display:flex;overflow:hidden;}
+.te-gutter{width:48px;background:#1A1A2E;border-right:1px solid #334155;padding:8px 4px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;color:#64748B;overflow:hidden;user-select:none;flex-shrink:0;}
+.te-editor-area{flex:1;overflow:auto;}
+.te-textarea{width:100%;height:100%;padding:8px 12px;background:#0f0f23;color:#F1F5F9;font-family:'JetBrains Mono','Fira Code',monospace;font-size:13px;line-height:1.6;border:none;outline:none;resize:none;white-space:pre;overflow:auto;tab-size:4;}
+.te-status{display:flex;align-items:center;justify-content:space-between;padding:4px 12px;background:#232344;border-top:1px solid #334155;font-size:11px;color:#94A3B8;flex-shrink:0;}
+.te-findbar{display:none;align-items:center;gap:8px;padding:6px 12px;background:#1A1A2E;border-bottom:1px solid #334155;}
+.te-findbar.show{display:flex;}
+.te-findbar input{padding:4px 8px;border:1px solid #334155;border-radius:4px;background:#0f0f23;color:#F1F5F9;font-size:12px;}
+</style>
+<div class="te-wrap">
+<div class="te-toolbar">
+  <button onclick="teNew()"><i class="fa-solid fa-plus"></i> New</button>
+  <button onclick="teOpen()"><i class="fa-solid fa-folder-open"></i> Open</button>
+  <button onclick="teSave()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+  <div style="width:1px;height:20px;background:#334155;margin:0 4px;"></div>
+  <button onclick="teToggleWrap()" id="teWrapBtn" class="active" title="Word Wrap"><i class="fa-solid fa-paragraph"></i> Wrap</button>
+  <button onclick="teFind()"><i class="fa-solid fa-magnifying-glass"></i> Find</button>
+  <div style="width:1px;height:20px;background:#334155;margin:0 4px;"></div>
+  <label style="font-size:12px;color:#94A3B8;">Size:</label>
+  <input type="number" value="13" min="8" max="32" onchange="document.getElementById('teTa').style.fontSize=this.value+'px'">
+</div>
+<div class="te-findbar" id="teFindBar">
+  <input type="text" id="teFindQ" placeholder="Find..." onkeydown="if(event.key==='Enter')teDoFind()">
+  <input type="text" id="teReplaceQ" placeholder="Replace...">
+  <button onclick="teDoFind()">Find</button>
+  <button onclick="teDoReplace()">Replace</button>
+  <button onclick="teDoReplaceAll()">Replace All</button>
+  <button onclick="document.getElementById('teFindBar').classList.remove('show')">Close</button>
+</div>
+<div class="te-body">
+  <div class="te-gutter" id="teGutter">1</div>
+  <div class="te-editor-area">
+    <textarea class="te-textarea" id="teTa" spellcheck="false" placeholder="Start typing..."></textarea>
+  </div>
+</div>
+<div class="te-status">
+  <span id="teStats">0 chars | 0 words | 0 lines</span>
+  <span id="tePos">Ln 1, Col 1</span>
+</div>
+</div>
+<script>
+(function(){
+const ta=document.getElementById('teTa'),gutter=document.getElementById('teGutter');
+let wrap=true;
+function update(){
+  const v=ta.value;const chars=v.length;const words=v.trim()?v.trim().split(/\s+/).length:0;const lines=v.split('\n').length;
+  document.getElementById('teStats').textContent=chars+' chars | '+words+' words | '+lines+' lines';
+  gutter.innerHTML=Array(lines).fill(0).map((_,i)=>i+1).join('<br>');
+  const p=ta.selectionStart;const ln=v.substring(0,p).split('\n').length;const col=p-v.lastIndexOf('\n',p-1);
+  document.getElementById('tePos').textContent='Ln '+ln+', Col '+col;
+}
+ta.addEventListener('input',update);
+ta.addEventListener('click',update);ta.addEventListener('keyup',update);
+ta.addEventListener('scroll',()=>{gutter.scrollTop=ta.scrollTop;});
+ta.addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();const s=ta.selectionStart,e2=ta.selectionEnd;ta.value=ta.value.substring(0,s)+'    '+ta.value.substring(e2);ta.selectionStart=ta.selectionEnd=s+4;update();}});
+window.teNew=function(){if(ta.value&&!confirm('Discard current text?'))return;ta.value='';update();};
+window.teOpen=function(){const i=document.createElement('input');i.type='file';i.accept='.txt,.md,.log,.csv,.json,.xml,.html,.css,.js,.py';i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{ta.value=ev.target.result;update();};r.readAsText(f);};i.click();};
+window.teSave=function(){const blob=new Blob([ta.value],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='document.txt';a.click();URL.revokeObjectURL(a.href);JALAGEL.Utils.toast('Saved','success');};
+window.teToggleWrap=function(){wrap=!wrap;ta.style.whiteSpace=wrap?'pre-wrap':'pre';document.getElementById('teWrapBtn').classList.toggle('active',wrap);};
+window.teFind=function(){document.getElementById('teFindBar').classList.toggle('show');if(document.getElementById('teFindBar').classList.contains('show'))document.getElementById('teFindQ').focus();};
+window.teDoFind=function(){const q=document.getElementById('teFindQ').value;if(!q)return;const i=ta.value.indexOf(q,ta.selectionEnd);if(i>=0){ta.selectionStart=i;ta.selectionEnd=i+q.length;ta.focus();}};
+window.teDoReplace=function(){const q=document.getElementById('teFindQ').value,r=document.getElementById('teReplaceQ').value;if(!q)return;const s=ta.selectionStart;if(ta.value.substring(s,s+q.length)===q){ta.value=ta.value.substring(0,s)+r+ta.value.substring(s+q.length);ta.selectionStart=ta.selectionEnd=s+r.length;}};
+window.teDoReplaceAll=function(){const q=document.getElementById('teFindQ').value,r=document.getElementById('teReplaceQ').value;if(!q)return;ta.value=ta.value.split(q).join(r);update();};
+})();
+</script>
+</div>

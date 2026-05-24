@@ -1,0 +1,68 @@
+<div class="app-container" data-app="contacts">
+<style>
+.ct-wrap{display:flex;height:100%;}
+.ct-sidebar{width:280px;border-right:1px solid #334155;display:flex;flex-direction:column;background:#232344;flex-shrink:0;}
+.ct-header{padding:12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #334155;}
+.ct-header h3{margin:0;font-size:14px;}
+.ct-search{padding:8px 12px;border-bottom:1px solid #334155;}
+.ct-search input{width:100%;padding:8px 12px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-size:13px;outline:none;font-family:inherit;}
+.ct-list{flex:1;overflow:auto;}
+.ct-item{padding:10px 12px;border-bottom:1px solid rgba(51,65,85,0.3);cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s;}
+.ct-item:hover,.ct-item.active{background:rgba(124,58,237,0.1);}
+.ct-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#EC4899);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0;}
+.ct-info{flex:1;min-width:0;}
+.ct-name{font-size:13px;font-weight:600;color:#F1F5F9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ct-email{font-size:11px;color:#94A3B8;}
+.ct-main{flex:1;padding:24px;overflow:auto;}
+.ct-detail-card{max-width:500px;margin:0 auto;background:#232344;border:1px solid #334155;border-radius:16px;padding:32px;}
+.ct-avatar-lg{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#EC4899);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff;margin:0 auto 16px;}
+.ct-field{display:flex;flex-direction:column;gap:4px;margin-bottom:16px;}
+.ct-field label{font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.05em;}
+.ct-field input,.ct-field select{padding:8px 12px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;}
+.ct-field input:focus{border-color:#7C3AED;}
+.ct-groups{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.ct-group{padding:4px 10px;border-radius:12px;font-size:11px;background:rgba(124,58,237,0.15);color:#A78BFA;border:1px solid rgba(124,58,237,0.3);}
+</style>
+<div class="ct-wrap">
+<div class="ct-sidebar">
+  <div class="ct-header"><h3>Contacts</h3><button class="app-btn primary sm" onclick="ctNew()"><i class="fa-solid fa-plus"></i></button></div>
+  <div class="ct-search"><input type="text" id="ctSearch" placeholder="Search contacts..." oninput="ctFilter()"></div>
+  <div class="ct-list" id="ctList"></div>
+</div>
+<div class="ct-main" id="ctMain">
+  <div class="ct-detail-card" id="ctDetail">
+    <div class="ct-avatar-lg" id="ctAv">?</div>
+    <div style="text-align:center;margin-bottom:24px;"><h2 style="margin:0 0 4px;" id="ctName">Select a contact</h2><p style="margin:0;color:#94A3B8;" id="ctSub">--</p></div>
+    <div class="ct-field"><label>Full Name</label><input type="text" id="ctIName" placeholder="Name"></div>
+    <div class="ct-field"><label>Email</label><input type="text" id="ctIEmail" placeholder="email@example.com"></div>
+    <div class="ct-field"><label>Phone</label><input type="text" id="ctIPhone" placeholder="+1 234 567 890"></div>
+    <div class="ct-field"><label>Group</label><select id="ctIGroup"><option>Personal</option><option>Work</option><option>Family</option><option>Friends</option><option>Other</option></select></div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:16px;">
+      <button class="app-btn primary" onclick="ctSave()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+      <button class="app-btn danger" onclick="ctDelete()"><i class="fa-solid fa-trash"></i> Delete</button>
+      <button class="app-btn" onclick="ctExport()"><i class="fa-solid fa-download"></i> vCard</button>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+let contacts=[{id:1,name:'Alice Johnson',email:'alice@example.com',phone:'+1 555 0101',group:'Work'},{id:2,name:'Bob Smith',email:'bob@example.com',phone:'+1 555 0102',group:'Friends'},{id:3,name:'Carol White',email:'carol@example.com',phone:'+1 555 0103',group:'Family'},{id:4,name:'David Brown',email:'david@example.com',phone:'+1 555 0104',group:'Work'},{id:5,name:'Emma Davis',email:'emma@example.com',phone:'+1 555 0105',group:'Personal'}],activeId=1;
+function initials(n){return n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();}
+function render(){const l=document.getElementById('ctList');l.innerHTML='';const q=document.getElementById('ctSearch').value.toLowerCase();
+  contacts.filter(c=>c.name.toLowerCase().includes(q)||c.email.toLowerCase().includes(q)).forEach(c=>{
+    const d=document.createElement('div');d.className='ct-item'+(c.id===activeId?' active':'');
+    d.innerHTML='<div class="ct-avatar">'+initials(c.name)+'</div><div class="ct-info"><div class="ct-name">'+c.name+'</div><div class="ct-email">'+c.email+'</div></div>';
+    d.onclick=()=>{activeId=c.id;render();loadDetail();};l.appendChild(d);
+  });
+}
+function loadDetail(){const c=contacts.find(x=>x.id===activeId);if(!c)return;document.getElementById('ctAv').textContent=initials(c.name);document.getElementById('ctName').textContent=c.name;document.getElementById('ctSub').textContent=c.group;document.getElementById('ctIName').value=c.name;document.getElementById('ctIEmail').value=c.email;document.getElementById('ctIPhone').value=c.phone;document.getElementById('ctIGroup').value=c.group;}
+window.ctNew=function(){const id=Date.now();contacts.push({id,name:'New Contact',email:'',phone:'',group:'Personal'});activeId=id;render();loadDetail();};
+window.ctSave=function(){const c=contacts.find(x=>x.id===activeId);if(c){c.name=document.getElementById('ctIName').value;c.email=document.getElementById('ctIEmail').value;c.phone=document.getElementById('ctIPhone').value;c.group=document.getElementById('ctIGroup').value;render();loadDetail();JALAGEL.Utils.toast('Contact saved','success');}};
+window.ctDelete=function(){contacts=contacts.filter(x=>x.id!==activeId);if(contacts.length){activeId=contacts[0].id;render();loadDetail();}else{activeId=null;document.getElementById('ctAv').textContent='?';document.getElementById('ctName').textContent='No contacts';}};
+window.ctFilter=function(){render();};
+window.ctExport=function(){const c=contacts.find(x=>x.id===activeId);if(!c)return;const vcard='BEGIN:VCARD\nVERSION:3.0\nFN:'+c.name+'\nEMAIL:'+c.email+'\nTEL:'+c.phone+'\nEND:VCARD';JALAGEL.Utils.downloadText(vcard,c.name+'.vcf','text/vcard');JALAGEL.Utils.toast('vCard exported','success');};
+render();loadDetail();
+})();
+</script>
+</div>

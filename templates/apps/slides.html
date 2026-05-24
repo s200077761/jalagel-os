@@ -1,0 +1,76 @@
+<div class="app-container" data-app="slides">
+<style>
+.pr-wrap{display:flex;flex-direction:column;height:100%;}
+.pr-toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;}
+.pr-toolbar button{padding:5px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;cursor:pointer;}
+.pr-toolbar button:hover,.pr-toolbar button.active{background:#7C3AED;border-color:#7C3AED;}
+.pr-body{flex:1;display:flex;overflow:hidden;}
+.pr-slides{width:160px;border-right:1px solid #334155;background:#232344;overflow:auto;padding:8px;flex-shrink:0;}
+.pr-slide-thumb{padding:8px;border-radius:8px;margin-bottom:8px;cursor:pointer;border:2px solid transparent;background:#1A1A2E;text-align:center;font-size:11px;color:#94A3B8;transition:all .15s;min-height:60px;display:flex;align-items:center;justify-content:center;}
+.pr-slide-thumb:hover,.pr-slide-thumb.active{border-color:#7C3AED;color:#F1F5F9;}
+.pr-slide-thumb .num{position:absolute;font-size:10px;color:#64748B;}
+.pr-editor{flex:1;display:flex;flex-direction:column;padding:24px;overflow:auto;align-items:center;}
+.pr-canvas{width:640px;height:360px;background:#fff;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);position:relative;overflow:hidden;color:#000;padding:32px;}
+.pr-canvas h1{color:#000;margin:0 0 16px;font-size:2rem;}
+.pr-canvas p{color:#333;line-height:1.6;}
+.pr-canvas ul{color:#333;}
+.pr-props{width:220px;border-left:1px solid #334155;background:#232344;padding:12px;overflow:auto;flex-shrink:0;}
+.pr-props h4{margin:0 0 8px;font-size:12px;color:#7C3AED;}
+.pr-props textarea,.pr-props input{width:100%;padding:6px 8px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:12px;margin-bottom:10px;}
+</style>
+<div class="pr-wrap">
+<div class="pr-toolbar">
+  <button onclick="prNew()"><i class="fa-solid fa-plus"></i> New Slide</button>
+  <button onclick="prDelete()"><i class="fa-solid fa-trash"></i> Delete</button>
+  <button onclick="prMove(-1)"><i class="fa-solid fa-arrow-up"></i></button>
+  <button onclick="prMove(1)"><i class="fa-solid fa-arrow-down"></i></button>
+  <div style="width:1px;height:20px;background:#334155;margin:0 4px;"></div>
+  <button onclick="prAddText()" title="Text Box"><i class="fa-solid fa-font"></i></button>
+  <button onclick="prAddShape('rect')" title="Rectangle"><i class="fa-regular fa-square"></i></button>
+  <button onclick="prAddShape('circle')" title="Circle"><i class="fa-regular fa-circle"></i></button>
+  <div style="width:1px;height:20px;background:#334155;margin:0 4px;"></div>
+  <button onclick="prPresent()" class="primary" style="background:#7C3AED;border-color:#7C3AED;"><i class="fa-solid fa-play"></i> Present</button>
+</div>
+<div class="pr-body">
+  <div class="pr-slides" id="prSlides"></div>
+  <div class="pr-editor" id="prEditor">
+    <div class="pr-canvas" id="prCanvas" contenteditable="true"></div>
+  </div>
+  <div class="pr-props">
+    <h4>Slide Properties</h4>
+    <label style="font-size:11px;color:#94A3B8;">Content (HTML)</label>
+    <textarea id="prContent" rows="8" oninput="prUpdateContent()"></textarea>
+    <label style="font-size:11px;color:#94A3B8;">Background</label>
+    <input type="color" id="prBg" value="#ffffff" onchange="prUpdateBg()">
+    <label style="font-size:11px;color:#94A3B8;margin-top:8px;">Templates</label>
+    <button onclick="prTemplate('blank')" style="width:100%;margin-bottom:4px;text-align:left;">Blank</button>
+    <button onclick="prTemplate('title')" style="width:100%;margin-bottom:4px;text-align:left;">Title Slide</button>
+    <button onclick="prTemplate('content')" style="width:100%;margin-bottom:4px;text-align:left;">Content</button>
+    <button onclick="prTemplate('bullets')" style="width:100%;margin-bottom:4px;text-align:left;">Bullets</button>
+    <button onclick="prTemplate('split')" style="width:100%;margin-bottom:4px;text-align:left;">Two Column</button>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+let slides=[{bg:'#ffffff',content:'<h1>Presentation Title</h1><p>Click to edit</p>'},{bg:'#ffffff',content:'<h2>Slide 2</h2><ul><li>Point 1</li><li>Point 2</li><li>Point 3</li></ul>'}],active=0,presenting=false;
+function render(){const s=document.getElementById('prSlides');s.innerHTML='';slides.forEach((sl,i)=>{const d=document.createElement('div');d.className='pr-slide-thumb'+(i===active?' active':'');d.innerHTML='<span style="position:absolute;top:4px;left:4px;font-size:9px;color:#64748B;">'+(i+1)+'</span><div style="overflow:hidden;width:100%;height:100%;pointer-events:none;">'+sl.content.substring(0,60)+'...</div>';d.onclick=()=>{prSave();active=i;render();};s.appendChild(d);});const cur=slides[active];document.getElementById('prCanvas').style.background=cur.bg;document.getElementById('prCanvas').innerHTML=cur.content;document.getElementById('prContent').value=cur.content;document.getElementById('prBg').value=cur.bg;}
+window.prNew=function(){prSave();slides.splice(active+1,0,{bg:'#ffffff',content:'<h2>New Slide</h2><p>Content here...</p>'});active++;render();};
+window.prDelete=function(){if(slides.length<=1)return;slides.splice(active,1);if(active>=slides.length)active=slides.length-1;render();};
+window.prMove=function(dir){const n=active+dir;if(n<0||n>=slides.length)return;[slides[active],slides[n]]=[slides[n],slides[active]];active=n;render();};
+window.prSave=function(){slides[active].content=document.getElementById('prCanvas').innerHTML;slides[active].bg=document.getElementById('prCanvas').style.background||'#ffffff';};
+window.prUpdateContent=function(){document.getElementById('prCanvas').innerHTML=document.getElementById('prContent').value;slides[active].content=document.getElementById('prContent').value;};
+window.prUpdateBg=function(){const c=document.getElementById('prBg').value;document.getElementById('prCanvas').style.background=c;slides[active].bg=c;};
+window.prTemplate=function(t){const bg='#ffffff';let c='';if(t==='blank')c='';if(t==='title')c='<h1 style="text-align:center;margin-top:80px;">Title Here</h1><p style="text-align:center;">Subtitle</p>';if(t==='content')c='<h2>Heading</h2><p>This is a content slide. Add your text here.</p>';if(t==='bullets')c='<h2>Key Points</h2><ul><li>First point</li><li>Second point</li><li>Third point</li></ul>';if(t==='split')c='<div style="display:flex;gap:24px;"><div style="flex:1;"><h2>Left</h2><p>Left column content</p></div><div style="flex:1;"><h2>Right</h2><p>Right column content</p></div></div>';document.getElementById('prCanvas').innerHTML=c;document.getElementById('prContent').value=c;prSave();};
+window.prAddText=function(){document.getElementById('prCanvas').innerHTML+='<p style="border:1px dashed #7C3AED;padding:8px;">New text box</p>';prSave();};
+window.prAddShape=function(s){const colors=['#7C3AED','#EC4899','#06B6D4','#10B981','#F59E0B'];const c=colors[Math.floor(Math.random()*colors.length)];if(s==='rect')document.getElementById('prCanvas').innerHTML+='<div style="width:100px;height:80px;background:'+c+';border-radius:8px;margin:8px 0;"></div>';if(s==='circle')document.getElementById('prCanvas').innerHTML+='<div style="width:80px;height:80px;background:'+c+';border-radius:50%;margin:8px 0;"></div>';prSave();};
+window.prPresent=function(){prSave();const d=document.createElement('div');d.style.cssText='position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center;cursor:pointer;';let pi=0;
+  function show(){d.innerHTML='<div style="width:90vw;height:90vh;background:'+slides[pi].bg+';border-radius:8px;padding:48px;color:#000;font-size:2rem;overflow:auto;">'+slides[pi].content+'</div><div style="position:absolute;bottom:16px;right:16px;color:#fff;font-size:14px;">'+(pi+1)+' / '+slides.length+'</div>';}
+  d.onclick=(e)=>{if(e.clientX>window.innerWidth/2){pi=(pi+1)%slides.length;}else{pi=(pi-1+slides.length)%slides.length;}show();};
+  d.onkeydown=(e)=>{if(e.key==='Escape')d.remove();if(e.key==='ArrowRight')pi=(pi+1)%slides.length;if(e.key==='ArrowLeft')pi=(pi-1+slides.length)%slides.length;show();};
+  document.body.appendChild(d);show();d.focus();
+};
+render();
+})();
+</script>
+</div>

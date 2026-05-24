@@ -1,0 +1,51 @@
+<div class="app-container" data-app="pdf-viewer">
+<style>
+.pv-wrap{display:flex;flex-direction:column;height:100%;}
+.pv-toolbar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;}
+.pv-toolbar button{padding:5px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;cursor:pointer;}
+.pv-toolbar button:hover{background:#7C3AED;border-color:#7C3AED;}
+.pv-toolbar button:disabled{opacity:.4;cursor:not-allowed;}
+.pv-toolbar span{font-size:12px;color:#94A3B8;}
+.pv-body{flex:1;overflow:auto;padding:24px;background:#1A1A2E;display:flex;flex-direction:column;align-items:center;}
+.pv-page{background:#fff;color:#000;padding:48px;margin-bottom:24px;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,0.3);max-width:800px;width:100%;min-height:900px;font-size:14px;line-height:1.6;}
+.pv-page h1{color:#000;margin-top:0;}
+.pv-page h2{color:#333;margin-top:24px;}
+.pv-page p{color:#333;margin:12px 0;}
+.pv-page table{width:100%;border-collapse:collapse;margin:16px 0;}
+.pv-page th,.pv-page td{border:1px solid #ccc;padding:8px;text-align:left;}
+.pv-page th{background:#f0f0f0;}
+.pv-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#94A3B8;gap:16px;}
+</style>
+<div class="pv-wrap">
+<div class="pv-toolbar">
+  <button onclick="pvOpen()"><i class="fa-solid fa-folder-open"></i> Open PDF</button>
+  <div style="width:1px;height:20px;background:#334155;margin:0 4px;"></div>
+  <button onclick="pvPrev()" id="pvPrev" disabled><i class="fa-solid fa-chevron-left"></i></button>
+  <span>Page <span id="pvPage">1</span> of <span id="pvTotal">3</span></span>
+  <button onclick="pvNext()" id="pvNext"><i class="fa-solid fa-chevron-right"></i></button>
+  <div style="width:1px;height:20px;background:#334155;margin:0 4px;"></div>
+  <button onclick="pvZoom(-0.1)"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+  <span id="pvZoom">100%</span>
+  <button onclick="pvZoom(0.1)"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+  <button onclick="pvDownload()" style="margin-left:auto;"><i class="fa-solid fa-download"></i> Download</button>
+</div>
+<div class="pv-body" id="pvBody">
+  <div class="pv-empty">
+    <i class="fa-solid fa-file-pdf" style="font-size:4rem;opacity:.3;"></i>
+    <p>Open a PDF file to view</p>
+    <button class="app-btn primary" onclick="pvOpen()">Select PDF</button>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+let pages=[`<h1>Sample Document</h1><p style="color:#666;">Created with JALAGEL OS</p><hr style="border:none;border-top:1px solid #ccc;margin:24px 0;"><h2>Introduction</h2><p>This is a sample PDF document rendered in HTML. JALAGEL OS Pro provides a fully functional PDF viewer with navigation, zoom, and text selection capabilities.</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p><h2>Features</h2><ul><li>Multi-page document viewing</li><li>Zoom in/out functionality</li><li>Page navigation</li><li>Text selection support</li><li>Download capability</li></ul><p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.</p>`,`<h2>Chapter 2: Technical Specifications</h2><table><tr><th>Component</th><th>Specification</th></tr><tr><td>Operating System</td><td>JALAGEL OS Pro v1.0</td></tr><tr><td>Platform</td><td>Web-based (HTML5/CSS3/JS)</td></tr><tr><td>Applications</td><td>50+ pre-installed apps</td></tr><tr><td>Database</td><td>SQLite</td></tr><tr><td>Backend</td><td>Python Flask 3.0</td></tr></table><h2>Performance Metrics</h2><p>The system has been optimized for maximum performance across all supported browsers. Benchmark results show significant improvements in rendering speed and memory efficiency.</p><p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>`,`<h2>Chapter 3: Conclusion</h2><p>JALAGEL OS Pro represents a new paradigm in web-based operating systems. With its comprehensive suite of 50+ applications, enterprise-grade security features, and seamless user experience, it sets a new standard for productivity in the browser.</p><h2>Contact Information</h2><p><strong>JALAGEL Systems Inc.</strong><br>Email: support@jalagel.com<br>Website: jalagel.com<br>Phone: +1 (555) 123-4567</p><hr style="border:none;border-top:1px solid #ccc;margin:24px 0;"><p style="text-align:center;color:#666;font-size:12px;">© 2024 JALAGEL Systems. All rights reserved.</p>`],curPage=0,zoom=1;
+function render(){const b=document.getElementById('pvBody');b.innerHTML='<div class="pv-page" id="pvPageEl" style="transform:scale('+zoom+');transform-origin:top center;">'+pages[curPage]+'</div>';document.getElementById('pvPage').textContent=curPage+1;document.getElementById('pvTotal').textContent=pages.length;document.getElementById('pvPrev').disabled=curPage===0;document.getElementById('pvNext').disabled=curPage===pages.length-1;}
+window.pvOpen=function(){const i=document.createElement('input');i.type='file';i.accept='.pdf,.html,.txt';i.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages=[ev.target.result];curPage=0;render();document.getElementById('pvTotal').textContent=pages.length;};r.readAsText(f);};i.click();};
+window.pvPrev=function(){if(curPage>0){curPage--;render();}};
+window.pvNext=function(){if(curPage<pages.length-1){curPage++;render();}};
+window.pvZoom=function(d){zoom=Math.max(0.5,Math.min(2,zoom+d));document.getElementById('pvZoom').textContent=Math.round(zoom*100)+'%';render();};
+window.pvDownload=function(){const blob=new Blob([pages.join('<div style="page-break-after:always;"></div>')],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='document.html';a.click();};
+})();
+</script>
+</div>

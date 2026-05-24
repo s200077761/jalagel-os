@@ -1,0 +1,75 @@
+<div class="app-container" data-app="paint">
+<style>
+.paint-wrap{display:flex;flex-direction:column;height:100%;}
+.paint-toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;}
+.paint-toolbar button{padding:6px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;cursor:pointer;font-family:inherit;}
+.paint-toolbar button:hover,.paint-toolbar button.active{background:#7C3AED;border-color:#7C3AED;}
+.paint-toolbar input[type=color]{width:28px;height:28px;border:none;border-radius:50%;cursor:pointer;background:none;padding:0;}
+.paint-toolbar input[type=range]{width:80px;}
+.paint-colors{display:flex;gap:3px;}
+.paint-csw{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.paint-csw:hover,.paint-csw.active{border-color:#F1F5F9;transform:scale(1.2);}
+.paint-body{flex:1;display:flex;align-items:center;justify-content:center;background:#1A1A2E;padding:12px;overflow:auto;position:relative;}
+.paint-canvas{background:#fff;cursor:crosshair;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+</style>
+<div class="paint-wrap">
+<div class="paint-toolbar">
+  <button class="active" onclick="paintTool('brush')" id="t-brush"><i class="fa-solid fa-paintbrush"></i></button>
+  <button onclick="paintTool('line')" id="t-line"><i class="fa-solid fa-minus" style="transform:rotate(-45deg);"></i></button>
+  <button onclick="paintTool('rect')" id="t-rect"><i class="fa-regular fa-square"></i></button>
+  <button onclick="paintTool('circle')" id="t-circle"><i class="fa-regular fa-circle"></i></button>
+  <button onclick="paintTool('eraser')" id="t-eraser"><i class="fa-solid fa-eraser"></i></button>
+  <div class="app-divider" style="margin:0 4px;width:1px;height:24px;"></div>
+  <input type="color" id="paintColor" value="#000000" onchange="paintSetColor(this.value)">
+  <div class="paint-colors">
+    <div class="paint-csw active" style="background:#000" onclick="paintSetColor('#000000')"></div>
+    <div class="paint-csw" style="background:#EF4444" onclick="paintSetColor('#EF4444')"></div>
+    <div class="paint-csw" style="background:#F59E0B" onclick="paintSetColor('#F59E0B')"></div>
+    <div class="paint-csw" style="background:#10B981" onclick="paintSetColor('#10B981')"></div>
+    <div class="paint-csw" style="background:#3B82F6" onclick="paintSetColor('#3B82F6')"></div>
+    <div class="paint-csw" style="background:#7C3AED" onclick="paintSetColor('#7C3AED')"></div>
+    <div class="paint-csw" style="background:#EC4899" onclick="paintSetColor('#EC4899')"></div>
+    <div class="paint-csw" style="background:#FFF;border:1px solid #334155;" onclick="paintSetColor('#FFFFFF')"></div>
+  </div>
+  <div class="app-divider" style="margin:0 4px;width:1px;height:24px;"></div>
+  <label style="font-size:11px;color:#94A3B8;">Size:</label>
+  <input type="range" id="paintSize" min="1" max="50" value="3">
+  <div class="app-divider" style="margin:0 4px;width:1px;height:24px;"></div>
+  <button onclick="paintUndo()"><i class="fa-solid fa-rotate-left"></i></button>
+  <button onclick="paintRedo()"><i class="fa-solid fa-rotate-right"></i></button>
+  <button onclick="paintClear()"><i class="fa-solid fa-trash"></i></button>
+  <div class="app-divider" style="margin:0 4px;width:1px;height:24px;"></div>
+  <button onclick="paintSave()"><i class="fa-solid fa-download"></i> PNG</button>
+  <button onclick="paintLoad()"><i class="fa-solid fa-upload"></i></button>
+</div>
+<div class="paint-body"><canvas class="paint-canvas" id="paintCanvas" width="800" height="500"></canvas></div>
+</div>
+<script>
+(function(){
+const c=document.getElementById('paintCanvas'),ctx=c.getContext('2d');
+let drawing=false,tool='brush',color='#000000',size=3,lastX=0,lastY=0,startX=0,startY=0;
+let history=[],redoStack=[];
+ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,c.width,c.height);saveState();
+function saveState(){if(history.length>50)history.shift();history.push(ctx.getImageData(0,0,c.width,c.height));}
+function getPos(e){const r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*(c.width/r.width),y:(e.clientY-r.top)*(c.height/r.height)};}
+c.addEventListener('mousedown',e=>{drawing=true;const p=getPos(e);lastX=startX=p.x;lastY=startY=p.y;if(tool==='brush'||tool==='eraser'){ctx.beginPath();ctx.moveTo(p.x,p.y);}});
+c.addEventListener('mousemove',e=>{if(!drawing)return;const p=getPos(e);ctx.lineWidth=size;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=tool==='eraser'?'#FFFFFF':color;ctx.fillStyle=color;
+if(tool==='brush'||tool==='eraser'){ctx.lineTo(p.x,p.y);ctx.stroke();lastX=p.x;lastY=p.y;}
+else{ctx.putImageData(history[history.length-1],0,0);ctx.beginPath();
+if(tool==='line'){ctx.moveTo(startX,startY);ctx.lineTo(p.x,p.y);ctx.stroke();}
+if(tool==='rect'){ctx.strokeRect(startX,startY,p.x-startX,p.y-startY);}
+if(tool==='circle'){const r=Math.sqrt(Math.pow(p.x-startX,2)+Math.pow(p.y-startY,2));ctx.arc(startX,startY,r,0,Math.PI*2);ctx.stroke();}
+}});
+c.addEventListener('mouseup',e=>{if(!drawing)return;drawing=false;saveState();});
+c.addEventListener('mouseleave',e=>{drawing=false;});
+window.paintTool=function(t){tool=t;document.querySelectorAll('.paint-toolbar button').forEach(b=>b.classList.remove('active'));document.getElementById('t-'+t).classList.add('active');};
+window.paintSetColor=function(c){color=c;document.getElementById('paintColor').value=c;document.querySelectorAll('.paint-csw').forEach(s=>s.classList.toggle('active',s.style.background==='rgb(0, 0, 0)'&&c==='#000000'?true:s.style.backgroundColor===c||s.style.background===c));};
+window.paintUndo=function(){if(history.length>1){redoStack.push(history.pop());ctx.putImageData(history[history.length-1],0,0);}};
+window.paintRedo=function(){if(redoStack.length){const s=redoStack.pop();history.push(s);ctx.putImageData(s,0,0);}};
+window.paintClear=function(){ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,c.width,c.height);saveState();};
+window.paintSave=function(){const a=document.createElement('a');a.download='drawing.png';a.href=c.toDataURL();a.click();JALAGEL.Utils.toast('Saved drawing.png','success');};
+window.paintLoad=function(){const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=e=>{const f=e.target.files[0];const r=new FileReader();r.onload=ev=>{const img=new Image();img.onload=function(){ctx.drawImage(img,0,0,c.width,c.height);saveState();};img.src=ev.target.result;};r.readAsDataURL(f);};i.click();};
+document.getElementById('paintSize').addEventListener('input',e=>{size=parseInt(e.target.value);});
+})();
+</script>
+</div>

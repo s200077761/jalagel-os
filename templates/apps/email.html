@@ -1,0 +1,90 @@
+<div class="app-container" data-app="email">
+<style>
+.em-wrap{display:flex;height:100%;}
+.em-sidebar{width:220px;border-right:1px solid #334155;background:#232344;display:flex;flex-direction:column;flex-shrink:0;}
+.em-sidebar button{width:calc(100%-24px);margin:12px;padding:10px;border:none;border-radius:8px;background:#7C3AED;color:#fff;font-weight:600;cursor:pointer;font-family:inherit;font-size:13px;transition:all .15s;}
+.em-sidebar button:hover{background:#6D28D9;box-shadow:0 4px 12px rgba(124,58,237,0.3);}
+.em-nav{flex:1;overflow:auto;}
+.em-nav-item{padding:10px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:#94A3B8;transition:all .15s;border-left:3px solid transparent;}
+.em-nav-item:hover,.em-nav-item.active{background:rgba(124,58,237,0.1);color:#F1F5F9;border-left-color:#7C3AED;}
+.em-nav-item i{width:18px;text-align:center;}
+.em-nav-item .badge{margin-left:auto;background:#EF4444;color:#fff;font-size:10px;padding:2px 6px;border-radius:10px;min-width:20px;text-align:center;}
+.em-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.em-list{flex:1;overflow:auto;}
+.em-item{padding:12px 16px;border-bottom:1px solid rgba(51,65,85,0.3);cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .15s;}
+.em-item:hover{background:rgba(124,58,237,0.05);}
+.em-item.unread{background:rgba(124,58,237,0.08);}
+.em-item .star{color:#F59E0B;cursor:pointer;font-size:12px;}
+.em-item .from{font-weight:600;font-size:13px;min-width:140px;color:#F1F5F9;}
+.em-item .subj{flex:1;font-size:13px;color:#F1F5F9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.em-item .date{font-size:11px;color:#94A3B8;white-space:nowrap;}
+.em-view{display:none;flex:1;flex-direction:column;overflow:auto;padding:24px;}
+.em-view.show{display:flex;}
+.em-view-header{border-bottom:1px solid #334155;padding-bottom:16px;margin-bottom:16px;}
+.em-view-header h2{margin:0 0 8px;}
+.em-view-header .meta{color:#94A3B8;font-size:13px;}
+.em-view-body{font-size:14px;line-height:1.7;color:#F1F5F9;}
+.em-compose{display:none;flex:1;flex-direction:column;padding:24px;gap:12px;}
+.em-compose.show{display:flex;}
+.em-compose input,.em-compose textarea{padding:10px 14px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;}
+.em-compose input:focus,.em-compose textarea:focus{border-color:#7C3AED;}
+.em-compose textarea{flex:1;resize:none;}
+</style>
+<div class="em-wrap">
+<div class="em-sidebar">
+  <button onclick="emComposeShow()"><i class="fa-solid fa-pen"></i> Compose</button>
+  <div class="em-nav">
+    <div class="em-nav-item active" onclick="emFolder('inbox')" id="emf-inbox"><i class="fa-solid fa-inbox"></i> Inbox <span class="badge" id="emBadge">3</span></div>
+    <div class="em-nav-item" onclick="emFolder('starred')" id="emf-starred"><i class="fa-solid fa-star"></i> Starred</div>
+    <div class="em-nav-item" onclick="emFolder('sent')" id="emf-sent"><i class="fa-solid fa-paper-plane"></i> Sent</div>
+    <div class="em-nav-item" onclick="emFolder('drafts')" id="emf-drafts"><i class="fa-solid fa-file-lines"></i> Drafts</div>
+    <div class="em-nav-item" onclick="emFolder('trash')" id="emf-trash"><i class="fa-solid fa-trash"></i> Trash</div>
+  </div>
+</div>
+<div class="em-main">
+  <div class="em-list" id="emList"></div>
+  <div class="em-view" id="emView">
+    <div class="em-view-header">
+      <h2 id="emVSubj"></h2>
+      <div class="meta"><strong id="emVFrom"></strong> &lt;<span id="emVEmail"></span>&gt;<br><span id="emVDate"></span></div>
+    </div>
+    <div class="em-view-body" id="emVBody"></div>
+    <div style="margin-top:24px;display:flex;gap:8px;">
+      <button class="app-btn primary" onclick="emReply()"><i class="fa-solid fa-reply"></i> Reply</button>
+      <button class="app-btn" onclick="emBack()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      <button class="app-btn danger" onclick="emTrash()"><i class="fa-solid fa-trash"></i> Delete</button>
+    </div>
+  </div>
+  <div class="em-compose" id="emCompose">
+    <input type="text" id="emTo" placeholder="To:">
+    <input type="text" id="emSubj" placeholder="Subject:">
+    <textarea id="emBody" placeholder="Write your message..."></textarea>
+    <div style="display:flex;gap:8px;">
+      <button class="app-btn primary" onclick="emSend()"><i class="fa-solid fa-paper-plane"></i> Send</button>
+      <button class="app-btn" onclick="emComposeHide()">Cancel</button>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+let emails=[{id:1,from:'Alice Johnson',email:'alice@example.com',subj:'Welcome to JALAGEL OS',body:'Hi there!\n\nWelcome to JALAGEL OS Pro. We hope you enjoy using the system.\n\nBest regards,\nThe JALAGEL Team',date:'2024-01-15 09:30',read:false,starred:false,folder:'inbox'},{id:2,from:'Bob Smith',email:'bob@example.com',subj:'Meeting Notes - Q1 Planning',body:'Hi,\n\nHere are the notes from our Q1 planning meeting:\n- Launch new features\n- Improve performance\n- User feedback integration\n\nLet me know if you have questions.',date:'2024-01-14 16:45',read:false,starred:true,folder:'inbox'},{id:3,from:'Carol White',email:'carol@example.com',subj:'Invoice #1042 - Paid',body:'Thank you for your payment.\n\nInvoice #1042 has been marked as paid.\n\nAmount: $299.99\nDate: 2024-01-13\n\nThank you for your business!',date:'2024-01-13 11:20',read:true,starred:false,folder:'inbox'},{id:4,from:'Me',email:'user@jalagel.com',subj:'Project Update',body:'Sent project files.',date:'2024-01-12 14:00',read:true,starred:false,folder:'sent'},{id:5,from:'Draft',email:'',subj:'Untitled Draft',body:'...',date:'2024-01-15 08:00',read:true,starred:false,folder:'drafts'}],folder='inbox',viewId=null;
+function render(){const l=document.getElementById('emList');l.innerHTML='';
+  let f=emails.filter(e=>e.folder===folder);if(folder==='starred')f=emails.filter(e=>e.starred);
+  if(!f.length){l.innerHTML='<div style="padding:48px;text-align:center;color:#94A3B8;"><i class="fa-solid fa-inbox" style="font-size:2rem;opacity:.3;display:block;margin-bottom:8px;"></i>No messages</div>';return;}
+  f.forEach(e=>{const d=document.createElement('div');d.className='em-item'+(e.read?'':' unread');d.innerHTML='<span class="star" onclick="event.stopPropagation();emStar('+e.id+')">'+(e.starred?'<i class="fa-solid fa-star"></i>':'<i class="fa-regular fa-star"></i>')+'</span><span class="from">'+e.from+'</span><span class="subj">'+e.subj+'</span><span class="date">'+e.date+'</span>';d.onclick=()=>emOpen(e.id);l.appendChild(d);});
+  const unread=emails.filter(e=>!e.read&&e.folder==='inbox').length;document.getElementById('emBadge').textContent=unread||'';document.getElementById('emBadge').style.display=unread?'block':'none';
+}
+window.emFolder=function(f){folder=f;document.querySelectorAll('.em-nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('emf-'+f).classList.add('active');document.getElementById('emView').classList.remove('show');document.getElementById('emCompose').classList.remove('show');render();};
+window.emOpen=function(id){viewId=id;const e=emails.find(x=>x.id===id);if(e){e.read=true;document.getElementById('emVSubj').textContent=e.subj;document.getElementById('emVFrom').textContent=e.from;document.getElementById('emVEmail').textContent=e.email;document.getElementById('emVDate').textContent=e.date;document.getElementById('emVBody').textContent=e.body;document.getElementById('emView').classList.add('show');render();}};
+window.emBack=function(){document.getElementById('emView').classList.remove('show');viewId=null;};
+window.emStar=function(id){const e=emails.find(x=>x.id===id);if(e){e.starred=!e.starred;render();}};
+window.emTrash=function(){const e=emails.find(x=>x.id===viewId);if(e){e.folder='trash';document.getElementById('emView').classList.remove('show');render();}};
+window.emComposeShow=function(){document.getElementById('emCompose').classList.add('show');document.getElementById('emView').classList.remove('show');};
+window.emComposeHide=function(){document.getElementById('emCompose').classList.remove('show');};
+window.emSend=function(){const to=document.getElementById('emTo').value,subj=document.getElementById('emSubj').value,body=document.getElementById('emBody').value;if(!to||!subj)return;emails.unshift({id:Date.now(),from:'Me',email:'user@jalagel.com',subj:subj,body:body,date:new Date().toLocaleString(),read:true,starred:false,folder:'sent'});document.getElementById('emTo').value='';document.getElementById('emSubj').value='';document.getElementById('emBody').value='';emComposeHide();render();JALAGEL.Utils.toast('Message sent!','success');};
+window.emReply=function(){const e=emails.find(x=>x.id===viewId);if(!e)return;document.getElementById('emTo').value=e.email;document.getElementById('emSubj').value='Re: '+e.subj;emComposeShow();};
+render();
+})();
+</script>
+</div>

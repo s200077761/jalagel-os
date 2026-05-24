@@ -1,0 +1,58 @@
+<div class="app-container" data-app="white-noise">
+<style>
+.wn-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:24px;gap:24px;}
+.wn-visualizer{width:100%;max-width:500px;height:120px;background:#232344;border:1px solid #334155;border-radius:12px;overflow:hidden;position:relative;}
+.wn-visualizer canvas{width:100%;height:100%;}
+.wn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;width:100%;max-width:600px;}
+.wn-card{background:#232344;border:1px solid #334155;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all .15s;}
+.wn-card:hover{border-color:#7C3AED;transform:translateY(-2px);}
+.wn-card.active{border-color:#7C3AED;background:rgba(124,58,237,0.15);box-shadow:0 0 15px rgba(124,58,237,0.2);}
+.wn-card i{font-size:2rem;margin-bottom:8px;display:block;color:#7C3AED;}
+.wn-card-title{font-size:13px;font-weight:600;color:#F1F5F9;}
+.wn-volume{width:100%;max-width:300px;display:flex;align-items:center;gap:12px;}
+.wn-volume input[type=range]{flex:1;}
+</style>
+<div class="wn-wrap">
+<h2 style="margin:0;"><i class="fa-solid fa-wave-square" style="color:#7C3AED;"></i> White Noise</h2>
+<div class="wn-visualizer"><canvas id="wnCanvas"></canvas></div>
+<div class="wn-volume">
+  <i class="fa-solid fa-volume-low" style="color:#94A3B8;"></i>
+  <input type="range" id="wnVol" min="0" max="100" value="50">
+  <i class="fa-solid fa-volume-high" style="color:#94A3B8;"></i>
+  <span id="wnVolVal" style="font-size:12px;color:#94A3B8;min-width:30px;">50%</span>
+</div>
+<div class="wn-grid">
+  <div class="wn-card" id="wn-rain" onclick="wnToggle('rain')"><i class="fa-solid fa-cloud-rain"></i><div class="wn-card-title">Rain</div></div>
+  <div class="wn-card" id="wn-forest" onclick="wnToggle('forest')"><i class="fa-solid fa-tree"></i><div class="wn-card-title">Forest</div></div>
+  <div class="wn-card" id="wn-waves" onclick="wnToggle('waves')"><i class="fa-solid fa-water"></i><div class="wn-card-title">Ocean Waves</div></div>
+  <div class="wn-card" id="wn-fire" onclick="wnToggle('fire')"><i class="fa-solid fa-fire"></i><div class="wn-card-title">Campfire</div></div>
+  <div class="wn-card" id="wn-wind" onclick="wnToggle('wind')"><i class="fa-solid fa-wind"></i><div class="wn-card-title">Wind</div></div>
+  <div class="wn-card" id="wn-cafe" onclick="wnToggle('cafe')"><i class="fa-solid fa-mug-hot"></i><div class="wn-card-title">Coffee Shop</div></div>
+</div>
+<p style="font-size:12px;color:#64748B;text-align:center;max-width:400px;">Note: In a full implementation, these would generate real-time audio using the Web Audio API. This demo shows the visualizer and UI.</p>
+</div>
+<script>
+(function(){
+const canvas=document.getElementById('wnCanvas'),ctx=canvas.getContext('2d');
+let active=new Set(),audioCtx=null,gainNode=null;
+function resize(){const r=canvas.parentElement.getBoundingClientRect();canvas.width=r.width;canvas.height=r.height;}resize();
+function draw(){
+  ctx.fillStyle='#232344';ctx.fillRect(0,0,canvas.width,canvas.height);
+  const barWidth=canvas.width/64;
+  for(let i=0;i<64;i++){
+    const h=active.size>0?Math.random()*canvas.height*0.8*(document.getElementById('wnVol').value/100):2+Math.random()*5;
+    const hue=active.size>0?240+Math.random()*60:200;ctx.fillStyle='hsl('+hue+',60%,'+((active.size>0?50:20)+'%)');ctx.fillRect(i*barWidth,canvas.height-h,barWidth-2,h);
+  }
+  requestAnimationFrame(draw);
+}
+draw();
+window.wnToggle=function(type){
+  if(active.has(type)){active.delete(type);document.getElementById('wn-'+type).classList.remove('active');}
+  else{active.add(type);document.getElementById('wn-'+type).classList.add('active');}
+  if(active.size>0&&!audioCtx){audioCtx=new AudioContext();gainNode=audioCtx.createGain();gainNode.connect(audioCtx.destination);gainNode.gain.value=document.getElementById('wnVol').value/100;}
+  if(active.size===0&&audioCtx){audioCtx.close();audioCtx=null;gainNode=null;}
+};
+document.getElementById('wnVol').addEventListener('input',e=>{document.getElementById('wnVolVal').textContent=e.target.value+'%';if(gainNode)gainNode.gain.value=e.target.value/100;});
+})();
+</script>
+</div>

@@ -1,0 +1,45 @@
+<div class="app-container" data-app="base64">
+<style>
+.b64-wrap{display:flex;flex-direction:column;height:100%;padding:24px;overflow:auto;}
+.b64-panels{display:flex;gap:16px;flex:1;min-height:250px;}
+.b64-panel{flex:1;display:flex;flex-direction:column;background:#232344;border:1px solid #334155;border-radius:12px;overflow:hidden;}
+.b64-header{padding:10px 12px;background:#1A1A2E;border-bottom:1px solid #334155;font-size:12px;font-weight:600;color:#94A3B8;display:flex;align-items:center;justify-content:space-between;}
+.b64-textarea{flex:1;padding:12px;background:#0f0f23;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:13px;border:none;outline:none;resize:none;}
+.b64-actions{display:flex;gap:8px;justify-content:center;margin:16px 0;}
+</style>
+<div class="b64-wrap">
+<h2 style="margin:0 0 16px;"><i class="fa-solid fa-lock" style="color:#F59E0B;"></i> Base64 Encoder/Decoder</h2>
+<div class="b64-panels">
+  <div class="b64-panel">
+    <div class="b64-header">Text Input</div>
+    <textarea class="b64-textarea" id="b64Input" placeholder="Enter text to encode...">Hello, JALAGEL OS!</textarea>
+  </div>
+  <div class="b64-panel">
+    <div class="b64-header">Base64 Output</div>
+    <textarea class="b64-textarea" id="b64Output" placeholder="Base64 result..."></textarea>
+  </div>
+</div>
+<div class="b64-actions">
+  <button class="app-btn primary" onclick="b64Encode()">Encode to Base64</button>
+  <button class="app-btn" onclick="b64Decode()">Decode from Base64</button>
+  <button class="app-btn" onclick="b64Swap()">Swap</button>
+  <button class="app-btn" onclick="b64Copy()">Copy</button>
+  <button class="app-btn" onclick="b64Clear()">Clear</button>
+</div>
+<div style="background:#232344;border:1px solid #334155;border-radius:12px;padding:16px;">
+  <h4 style="margin:0 0 8px;font-size:13px;color:#94A3B8;">File Converter</h4>
+  <input type="file" id="b64File" onchange="b64File()" style="color:#F1F5F9;font-size:12px;">
+  <div id="b64FileOut" style="margin-top:8px;font-size:11px;color:#94A3B8;font-family:monospace;word-break:break-all;max-height:100px;overflow:auto;"></div>
+</div>
+</div>
+<script>
+(function(){
+window.b64Encode=function(){try{const t=document.getElementById('b64Input').value;document.getElementById('b64Output').value=btoa(unescape(encodeURIComponent(t)));}catch(e){JALAGEL.Utils.toast('Encoding error','error');}};
+window.b64Decode=function(){try{const t=document.getElementById('b64Output').value;document.getElementById('b64Input').value=decodeURIComponent(escape(atob(t)));}catch(e){JALAGEL.Utils.toast('Decoding error - invalid Base64','error');}};
+window.b64Swap=function(){const i=document.getElementById('b64Input').value,o=document.getElementById('b64Output').value;document.getElementById('b64Input').value=o;document.getElementById('b64Output').value=i;};
+window.b64Copy=function(){const o=document.getElementById('b64Output').value;if(o){JALAGEL.Utils.copyToClipboard(o);JALAGEL.Utils.toast('Copied!','success');}};
+window.b64Clear=function(){document.getElementById('b64Input').value='';document.getElementById('b64Output').value='';};
+window.b64File=function(){const f=document.getElementById('b64File').files[0];if(!f)return;const r=new FileReader();r.onload=e=>{const base64=e.target.result.split(',')[1];document.getElementById('b64FileOut').textContent='File: '+f.name+' ('+JALAGEL.Utils.formatBytes(f.size)+')\nBase64: '+base64.substring(0,100)+'...';document.getElementById('b64Output').value=base64;};r.readAsDataURL(f);};
+})();
+</script>
+</div>

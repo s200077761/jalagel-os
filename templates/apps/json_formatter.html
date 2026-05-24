@@ -1,0 +1,49 @@
+<div class="app-container" data-app="json-formatter">
+<style>
+.jf-wrap{display:flex;flex-direction:column;height:100%;padding:24px;overflow:auto;}
+.jf-toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.jf-panels{display:flex;gap:16px;flex:1;min-height:300px;}
+.jf-panel{flex:1;display:flex;flex-direction:column;background:#232344;border:1px solid #334155;border-radius:12px;overflow:hidden;}
+.jf-panel-header{padding:8px 12px;background:#1A1A2E;border-bottom:1px solid #334155;font-size:12px;font-weight:600;color:#94A3B8;display:flex;align-items:center;justify-content:space-between;}
+.jf-textarea{flex:1;padding:12px;background:#0f0f23;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:13px;border:none;outline:none;resize:none;}
+.jf-tree{padding:12px;flex:1;overflow:auto;font-size:13px;font-family:'JetBrains Mono',monospace;color:#F1F5F9;}
+.jf-key{color:#7C3AED;}.jf-string{color:#10B981;}.jf-number{color:#F59E0B;}.jf-bool{color:#EF4444;}.jf-null{color:#94A3B8;}
+</style>
+<div class="jf-wrap">
+<h2 style="margin:0 0 16px;"><i class="fa-solid fa-brackets-curly" style="color:#10B981;"></i> JSON Formatter</h2>
+<div class="jf-toolbar">
+  <button class="app-btn primary" onclick="jfFormat()">Format</button>
+  <button class="app-btn" onclick="jfMinify()">Minify</button>
+  <button class="app-btn" onclick="jfValidate()">Validate</button>
+  <button class="app-btn" onclick="jfLoad()">Load File</button>
+  <button class="app-btn" onclick="jfSave()">Save</button>
+  <button class="app-btn" onclick="jfCopy()">Copy</button>
+  <button class="app-btn" onclick="jfClear()">Clear</button>
+  <span id="jfStatus" style="margin-left:auto;color:#94A3B8;font-size:12px;">Ready</span>
+</div>
+<div class="jf-panels">
+  <div class="jf-panel">
+    <div class="jf-panel-header">Input <span style="font-weight:400;">(Paste JSON here)</span></div>
+    <textarea class="jf-textarea" id="jfInput" spellcheck="false" placeholder='{"name": "example", "value": 42}'></textarea>
+  </div>
+  <div class="jf-panel">
+    <div class="jf-panel-header">Output</div>
+    <div class="jf-tree" id="jfOutput"></div>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+window.jfFormat=function(){try{const v=JSON.parse(document.getElementById('jfInput').value);const f=JSON.stringify(v,null,2);document.getElementById('jfOutput').innerHTML=syntax(f);document.getElementById('jfStatus').innerHTML='<span style="color:#10B981;">Valid JSON</span>';}catch(e){document.getElementById('jfStatus').innerHTML='<span style="color:#EF4444;">Error: '+e.message+'</span>';}};
+window.jfMinify=function(){try{const v=JSON.parse(document.getElementById('jfInput').value);document.getElementById('jfOutput').innerHTML='<span class="jf-string">'+JSON.stringify(v).replace(/"/g,'&quot;')+'</span>';}catch(e){}};
+window.jfValidate=function(){try{JSON.parse(document.getElementById('jfInput').value);document.getElementById('jfStatus').innerHTML='<span style="color:#10B981;">Valid JSON</span>';}catch(e){document.getElementById('jfStatus').innerHTML='<span style="color:#EF4444;">Invalid: '+e.message+'</span>';}};
+window.jfLoad=function(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{const r=new FileReader();r.onload=ev=>{document.getElementById('jfInput').value=ev.target.result;jfFormat();};r.readAsText(e.target.files[0]);};i.click();};
+window.jfSave=function(){const t=document.getElementById('jfInput').value;if(!t)return;JALAGEL.Utils.downloadText(t,'data.json','application/json');};
+window.jfCopy=function(){const t=document.getElementById('jfInput').value;if(t){JALAGEL.Utils.copyToClipboard(t);JALAGEL.Utils.toast('Copied!','success');}};
+window.jfClear=function(){document.getElementById('jfInput').value='';document.getElementById('jfOutput').innerHTML='';};
+function syntax(json){return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/("(?:[^"\\]|\\.)*")\s*:/g,'<span class="jf-key">$1</span>:').replace(/"([^"\\]*(?:\\.[^"\\]*)*)"/g,'<span class="jf-string">"$1"</span>').replace(/\b(true|false)\b/g,'<span class="jf-bool">$1</span>').replace(/\b(null)\b/g,'<span class="jf-null">$1</span>').replace(/\b(-?\d+\.?\d*)\b/g,'<span class="jf-number">$1</span>');}
+document.getElementById('jfInput').value='{"name": "JALAGEL OS", "version": "1.0.0", "apps": 52, "features": ["Desktop", "Windows", "50+ Apps"], "active": true, "config": {"theme": "dark", "lang": "en"}}';
+jfFormat();
+})();
+</script>
+</div>

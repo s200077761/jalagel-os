@@ -1,0 +1,63 @@
+<div class="app-container" data-app="chat">
+<style>
+.ch-wrap{display:flex;height:100%;}
+.ch-sidebar{width:240px;border-right:1px solid #334155;background:#232344;display:flex;flex-direction:column;flex-shrink:0;}
+.ch-header{padding:12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #334155;}
+.ch-search{padding:8px 12px;border-bottom:1px solid #334155;}
+.ch-search input{width:100%;padding:6px 10px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-size:12px;outline:none;font-family:inherit;}
+.ch-list{flex:1;overflow:auto;}
+.ch-conv{padding:10px 12px;border-bottom:1px solid rgba(51,65,85,0.3);cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s;}
+.ch-conv:hover,.ch-conv.active{background:rgba(124,58,237,0.1);}
+.ch-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#EC4899);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0;}
+.ch-info{flex:1;min-width:0;}
+.ch-name{font-size:13px;font-weight:600;color:#F1F5F9;display:flex;justify-content:space-between;}
+.ch-time{font-size:10px;color:#94A3B8;}
+.ch-preview{font-size:12px;color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ch-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.ch-topbar{padding:10px 16px;border-bottom:1px solid #334155;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.ch-messages{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.ch-msg{max-width:70%;padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.5;position:relative;animation:fadeIn .2s ease;}
+.ch-msg.sent{align-self:flex-end;background:#7C3AED;color:#fff;border-bottom-right-radius:4px;}
+.ch-msg.recv{align-self:flex-start;background:#232344;color:#F1F5F9;border:1px solid #334155;border-bottom-left-radius:4px;}
+.ch-msg .time{font-size:10px;opacity:.6;margin-top:4px;text-align:right;}
+.ch-input{display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid #334155;background:#232344;flex-shrink:0;}
+.ch-input input{flex:1;padding:10px 14px;border:1px solid #334155;border-radius:24px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;}
+.ch-input input:focus{border-color:#7C3AED;}
+.ch-input button{width:36px;height:36px;border:none;border-radius:50%;background:#7C3AED;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.ch-input button:hover{background:#6D28D9;transform:scale(1.1);}
+</style>
+<div class="ch-wrap">
+<div class="ch-sidebar">
+  <div class="ch-header"><h3 style="margin:0;font-size:14px;">Messages</h3><span class="app-badge purple">3</span></div>
+  <div class="ch-search"><input type="text" placeholder="Search conversations..." oninput="chFilter(this.value)"></div>
+  <div class="ch-list" id="chList"></div>
+</div>
+<div class="ch-main">
+  <div class="ch-topbar" id="chTopbar"><div class="ch-avatar" id="chTopAv">A</div><div><div style="font-weight:600;" id="chTopName">Alice</div><div style="font-size:11px;color:#10B981;"><i class="fa-solid fa-circle" style="font-size:7px;"></i> Online</div></div></div>
+  <div class="ch-messages" id="chMessages"></div>
+  <div class="ch-input">
+    <button onclick="chEmoji()" title="Emoji"><i class="fa-regular fa-face-smile"></i></button>
+    <button onclick="chAttach()" title="Attach"><i class="fa-solid fa-paperclip"></i></button>
+    <input type="text" id="chMsg" placeholder="Type a message..." onkeydown="if(event.key==='Enter')chSend()">
+    <button onclick="chSend()"><i class="fa-solid fa-paper-plane"></i></button>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+const convs=[{id:1,name:'Alice Johnson',avatar:'AJ',online:true,messages:[{text:'Hey! Have you tried the new OS update?',time:'09:30',sent:false},{text:'Yes! The new features are amazing.',time:'09:32',sent:true},{text:'The dark theme looks so sleek.',time:'09:33',sent:false}]},{id:2,name:'Bob Smith',avatar:'BS',online:false,messages:[{text:'Meeting at 3 PM today',time:'Yesterday',sent:false},{text:'Got it, see you there!',time:'Yesterday',sent:true}]},{id:3,name:'Carol White',avatar:'CW',online:true,messages:[{text:'Can you review my PR?',time:'11:00',sent:false},{text:'Sure, I will take a look.',time:'11:05',sent:true},{text:'Thanks a lot!',time:'11:06',sent:false}]}];
+let activeId=1;
+function renderList(){const l=document.getElementById('chList');l.innerHTML='';convs.forEach(c=>{const d=document.createElement('div');d.className='ch-conv'+(c.id===activeId?' active':'');d.innerHTML='<div class="ch-avatar">'+c.avatar+'</div><div class="ch-info"><div class="ch-name">'+c.name+'<span class="ch-time">'+c.messages[c.messages.length-1].time+'</span></div><div class="ch-preview">'+c.messages[c.messages.length-1].text+'</div></div>';d.onclick=()=>{activeId=c.id;renderList();renderMessages();};l.appendChild(d);});}
+function renderMessages(){const c=convs.find(x=>x.id===activeId);if(!c)return;document.getElementById('chTopName').textContent=c.name;document.getElementById('chTopAv').textContent=c.avatar;
+  const m=document.getElementById('chMessages');m.innerHTML='';c.messages.forEach(msg=>{const d=document.createElement('div');d.className='ch-msg '+(msg.sent?'sent':'recv');d.innerHTML=msg.text+'<div class="time">'+msg.time+'</div>';m.appendChild(d);});m.scrollTop=m.scrollHeight;
+}
+window.chSend=function(){const inp=document.getElementById('chMsg');const t=inp.value.trim();if(!t)return;const c=convs.find(x=>x.id===activeId);c.messages.push({text:t,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),sent:true});inp.value='';renderMessages();renderList();
+  setTimeout(()=>{const replies=['That sounds great!','I agree with you.','Let me think about that.','Interesting point!','Thanks for sharing!','I will get back to you.','Sounds like a plan!'];c.messages.push({text:replies[Math.floor(Math.random()*replies.length)],time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),sent:false});renderMessages();renderList();},1500+Math.random()*2000);
+};
+window.chEmoji=function(){const emojis=['😀','😂','❤️','👍','🎉','🔥','✨','👏','🤔','😎'];document.getElementById('chMsg').value+=emojis[Math.floor(Math.random()*emojis.length)];}
+window.chAttach=function(){const i=document.createElement('input');i.type='file';i.onchange=e=>{const c=convs.find(x=>x.id===activeId);c.messages.push({text:'[File: '+e.target.files[0].name+']',time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),sent:true});renderMessages();renderList();};i.click();}
+window.chFilter=function(q){document.querySelectorAll('.ch-conv').forEach(el=>{el.style.display=el.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';});}
+renderList();renderMessages();
+})();
+</script>
+</div>

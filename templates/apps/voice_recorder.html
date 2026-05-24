@@ -1,0 +1,63 @@
+<div class="app-container" data-app="voice-recorder">
+<style>
+.vr-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:24px;gap:24px;}
+.vr-waveform{width:100%;max-width:500px;height:120px;background:#232344;border:1px solid #334155;border-radius:12px;position:relative;overflow:hidden;}
+.vr-waveform canvas{width:100%;height:100%;}
+.vr-time{font-family:'JetBrains Mono',monospace;font-size:3rem;font-weight:700;color:#F1F5F9;}
+.vr-controls{display:flex;gap:16px;align-items:center;}
+.vr-btn{width:60px;height:60px;border-radius:50%;border:none;font-size:1.2rem;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.vr-btn:hover{transform:scale(1.1);}
+.vr-record{background:#EF4444;}.vr-record:hover{box-shadow:0 0 20px rgba(239,68,68,0.4);}
+.vr-stop{background:#334155;}
+.vr-play{background:#10B981;}
+.vr-recordings{width:100%;max-width:500px;}
+.vr-rec{display:flex;align-items:center;gap:10px;padding:10px;background:#232344;border-radius:8px;margin-bottom:8px;}
+.vr-rec button{padding:6px 10px;border:none;border-radius:6px;background:#7C3AED;color:#fff;font-size:11px;cursor:pointer;}
+</style>
+<div class="vr-wrap">
+<h2 style="margin:0;"><i class="fa-solid fa-microphone" style="color:#EF4444;"></i> Voice Recorder</h2>
+<div class="vr-waveform"><canvas id="vrCanvas"></canvas></div>
+<div class="vr-time" id="vrTime">00:00</div>
+<div class="vr-controls">
+  <button class="vr-btn vr-record" onclick="vrRecord()" id="vrRecBtn"><i class="fa-solid fa-microphone"></i></button>
+  <button class="vr-btn vr-stop" onclick="vrStop()"><i class="fa-solid fa-stop"></i></button>
+  <button class="vr-btn vr-play" onclick="vrPlay()" id="vrPlayBtn" disabled><i class="fa-solid fa-play"></i></button>
+</div>
+<div class="vr-recordings" id="vrRecordings"></div>
+</div>
+<script>
+(function(){
+let recording=false,mediaRec=null,chunks=[],recordings=[],startTime,recInterval,analyser,dataArray,canvasCtx;
+const canvas=document.getElementById('vrCanvas');canvasCtx=canvas.getContext('2d');
+function resize(){const r=canvas.parentElement.getBoundingClientRect();canvas.width=r.width;canvas.height=r.height;}resize();
+function drawWave(){
+  canvasCtx.fillStyle='#232344';canvasCtx.fillRect(0,0,canvas.width,canvas.height);
+  if(recording&&analyser){
+    analyser.getByteTimeDomainData(dataArray);
+    canvasCtx.lineWidth=2;canvasCtx.strokeStyle='#7C3AED';canvasCtx.beginPath();
+    const slice=canvas.width/dataArray.length;
+    for(let i=0;i<dataArray.length;i++){const v=dataArray[i]/128;const y=v*canvas.height/2;if(i===0)canvasCtx.moveTo(0,y);else canvasCtx.lineTo(i*slice,y);}canvasCtx.stroke();
+  }else{canvasCtx.strokeStyle='#334155';canvasCtx.lineWidth=2;canvasCtx.beginPath();for(let i=0;i<canvas.width;i++){canvasCtx.lineTo(i,canvas.height/2+Math.sin(i*0.05+Date.now()/200)*20);}canvasCtx.stroke();}
+  requestAnimationFrame(drawWave);
+}
+drawWave();
+window.vrRecord=async function(){
+  try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const audioCtx=new AudioContext();analyser=audioCtx.createAnalyser();analyser.fftSize=2048;
+    const source=audioCtx.createMediaStreamSource(stream);source.connect(analyser);
+    dataArray=new Uint8Array(analyser.frequencyBinCount);
+    mediaRec=new MediaRecorder(stream);chunks=[];
+    mediaRec.ondataavailable=e=>chunks.push(e.data);
+    mediaRec.onstop=()=>{const blob=new Blob(chunks,{type:'audio/ogg'});const url=URL.createObjectURL(blob);recordings.push({url,date:new Date(),duration:Math.floor((Date.now()-startTime)/1000)});renderRecs();document.getElementById('vrPlayBtn').disabled=false;};
+    mediaRec.start();recording=true;startTime=Date.now();
+    recInterval=setInterval(()=>{const s=Math.floor((Date.now()-startTime)/1000);document.getElementById('vrTime').textContent=Math.floor(s/60).toString().padStart(2,'0')+':'+(s%60).toString().padStart(2,'0');},1000);
+  }catch(e){JALAGEL.Utils.toast('Microphone not available','error');}
+};
+window.vrStop=function(){if(mediaRec&&recording){mediaRec.stop();recording=false;clearInterval(recInterval);mediaRec.stream.getTracks().forEach(t=>t.stop());}};
+window.vrPlay=function(){if(!recordings.length)return;const a=new Audio(recordings[recordings.length-1].url);a.play();};
+function renderRecs(){const el=document.getElementById('vrRecordings');el.innerHTML='<h4 style="margin:0 0 8px;font-size:13px;">Recordings</h4>';recordings.forEach((r,i)=>{const d=document.createElement('div');d.className='vr-rec';d.innerHTML='<span style="flex:1;font-size:12px;">Recording '+(i+1)+' ('+r.duration+'s)</span><button onclick="vrPlayOne('+i+')">Play</button><button onclick="vrDownload('+i+')">DL</button>';el.appendChild(d);});}
+window.vrPlayOne=function(i){const a=new Audio(recordings[i].url);a.play();};
+window.vrDownload=function(i){const a=document.createElement('a');a.href=recordings[i].url;a.download='recording.ogg';a.click();};
+})();
+</script>
+</div>

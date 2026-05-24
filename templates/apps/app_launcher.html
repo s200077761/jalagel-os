@@ -1,0 +1,124 @@
+<div class="app-container" data-app="app-launcher">
+<style>
+.al-wrap{display:flex;flex-direction:column;height:100%;padding:24px;overflow:auto;}
+.al-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap;}
+.al-header h1{margin:0;font-size:24px;}
+.al-search{flex:1;max-width:400px;position:relative;}
+.al-search input{width:100%;padding:12px 16px 12px 40px;border:1px solid #334155;border-radius:12px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:14px;outline:none;}
+.al-search input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,0.15);}
+.al-search i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94A3B8;}
+.al-filters{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
+.al-filter{padding:6px 14px;border:1px solid #334155;border-radius:8px;background:transparent;color:#94A3B8;font-size:13px;font-family:inherit;cursor:pointer;transition:all .15s;}
+.al-filter:hover,.al-filter.active{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+.al-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:16px;}
+.al-app{display:flex;flex-direction:column;align-items:center;padding:20px 12px;background:#232344;border:1px solid #334155;border-radius:14px;cursor:pointer;transition:all .2s;text-align:center;gap:10px;}
+.al-app:hover{border-color:#7C3AED;background:rgba(124,58,237,0.1);transform:translateY(-4px);box-shadow:0 8px 24px rgba(124,58,237,0.15);}
+.al-app i{font-size:2rem;color:#7C3AED;transition:transform .2s;}
+.al-app:hover i{transform:scale(1.15);}
+.al-app-name{font-size:12px;font-weight:600;color:#F1F5F9;}
+.al-app-cat{font-size:10px;color:#94A3B8;}
+.al-premium{position:absolute;top:6px;right:6px;color:#F59E0B;font-size:9px;}
+.al-empty{text-align:center;padding:48px;color:#94A3B8;}
+.al-empty i{font-size:3rem;opacity:.3;margin-bottom:12px;}
+.al-section-title{font-size:14px;font-weight:600;color:#7C3AED;margin:16px 0 12px;padding-bottom:8px;border-bottom:1px solid #334155;display:flex;align-items:center;gap:8px;}
+</style>
+<div class="al-wrap">
+<div class="al-header">
+  <h1><i class="fa-solid fa-th-large" style="color:#7C3AED;"></i> All Apps</h1>
+  <div class="al-search">
+    <i class="fa-solid fa-search"></i>
+    <input type="text" id="alSearch" placeholder="Search apps..." oninput="alFilter()">
+  </div>
+</div>
+<div class="al-filters">
+  <button class="al-filter active" onclick="alCat('all')">All Apps</button>
+  <button class="al-filter" onclick="alCat('System')">System</button>
+  <button class="al-filter" onclick="alCat('Productivity')">Productivity</button>
+  <button class="al-filter" onclick="alCat('Media')">Media</button>
+  <button class="al-filter" onclick="alCat('Development')">Development</button>
+  <button class="al-filter" onclick="alCat('Creative')">Creative</button>
+  <button class="al-filter" onclick="alCat('Utilities')">Utilities</button>
+  <button class="al-filter" onclick="alCat('Documents')">Documents</button>
+  <button class="al-filter" onclick="alCat('Communication')">Communication</button>
+  <button class="al-filter" onclick="alCat('Information')">Information</button>
+  <button class="al-filter" onclick="alCat('Security')">Security</button>
+</div>
+<div id="alContent"></div>
+</div>
+<script>
+(function(){
+const apps=[
+  {name:'Calculator',slug:'calculator',icon:'fa-solid fa-calculator',cat:'Utilities'},
+  {name:'Calendar',slug:'calendar',icon:'fa-solid fa-calendar-days',cat:'Productivity'},
+  {name:'Camera',slug:'camera',icon:'fa-solid fa-camera',cat:'Media'},
+  {name:'Canvas Drawing',slug:'canvas',icon:'fa-solid fa-paintbrush',cat:'Creative'},
+  {name:'Clock',slug:'clock',icon:'fa-solid fa-clock',cat:'Productivity'},
+  {name:'Code Editor',slug:'code-editor',icon:'fa-solid fa-code',cat:'Development',premium:true},
+  {name:'Contacts',slug:'contacts',icon:'fa-solid fa-address-book',cat:'Productivity'},
+  {name:'Email Client',slug:'email',icon:'fa-solid fa-envelope',cat:'Communication',premium:true},
+  {name:'File Manager',slug:'file-manager',icon:'fa-solid fa-folder-open',cat:'System'},
+  {name:'Music Player',slug:'music-player',icon:'fa-solid fa-music',cat:'Media'},
+  {name:'Notes',slug:'notes',icon:'fa-solid fa-note-sticky',cat:'Productivity'},
+  {name:'Paint',slug:'paint',icon:'fa-solid fa-palette',cat:'Creative'},
+  {name:'Settings',slug:'settings',icon:'fa-solid fa-gear',cat:'System'},
+  {name:'Terminal',slug:'terminal',icon:'fa-solid fa-terminal',cat:'System'},
+  {name:'Text Editor',slug:'text-editor',icon:'fa-solid fa-file-lines',cat:'Documents'},
+  {name:'Todo List',slug:'todo',icon:'fa-solid fa-list-check',cat:'Productivity'},
+  {name:'Weather',slug:'weather',icon:'fa-solid fa-cloud-sun',cat:'Utilities'},
+  {name:'Browser',slug:'browser',icon:'fa-solid fa-globe',cat:'Communication'},
+  {name:'Photos',slug:'photos',icon:'fa-solid fa-images',cat:'Media'},
+  {name:'Video Player',slug:'video-player',icon:'fa-solid fa-film',cat:'Media'},
+  {name:'Spreadsheet',slug:'spreadsheet',icon:'fa-solid fa-table-cells',cat:'Documents',premium:true},
+  {name:'Presentations',slug:'slides',icon:'fa-solid fa-person-chalkboard',cat:'Documents',premium:true},
+  {name:'Chat',slug:'chat',icon:'fa-solid fa-comments',cat:'Communication',premium:true},
+  {name:'Database Manager',slug:'database-manager',icon:'fa-solid fa-database',cat:'Development',premium:true},
+  {name:'PDF Viewer',slug:'pdf-viewer',icon:'fa-solid fa-file-pdf',cat:'Documents'},
+  {name:'Unit Converter',slug:'unit-converter',icon:'fa-solid fa-right-left',cat:'Utilities'},
+  {name:'Password Manager',slug:'password-manager',icon:'fa-solid fa-key',cat:'Utilities',premium:true},
+  {name:'System Monitor',slug:'system-monitor',icon:'fa-solid fa-chart-line',cat:'System'},
+  {name:'Color Picker',slug:'color-picker',icon:'fa-solid fa-eye-dropper',cat:'Creative'},
+  {name:'QR Code',slug:'qr-code',icon:'fa-solid fa-qrcode',cat:'Utilities'},
+  {name:'Timer',slug:'timer',icon:'fa-solid fa-stopwatch',cat:'Productivity'},
+  {name:'Voice Recorder',slug:'voice-recorder',icon:'fa-solid fa-microphone',cat:'Media'},
+  {name:'News Reader',slug:'news',icon:'fa-solid fa-newspaper',cat:'Information'},
+  {name:'Stocks',slug:'stocks',icon:'fa-solid fa-arrow-trend-up',cat:'Information',premium:true},
+  {name:'Translator',slug:'translator',icon:'fa-solid fa-language',cat:'Utilities'},
+  {name:'Maps',slug:'maps',icon:'fa-solid fa-map-location-dot',cat:'Utilities'},
+  {name:'JSON Formatter',slug:'json-formatter',icon:'fa-solid fa-brackets-curly',cat:'Development'},
+  {name:'Base64',slug:'base64',icon:'fa-solid fa-lock',cat:'Development'},
+  {name:'Hash Generator',slug:'hash-generator',icon:'fa-solid fa-fingerprint',cat:'Development'},
+  {name:'Regex Tester',slug:'regex-tester',icon:'fa-solid fa-spell-check',cat:'Development'},
+  {name:'Diff Tool',slug:'diff-tool',icon:'fa-solid fa-code-compare',cat:'Development'},
+  {name:'API Tester',slug:'api-tester',icon:'fa-solid fa-plug',cat:'Development'},
+  {name:'Color Palette',slug:'color-palette',icon:'fa-solid fa-swatchbook',cat:'Creative'},
+  {name:'Screenshot',slug:'screenshot',icon:'fa-solid fa-camera-retro',cat:'Media'},
+  {name:'Network Tools',slug:'network-tools',icon:'fa-solid fa-network-wired',cat:'Development'},
+  {name:'Whiteboard',slug:'whiteboard',icon:'fa-solid fa-chalkboard',cat:'Creative',premium:true},
+  {name:'Mind Map',slug:'mind-map',icon:'fa-solid fa-diagram-project',cat:'Creative',premium:true},
+  {name:'Kanban',slug:'kanban',icon:'fa-solid fa-columns',cat:'Documents',premium:true},
+  {name:'Scientific Calc',slug:'calculator-pro',icon:'fa-solid fa-square-root-variable',cat:'Utilities',premium:true},
+  {name:'Certificate Manager',slug:'certificate-manager',icon:'fa-solid fa-shield-halved',cat:'Security',premium:true},
+  {name:'White Noise',slug:'white-noise',icon:'fa-solid fa-wave-square',cat:'Media'},
+  {name:'Typing Test',slug:'typing-test',icon:'fa-solid fa-keyboard',cat:'Utilities'},
+];
+let cat='all';
+function render(){
+  const c=document.getElementById('alContent'),q=document.getElementById('alSearch').value.toLowerCase();
+  c.innerHTML='';
+  if(cat==='all'&&!q){const categories=[...new Set(apps.map(a=>a.cat))];categories.forEach(ct=>{const section=document.createElement('div');const title=document.createElement('div');title.className='al-section-title';title.innerHTML='<i class="fa-solid fa-folder"></i> '+ct;section.appendChild(title);const grid=document.createElement('div');grid.className='al-grid';apps.filter(a=>a.cat===ct).forEach(a=>grid.appendChild(makeAppCard(a)));section.appendChild(grid);c.appendChild(section);});return;}
+  const filtered=apps.filter(a=>{const matchesCat=cat==='all'||a.cat===cat;const matchesSearch=!q||a.name.toLowerCase().includes(q)||a.slug.includes(q);return matchesCat&&matchesSearch;});
+  if(!filtered.length){c.innerHTML='<div class="al-empty"><i class="fa-solid fa-search"></i><div>No apps found</div></div>';return;}
+  const grid=document.createElement('div');grid.className='al-grid';filtered.forEach(a=>grid.appendChild(makeAppCard(a)));c.appendChild(grid);
+}
+function makeAppCard(a){
+  const d=document.createElement('div');d.className='al-app';
+  d.innerHTML='<div style="position:relative;"><i class="'+a.icon+'"></i>'+(a.premium?'<span class="al-premium"><i class="fa-solid fa-crown"></i></span>':'')+'</div><span class="al-app-name">'+a.name+'</span><span class="al-app-cat">'+a.cat+'</span>';
+  d.onclick=()=>{if(window.launchAppBySlug)launchAppBySlug(a.slug);};
+  return d;
+}
+window.alFilter=function(){render();};
+window.alCat=function(c){cat=c;document.querySelectorAll('.al-filter').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');render();};
+render();
+})();
+</script>
+</div>

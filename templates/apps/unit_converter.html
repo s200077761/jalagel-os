@@ -1,0 +1,60 @@
+<div class="app-container" data-app="unit-converter">
+<style>
+.uc-wrap{display:flex;flex-direction:column;height:100%;overflow:auto;padding:24px;}
+.uc-tabs{display:flex;gap:4px;margin-bottom:24px;flex-wrap:wrap;}
+.uc-tab{padding:8px 16px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#94A3B8;font-size:13px;font-family:inherit;cursor:pointer;transition:all .15s;}
+.uc-tab:hover{border-color:#7C3AED;color:#F1F5F9;}
+.uc-tab.active{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+.uc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.uc-card{background:#232344;border:1px solid #334155;border-radius:12px;padding:20px;}
+.uc-card h3{margin:0 0 16px;font-size:14px;display:flex;align-items:center;gap:8px;}
+.uc-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.uc-row input{flex:1;padding:10px 12px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:14px;outline:none;}
+.uc-row select{padding:10px 12px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;cursor:pointer;min-width:100px;}
+.uc-eq{text-align:center;color:#94A3B8;font-size:18px;padding:0 8px;}
+.uc-res{font-size:18px;font-weight:700;color:#7C3AED;font-family:'JetBrains Mono',monospace;text-align:center;margin-top:8px;}
+</style>
+<div class="uc-wrap">
+<h2 style="margin:0 0 16px;"><i class="fa-solid fa-right-left" style="color:#7C3AED;"></i> Unit Converter</h2>
+<div class="uc-tabs">
+  <button class="uc-tab active" onclick="ucCat('length')">Length</button>
+  <button class="uc-tab" onclick="ucCat('weight')">Weight</button>
+  <button class="uc-tab" onclick="ucCat('temperature')">Temperature</button>
+  <button class="uc-tab" onclick="ucCat('data')">Data Storage</button>
+  <button class="uc-tab" onclick="ucCat('speed')">Speed</button>
+  <button class="uc-tab" onclick="ucCat('currency')">Currency</button>
+</div>
+<div class="uc-grid" id="ucGrid"></div>
+</div>
+<script>
+(function(){
+const cats={
+  length:{units:['m','km','cm','mm','mi','yd','ft','in'],rates:{m:1,km:1000,cm:0.01,mm:0.001,mi:1609.344,yd:0.9144,ft:0.3048,in:0.0254}},
+  weight:{units:['kg','g','mg','lb','oz','t'],rates:{kg:1,g:0.001,mg:0.000001,lb:0.453592,oz:0.0283495,t:1000}},
+  temperature:{units:['C','F','K'],convert:{C:{F:v=>v*9/5+32,K:v=>v+273.15},F:{C:v=>(v-32)*5/9,K:v=>(v-32)*5/9+273.15},K:{C:v=>v-273.15,F:v=>(v-273.15)*9/5+32}}},
+  data:{units:['B','KB','MB','GB','TB','PB'],rates:{B:1,KB:1024,MB:1048576,GB:1073741824,TB:1099511627776,PB:1125899906842624}},
+  speed:{units:['m/s','km/h','mph','knot','ft/s'],rates:{'m/s':1,'km/h':0.277778,'mph':0.44704,'knot':0.514444,'ft/s':0.3048}},
+  currency:{units:['USD','EUR','GBP','JPY','CAD','AUD'],rates:{USD:1,EUR:0.85,GBP:0.73,JPY:110,CAD:1.25,AUD:1.35}}
+};
+let cat='length';
+function render(){
+  const g=document.getElementById('ucGrid'),c=cats[cat];g.innerHTML='';
+  if(cat==='temperature'){
+    const d=document.createElement('div');d.className='uc-card';d.innerHTML='<h3><i class="fa-solid fa-temperature-half" style="color:#EF4444;"></i> Temperature</h3><div class="uc-row"><input type="number" id="tvin" value="0" oninput="ucConv()"><select id="tsf" onchange="ucConv()">'+c.units.map(u=>'<option value="'+u+'">°'+u+'</option>').join('')+'</select></div><div class="uc-eq">=</div><div class="uc-row"><input type="number" id="tvout" readonly><select id="tst" onchange="ucConv()">'+c.units.map((u,i)=>'<option value="'+u+'"'+(i===1?' selected':'')+'>°'+u+'</option>').join('')+'</select></div>';
+    g.appendChild(d);
+  }else{
+    const d=document.createElement('div');d.className='uc-card';d.innerHTML='<h3><i class="fa-solid fa-ruler" style="color:#7C3AED;"></i> '+cat.charAt(0).toUpperCase()+cat.slice(1)+'</h3><div class="uc-row"><input type="number" id="ucin" value="1" oninput="ucConv()"><select id="ucf" onchange="ucConv()">'+c.units.map(u=>'<option value="'+u+'">'+u+'</option>').join('')+'</select></div><div class="uc-eq">=</div><div class="uc-row"><input type="number" id="ucout" readonly><select id="uct" onchange="ucConv()">'+c.units.map((u,i)=>'<option value="'+u+'"'+(i===1?' selected':'')+'>'+u+'</option>').join('')+'</select></div><div class="uc-res" id="ucres"></div>';
+    g.appendChild(d);
+  }
+  ucConv();
+}
+window.ucCat=function(c){cat=c;document.querySelectorAll('.uc-tab').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');render();};
+window.ucConv=function(){
+  const c=cats[cat];if(cat==='temperature'){const v=parseFloat(document.getElementById('tvin').value)||0;const f=document.getElementById('tsf').value,t=document.getElementById('tst').value;if(f===t)document.getElementById('tvout').value=v;else document.getElementById('tvout').value=+c.convert[f][t](v).toFixed(4);return;}
+  const v=parseFloat(document.getElementById('ucin').value)||0;const f=document.getElementById('ucf').value,t=document.getElementById('uct').value;
+  const base=v*c.rates[f];const res=base/c.rates[t];document.getElementById('ucout').value=+res.toFixed(6);document.getElementById('ucres').textContent=v+' '+f+' = '+res.toFixed(4)+' '+t;
+};
+render();
+})();
+</script>
+</div>

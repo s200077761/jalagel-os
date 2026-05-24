@@ -1,0 +1,79 @@
+<div class="app-container" data-app="spreadsheet">
+<style>
+.ss-wrap{display:flex;flex-direction:column;height:100%;}
+.ss-toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;}
+.ss-toolbar button,.ss-toolbar select{padding:5px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;cursor:pointer;}
+.ss-toolbar button:hover{background:#7C3AED;border-color:#7C3AED;}
+.ss-toolbar input[type=text]{padding:5px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;}
+.ss-formula{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#1A1A2E;border-bottom:1px solid #334155;font-size:13px;flex-shrink:0;}
+.ss-formula label{color:#94A3B8;font-size:11px;min-width:30px;}
+.ss-formula input{flex:1;padding:5px 8px;border:1px solid #334155;border-radius:4px;background:#0f0f23;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:13px;}
+.ss-body{flex:1;overflow:auto;}
+.ss-table{border-collapse:collapse;font-size:13px;font-family:'JetBrains Mono',monospace;}
+.ss-table th{background:#232344;color:#94A3B8;padding:6px 8px;border:1px solid #334155;font-weight:600;position:sticky;top:0;z-index:2;}
+.ss-table th.corner{background:#1A1A2E;position:sticky;top:0;left:0;z-index:3;}
+.ss-table td{border:1px solid #334155;padding:0;min-width:100px;}
+.ss-table td input{width:100%;height:100%;border:none;padding:6px 8px;background:#1A1A2E;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;}
+.ss-table td input:focus{background:rgba(124,58,237,0.1);box-shadow:inset 0 0 0 2px #7C3AED;}
+.ss-table td.selected input{background:rgba(124,58,237,0.15);}
+.ss-table .row-header{background:#232344;color:#94A3B8;padding:6px 8px;border:1px solid #334155;font-weight:600;text-align:center;position:sticky;left:0;z-index:1;font-size:11px;}
+.ss-status{display:flex;align-items:center;justify-content:space-between;padding:4px 12px;background:#232344;border-top:1px solid #334155;font-size:11px;color:#94A3B8;flex-shrink:0;}
+</style>
+<div class="ss-wrap">
+<div class="ss-toolbar">
+  <button onclick="ssNew()"><i class="fa-solid fa-plus"></i> New</button>
+  <button onclick="ssSave()"><i class="fa-solid fa-floppy-disk"></i> Save CSV</button>
+  <button onclick="ssLoad()"><i class="fa-solid fa-upload"></i> Load CSV</button>
+  <div style="width:1px;height:20px;background:#334155;margin:0 4px;"></div>
+  <button onclick="ssFormat('bold')" title="Bold"><i class="fa-solid fa-bold"></i></button>
+  <button onclick="ssFormat('color')" title="Color"><i class="fa-solid fa-palette"></i></button>
+  <select onchange="ssSetFormat(this.value)"><option value="">Format</option><option value="number">Number</option><option value="currency">Currency</option><option value="percent">Percent</option><option value="date">Date</option></select>
+  <select onchange="ssInsertFn(this.value);this.value=''"><option value="">Function</option><option value="SUM">SUM</option><option value="AVERAGE">AVERAGE</option><option value="COUNT">COUNT</option><option value="MAX">MAX</option><option value="MIN">MIN</option></select>
+  <div style="margin-left:auto;font-size:11px;color:#94A3B8;" id="ssInfo">A1</div>
+</div>
+<div class="ss-formula">
+  <label id="ssCellRef">A1</label>
+  <input type="text" id="ssFormula" placeholder="=SUM(A1:A5) or enter value" onkeydown="if(event.key==='Enter')ssApplyFormula()" oninput="ssEdit()">
+</div>
+<div class="ss-body"><div id="ssContainer"></div></div>
+<div class="ss-status">
+  <span id="ssStats">20 rows x 26 cols</span>
+  <span id="ssCalc">Ready</span>
+</div>
+</div>
+<script>
+(function(){
+let rows=20,cols=26,data={},selR=0,selC=0;
+const colLabel=i=>{let s='';i++;while(i>0){i--;s=String.fromCharCode(65+(i%26))+s;i=Math.floor(i/26);}return s;};
+function render(){
+  const container=document.getElementById('ssContainer');let html='<table class="ss-table">';
+  html+='<tr><th class="corner"></th>';for(let c=0;c<cols;c++)html+='<th>'+colLabel(c)+'</th>';html+='</tr>';
+  for(let r=0;r<rows;r++){html+='<tr><td class="row-header">'+(r+1)+'</td>';for(let c=0;c<cols;c++){const key=colLabel(c)+(r+1);const val=(data[key]||{v:''}).v;const cls=(r===selR&&c===selC)?' selected':'';html+='<td class="'+cls+'"><input type="text" value="'+val+'" data-r="'+r+'" data-c="'+c+'" onfocus="ssFocus('+r+','+c+')" onchange="ssSet('+r+','+c+',this.value)"></td>';}html+='</tr>';}
+  html+='</table>';container.innerHTML=html;
+}
+window.ssFocus=function(r,c){selR=r;selC=c;const key=colLabel(c)+(r+1);document.getElementById('ssCellRef').textContent=key;document.getElementById('ssInfo').textContent=key;const cell=data[key];document.getElementById('ssFormula').value=cell?cell.f||cell.v||'':'';render();};
+window.ssSet=function(r,c,v){const key=colLabel(c)+(r+1);data[key]={v:v,f:''};if(v.startsWith('=')){data[key].f=v;try{data[key].v=ssEval(v.substring(1));}catch(e){data[key].v='#ERROR';}}render();};
+window.ssApplyFormula=function(){const v=document.getElementById('ssFormula').value;ssSet(selR,selC,v);};
+window.ssEdit=function(){const v=document.getElementById('ssFormula').value;if(!v.startsWith('='))data[colLabel(selC)+(selR+1)]={v:v,f:''};};
+function ssEval(expr){if(/^SUM\(/i.test(expr)){const range=expr.match(/\(([^)]+)\)/)[1].split(':');return ssSumRange(range[0],range[1]);}if(/^AVERAGE\(/i.test(expr)){const range=expr.match(/\(([^)]+)\)/)[1].split(':');return ssSumRange(range[0],range[1])/ssCountRange(range[0],range[1]);}if(/^COUNT\(/i.test(expr)){const range=expr.match(/\(([^)]+)\)/)[1].split(':');return ssCountRange(range[0],range[1]);}if(/^MAX\(/i.test(expr)){const range=expr.match(/\(([^)]+)\)/)[1].split(':');return ssMaxRange(range[0],range[1]);}if(/^MIN\(/i.test(expr)){const range=expr.match(/\(([^)]+)\)/)[1].split(':');return ssMinRange(range[0],range[1]);}return eval(expr);}
+function cellVal(key){const d=data[key];if(!d)return 0;const v=parseFloat(d.v);return isNaN(v)?0:v;}
+function parseCell(ref){const m=ref.match(/([A-Z]+)(\d+)/);return{col:m[1],row:parseInt(m[2])};}
+function cellRange(a,b){const pa=parseCell(a),pb=parseCell(b);const r=[];for(let row=Math.min(pa.row,pb.row);row<=Math.max(pa.row,pb.row);row++){for(let ci=colIdx(pa.col);ci<=colIdx(pb.col);ci++){r.push(colLabel(ci)+row);}}return r;}
+function colIdx(label){let idx=0;for(let i=0;i<label.length;i++){idx=idx*26+(label.charCodeAt(i)-65);}return idx;}
+function ssSumRange(a,b){return cellRange(a,b).reduce((s,k)=>s+cellVal(k),0);}
+function ssCountRange(a,b){return cellRange(a,b).filter(k=>{const d=data[k];return d&&d.v&&!isNaN(parseFloat(d.v));}).length;}
+function ssMaxRange(a,b){return Math.max(...cellRange(a,b).map(k=>cellVal(k)));}
+function ssMinRange(a,b){return Math.min(...cellRange(a,b).map(k=>cellVal(k)));}
+window.ssNew=function(){data={};rows=20;render();};
+window.ssSave=function(){let csv='';for(let r=0;r<rows;r++){const row=[];for(let c=0;c<cols;c++){const key=colLabel(c)+(r+1);row.push((data[key]||{v:''}).v);}csv+=row.join(',')+'\n';}JALAGEL.Utils.downloadText(csv,'spreadsheet.csv','text/csv');JALAGEL.Utils.toast('Saved CSV','success');};
+window.ssLoad=function(){const i=document.createElement('input');i.type='file';i.accept='.csv';i.onchange=e=>{const f=e.target.files[0];const r=new FileReader();r.onload=ev=>{const lines=ev.target.result.split('\n');data={};lines.forEach((line,ri)=>{if(!line.trim())return;line.split(',').forEach((cell,ci)=>{if(cell.trim())data[colLabel(ci)+(ri+1)]={v:cell.trim(),f:''};});});rows=Math.max(rows,lines.length);render();};r.readAsText(f);};i.click();};
+window.ssFormat=function(fmt){};
+window.ssSetFormat=function(fmt){};
+window.ssInsertFn=function(fn){document.getElementById('ssFormula').value='='+fn+'(A1:A5)';};
+render();
+// Demo data
+data={'A1':{v:'Product',f:''},'B1':{v:'Q1',f:''},'C1':{v:'Q2',f:''},'D1':{v:'Q3',f:''},'E1':{v:'Total',f:''},'A2':{v:'Widget A',f:''},'B2':{v:'100',f:''},'C2':{v:'150',f:''},'D2':{v:'200',f:''},'E2':{v:'=SUM(B2:D2)',f:'=SUM(B2:D2)'},'A3':{v:'Widget B',f:''},'B3':{v:'80',f:''},'C3':{v:'120',f:''},'D3':{v:'160',f:''},'E3':{v:'=SUM(B3:D3)',f:'=SUM(B3:D3)'},'A4':{v:'Widget C',f:''},'B4':{v:'60',f:''},'C4':{v:'90',f:''},'D4':{v:'120',f:''},'E4':{v:'=SUM(B4:D4)',f:'=SUM(B4:D4)'},'A5':{v:'Total',f:''},'B5':{v:'=SUM(B2:B4)',f:'=SUM(B2:B4)'},'C5':{v:'=SUM(C2:C4)',f:'=SUM(C2:C4)'},'D5':{v:'=SUM(D2:D4)',f:'=SUM(D2:D4)'},'E5':{v:'=SUM(E2:E4)',f:'=SUM(E2:E4)'}};
+render();
+})();
+</script>
+</div>

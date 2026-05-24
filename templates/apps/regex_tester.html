@@ -1,0 +1,84 @@
+<div class="app-container" data-app="regex-tester">
+<style>
+.rt-wrap{display:flex;flex-direction:column;height:100%;padding:24px;overflow:auto;}
+.rt-row{display:flex;gap:12px;margin-bottom:16px;align-items:center;flex-wrap:wrap;}
+.rt-row label{color:#94A3B8;font-size:13px;min-width:60px;}
+.rt-row input{flex:1;max-width:400px;padding:10px 14px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;}
+.rt-row input:focus{border-color:#7C3AED;}
+.rt-row input#rtRegex{border-color:#7C3AED;}
+.rt-flags{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.rt-flags label{display:flex;align-items:center;gap:4px;font-size:12px;color:#94A3B8;cursor:pointer;}
+.rt-panels{display:flex;gap:16px;flex:1;min-height:200px;}
+.rt-panel{flex:1;display:flex;flex-direction:column;background:#232344;border:1px solid #334155;border-radius:12px;overflow:hidden;}
+.rt-header{padding:8px 12px;background:#1A1A2E;border-bottom:1px solid #334155;font-size:12px;font-weight:600;color:#94A3B8;}
+.rt-textarea{flex:1;padding:12px;background:#0f0f23;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:13px;border:none;outline:none;resize:none;}
+.rt-highlight{flex:1;padding:12px;background:#0f0f23;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:13px;overflow:auto;white-space:pre-wrap;line-height:1.8;}
+.rt-highlight .match{background:rgba(124,58,237,0.4);border:1px solid #7C3AED;border-radius:3px;padding:1px 2px;}
+.rt-highlight .group{background:rgba(6,182,212,0.3);border:1px solid #06B6D4;border-radius:3px;padding:1px 2px;}
+.rt-stats{display:flex;gap:16px;margin-top:12px;font-size:12px;color:#94A3B8;}
+</style>
+<div class="rt-wrap">
+<h2 style="margin:0 0 16px;"><i class="fa-solid fa-spell-check" style="color:#7C3AED;"></i> Regex Tester</h2>
+<div class="rt-row">
+  <label>Pattern</label>
+  <input type="text" id="rtRegex" value="[A-Za-z]+@[A-Za-z]+\.[A-Za-z]+" placeholder="Enter regex pattern..." oninput="rtTest()">
+  <div class="rt-flags">
+    <label><input type="checkbox" id="rtG" checked onchange="rtTest()"> g</label>
+    <label><input type="checkbox" id="rtI" onchange="rtTest()"> i</label>
+    <label><input type="checkbox" id="rtM" onchange="rtTest()"> m</label>
+    <label><input type="checkbox" id="rtS" onchange="rtTest()"> s</label>
+  </div>
+</div>
+<div class="rt-panels">
+  <div class="rt-panel">
+    <div class="rt-header">Test Text</div>
+    <textarea class="rt-textarea" id="rtText" placeholder="Enter text to test against..." oninput="rtTest()">Contact us at support@jalagel.com or sales@jalagel.com. Visit https://jalagel.com for more info. Call +1-555-123-4567.</textarea>
+  </div>
+  <div class="rt-panel">
+    <div class="rt-header">Matches</div>
+    <div class="rt-highlight" id="rtOutput"></div>
+  </div>
+</div>
+<div class="rt-row" style="margin-top:12px;">
+  <label>Replace</label>
+  <input type="text" id="rtReplace" placeholder="Replacement text..." oninput="rtReplace()">
+</div>
+<div class="rt-panel" style="height:100px;flex:none;margin-top:8px;">
+  <div class="rt-header">Result</div>
+  <div class="rt-highlight" id="rtReplaceOut"></div>
+</div>
+<div class="rt-stats">
+  <span>Matches: <strong id="rtMatches">0</strong></span>
+  <span>Groups: <strong id="rtGroups">0</strong></span>
+  <span id="rtValid" style="color:#10B981;">Valid regex</span>
+</div>
+</div>
+<script>
+(function(){
+window.rtTest=function(){
+  const pattern=document.getElementById('rtRegex').value;const text=document.getElementById('rtText').value;const out=document.getElementById('rtOutput');
+  if(!pattern){out.innerHTML='';document.getElementById('rtMatches').textContent='0';return;}
+  try{
+    const flags=(document.getElementById('rtG').checked?'g':'')+(document.getElementById('rtI').checked?'i':'')+(document.getElementById('rtM').checked?'m':'')+(document.getElementById('rtS').checked?'s':'');
+    const regex=new RegExp(pattern,flags);let html='';let lastIndex=0;let matches=0;let groups=0;
+    if(flags.includes('g')){
+      const all=text.matchAll(regex);
+      for(const m of all){matches++;if(m.length>1)groups+=m.length-1;const start=m.index;const end=start+m[0].length;html+=textEscape(text.substring(lastIndex,start))+'<span class="match">'+textEscape(m[0])+'</span>';lastIndex=end;}
+      html+=textEscape(text.substring(lastIndex));
+    }else{const m=text.match(regex);if(m){matches=1;groups=m.length-1;html=textEscape(text.substring(0,m.index))+'<span class="match">'+textEscape(m[0])+'</span>'+textEscape(text.substring(m.index+m[0].length));}else{html=textEscape(text);}}
+    out.innerHTML=html;document.getElementById('rtMatches').textContent=matches;document.getElementById('rtGroups').textContent=groups;document.getElementById('rtValid').textContent='Valid regex';document.getElementById('rtValid').style.color='#10B981';
+  }catch(e){out.innerHTML='<span style="color:#EF4444;">'+e.message+'</span>';document.getElementById('rtValid').textContent='Invalid regex';document.getElementById('rtValid').style.color='#EF4444';}
+  rtReplace();
+};
+window.rtReplace=function(){
+  const pattern=document.getElementById('rtRegex').value;const text=document.getElementById('rtText').value;const rep=document.getElementById('rtReplace').value;
+  if(!pattern)return;try{
+    const flags=(document.getElementById('rtG').checked?'g':'')+(document.getElementById('rtI').checked?'i':'')+(document.getElementById('rtM').checked?'m':'')+(document.getElementById('rtS').checked?'s':'');
+    const regex=new RegExp(pattern,flags);document.getElementById('rtReplaceOut').textContent=text.replace(regex,rep);
+  }catch(e){}
+};
+function textEscape(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+rtTest();
+})();
+</script>
+</div>

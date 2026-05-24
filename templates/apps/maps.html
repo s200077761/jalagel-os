@@ -1,0 +1,63 @@
+<div class="app-container" data-app="maps">
+<style>
+.mp-wrap{display:flex;flex-direction:column;height:100%;}
+.mp-bar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;}
+.mp-bar input{flex:1;max-width:300px;padding:8px 12px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;}
+.mp-bar button{padding:8px 14px;border:none;border-radius:8px;background:#7C3AED;color:#fff;font-weight:600;cursor:pointer;font-family:inherit;font-size:13px;}
+.mp-body{flex:1;position:relative;overflow:hidden;background:#1A1A2E;}
+.mp-canvas{width:100%;height:100%;cursor:grab;}
+.mp-info{position:absolute;bottom:16px;left:16px;background:rgba(26,26,46,0.9);padding:12px 16px;border-radius:10px;border:1px solid #334155;font-size:12px;max-width:250px;backdrop-filter:blur(10px);}
+.mp-poi{position:absolute;padding:6px 10px;background:#7C3AED;color:#fff;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transform:translate(-50%,-100%);transition:all .15s;box-shadow:0 2px 8px rgba(124,58,237,0.3);}
+.mp-poi:hover{transform:translate(-50%,-110%) scale(1.1);}
+.mp-poi::after{content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid #7C3AED;}
+</style>
+<div class="mp-wrap">
+<div class="mp-bar">
+  <input type="text" id="mpSearch" placeholder="Search location..." value="San Francisco" onkeydown="if(event.key==='Enter')mpSearch()">
+  <button onclick="mpSearch()"><i class="fa-solid fa-search"></i></button>
+  <button onclick="mpZoom(1)"><i class="fa-solid fa-plus"></i></button>
+  <button onclick="mpZoom(-1)"><i class="fa-solid fa-minus"></i></button>
+  <button onclick="mpDirections()" style="margin-left:auto;"><i class="fa-solid fa-diamond-turn-right"></i> Directions</button>
+</div>
+<div class="mp-body" id="mpBody">
+  <canvas class="mp-canvas" id="mpCanvas"></canvas>
+  <div class="mp-info" id="mpInfo">
+    <strong style="color:#F1F5F9;">Interactive Map</strong><br>
+    <span style="color:#94A3B8;">Search for cities and explore. Drag to pan, use +/- to zoom.</span>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+const canvas=document.getElementById('mpCanvas'),ctx=canvas.getContext('2d');
+let zoom=1,ox=0,oy=0,dragging=false,lastX=0,lastY=0;
+const pois=[{name:'San Francisco',x:150,y:200},{name:'New York',x:450,y:180},{name:'London',x:400,y:120},{name:'Tokyo',x:650,y:170},{name:'Sydney',x:620,y:320},{name:'Paris',x:410,y:130},{name:'Berlin',x:430,y:115},{name:'Dubai',x:480,y:200},{name:'Mumbai',x:530,y:220},{name:'Singapore',x:600,y:250}];
+function resize(){const r=canvas.parentElement.getBoundingClientRect();canvas.width=r.width;canvas.height=r.height;render();}resize();window.addEventListener('resize',resize);
+function render(){
+  ctx.fillStyle='#0f2847';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.save();ctx.translate(canvas.width/2+ox,canvas.height/2+oy);ctx.scale(zoom,zoom);ctx.translate(-400,-200);
+  // Grid
+  ctx.strokeStyle='rgba(6,182,212,0.1)';ctx.lineWidth=1;
+  for(let x=0;x<800;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,400);ctx.stroke();}
+  for(let y=0;y<400;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(800,y);ctx.stroke();}
+  // Simplified continents
+  ctx.fillStyle='#1a3a5c';ctx.beginPath();ctx.ellipse(200,180,80,60,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(420,130,40,30,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(650,180,30,50,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(620,320,25,20,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(530,220,20,25,0,0,Math.PI*2);ctx.fill();
+  // Roads
+  ctx.strokeStyle='rgba(148,163,184,0.15)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,200);ctx.lineTo(800,200);ctx.stroke();ctx.beginPath();ctx.moveTo(400,0);ctx.lineTo(400,400);ctx.stroke();
+  ctx.restore();
+  // POIs
+  pois.forEach(p=>{const sx=(p.x-400)*zoom+canvas.width/2+ox;const sy=(p.y-200)*zoom+canvas.height/2+oy;ctx.fillStyle='#7C3AED';ctx.beginPath();ctx.arc(sx,sy-10,6,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='11px Inter';ctx.fillText(p.name,sx+10,sy-10);});
+}
+canvas.addEventListener('mousedown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;canvas.style.cursor='grabbing';});
+canvas.addEventListener('mousemove',e=>{if(!dragging)return;ox+=e.clientX-lastX;oy+=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;render();});
+canvas.addEventListener('mouseup',()=>{dragging=false;canvas.style.cursor='grab';});
+window.mpZoom=function(d){zoom=Math.max(0.5,Math.min(4,zoom+d*0.5));render();};
+window.mpSearch=function(){
+  const q=document.getElementById('mpSearch').value.toLowerCase();const p=pois.find(x=>x.name.toLowerCase().includes(q));
+  if(p){ox=canvas.width/2-(p.x-400)*zoom-canvas.width/2;oy=canvas.height/2-(p.y-200)*zoom-canvas.height/2;render();document.getElementById('mpInfo').innerHTML='<strong style="color:#F1F5F9;">'+p.name+'</strong><br><span style="color:#94A3B8;">Coordinates: '+p.x+'N, '+p.y+'E</span>';}
+};
+window.mpDirections=function(){const from=prompt('From:');const to=prompt('To:');if(from&&to){document.getElementById('mpInfo').innerHTML='<strong style="color:#F1F5F9;">Directions</strong><br><span style="color:#94A3B8;">From: '+from+'<br>To: '+to+'<br>Distance: ~'+(Math.floor(Math.random()*5000)+100)+' km<br>Time: ~'+(Math.floor(Math.random()*24)+1)+'h</span>';}};
+render();
+})();
+</script>
+</div>

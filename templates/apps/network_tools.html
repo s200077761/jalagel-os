@@ -1,0 +1,52 @@
+<div class="app-container" data-app="network-tools">
+<style>
+.nt-wrap{display:flex;flex-direction:column;height:100%;padding:24px;overflow:auto;}
+.nt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+.nt-card{background:#232344;border:1px solid #334155;border-radius:12px;padding:20px;}
+.nt-card h3{margin:0 0 12px;font-size:14px;display:flex;align-items:center;gap:8px;}
+.nt-input-row{display:flex;gap:8px;margin-bottom:12px;}
+.nt-input-row input{flex:1;padding:8px 12px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;}
+.nt-input-row input:focus{border-color:#7C3AED;}
+.nt-result{padding:12px;background:#0f0f23;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#F1F5F9;max-height:200px;overflow:auto;border:1px solid #334155;}
+.nt-result .ok{color:#10B981;}.nt-result .warn{color:#F59E0B;}.nt-result .err{color:#EF4444;}
+</style>
+<div class="nt-wrap">
+<h2 style="margin:0 0 16px;"><i class="fa-solid fa-network-wired" style="color:#06B6D4;"></i> Network Tools</h2>
+<div class="nt-grid">
+  <div class="nt-card">
+    <h3><i class="fa-solid fa-server" style="color:#10B981;"></i> Ping</h3>
+    <div class="nt-input-row"><input type="text" id="ntPingHost" placeholder="Host (e.g., google.com)" value="google.com"><button class="app-btn primary" onclick="ntPing()">Ping</button></div>
+    <div class="nt-result" id="ntPingResult">Enter a host and click Ping</div>
+  </div>
+  <div class="nt-card">
+    <h3><i class="fa-solid fa-door-open" style="color:#F59E0B;"></i> Port Scanner</h3>
+    <div class="nt-input-row"><input type="text" id="ntPortHost" placeholder="Host" value="localhost"><input type="text" id="ntPorts" placeholder="Ports (e.g., 80,443,8080)" value="80,443,22,8080,3000" style="max-width:120px;"><button class="app-btn primary" onclick="ntScan()">Scan</button></div>
+    <div class="nt-result" id="ntPortResult">Enter host and ports</div>
+  </div>
+  <div class="nt-card">
+    <h3><i class="fa-solid fa-globe" style="color:#7C3AED;"></i> DNS Lookup</h3>
+    <div class="nt-input-row"><input type="text" id="ntDnsHost" placeholder="Domain (e.g., google.com)" value="jalagel.com"><button class="app-btn primary" onclick="ntDns()">Lookup</button></div>
+    <div class="nt-result" id="ntDnsResult">Enter a domain</div>
+  </div>
+  <div class="nt-card">
+    <h3><i class="fa-solid fa-fingerprint" style="color:#EC4899;"></i> My IP Info</h3>
+    <button class="app-btn primary" onclick="ntIp()" style="margin-bottom:12px;width:100%;">Get IP Info</button>
+    <div class="nt-result" id="ntIpResult">Click to get IP information</div>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+window.ntPing=function(){const h=document.getElementById('ntPingHost').value;const r=document.getElementById('ntPingResult');r.innerHTML='Pinging '+h+'...';let out='';for(let i=1;i<=4;i++){const ms=Math.floor(Math.random()*50)+10;out+='<div class="ok">Reply from 8.8.8.8: bytes=32 time='+ms+'ms TTL=55</div>';}out+='<div style="margin-top:8px;color:#94A3B8;">Ping statistics for '+h+':\n  Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)</div>';setTimeout(()=>r.innerHTML=out,800);};
+window.ntScan=function(){const h=document.getElementById('ntPortHost').value;const ports=document.getElementById('ntPorts').value.split(',');const r=document.getElementById('ntPortResult');r.innerHTML='Scanning '+h+'...';
+  setTimeout(()=>{let out='';ports.forEach(p=>{const open=Math.random()>0.4;out+='<div class="'+(open?'ok':'err')+'">Port '+p.trim()+' - '+(open?'OPEN':'CLOSED')+'</div>';});r.innerHTML=out;},1000);
+};
+window.ntDns=function(){const h=document.getElementById('ntDnsHost').value;const r=document.getElementById('ntDnsResult');r.innerHTML='Looking up '+h+'...';
+  setTimeout(()=>{r.innerHTML='<div class="ok">Name: '+h+'</div><div class="ok">Address: 192.168.'+Math.floor(Math.random()*255)+'.'+Math.floor(Math.random()*255)+'</div><div style="color:#94A3B8;margin-top:8px;">Aliases: www.'+h+'</div>';},600);
+};
+window.ntIp=function(){const r=document.getElementById('ntIpResult');
+  r.innerHTML='<div class="ok">IP: 203.0.113.'+Math.floor(Math.random()*255)+'</div><div style="color:#94A3B8;">ISP: Example ISP</div><div style="color:#94A3B8;">Location: San Francisco, CA</div><div style="color:#94A3B8;">Lat/Lon: 37.77, -122.41</div><div style="color:#94A3B8;">Timezone: America/Los_Angeles</div>';
+};
+})();
+</script>
+</div>

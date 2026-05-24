@@ -1,0 +1,78 @@
+<div class="app-container" data-app="music-player">
+<style>
+.mp-wrap{display:flex;flex-direction:column;height:100%;}
+.mp-body{flex:1;display:flex;overflow:hidden;}
+.mp-sidebar{width:220px;border-right:1px solid #334155;padding:12px;overflow:auto;background:#232344;}
+.mp-playlist-item{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;cursor:pointer;font-size:12px;color:#94A3B8;transition:all .15s;}
+.mp-playlist-item:hover,.mp-playlist-item.active{background:rgba(124,58,237,0.15);color:#F1F5F9;}
+.mp-playlist-item i{font-size:10px;color:#7C3AED;}
+.mp-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:16px;}
+.mp-cover{width:200px;height:200px;border-radius:16px;background:linear-gradient(135deg,#7C3AED,#EC4899);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(124,58,237,0.3);position:relative;overflow:hidden;}
+.mp-cover i{font-size:4rem;color:rgba(255,255,255,0.5);}
+.mp-cover .visualizer{position:absolute;bottom:0;left:0;right:0;height:60px;display:flex;align-items:flex-end;justify-content:center;gap:3px;padding:0 20px;}
+.mp-cover .vbar{width:4px;background:rgba(255,255,255,0.6);border-radius:2px;animation:vbar 0.5s ease infinite alternate;}
+@keyframes vbar{from{height:4px;}to{height:40px;}}
+.mp-info{text-align:center;}
+.mp-title{font-size:1.2rem;font-weight:700;color:#F1F5F9;}
+.mp-artist{font-size:14px;color:#94A3B8;margin-top:4px;}
+.mp-progress{width:100%;max-width:400px;}
+.mp-progress input[type=range]{width:100%;height:4px;-webkit-appearance:none;background:#334155;border-radius:2px;cursor:pointer;}
+.mp-progress input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:#7C3AED;border-radius:50%;}
+.mp-time{display:flex;justify-content:space-between;font-size:11px;color:#94A3B8;margin-top:4px;}
+.mp-controls{display:flex;align-items:center;gap:16px;}
+.mp-controls button{width:44px;height:44px;border:1px solid #334155;border-radius:50%;background:#232344;color:#F1F5F9;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:14px;}
+.mp-controls button:hover{background:#7C3AED;border-color:#7C3AED;transform:scale(1.1);}
+.mp-controls button.play{width:56px;height:56px;background:linear-gradient(135deg,#7C3AED,#6D28D9);border-color:transparent;font-size:18px;}
+.mp-bottom{display:flex;align-items:center;gap:12px;padding:8px 16px;border-top:1px solid #334155;background:#232344;flex-shrink:0;}
+.mp-bottom input[type=range]{width:100px;height:4px;-webkit-appearance:none;background:#334155;border-radius:2px;}
+.mp-bottom input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;background:#7C3AED;border-radius:50%;}
+.mp-bottom button{border:none;background:transparent;color:#94A3B8;cursor:pointer;font-size:12px;}
+.mp-bottom button:hover{color:#F1F5F9;}
+</style>
+<div class="mp-wrap">
+<div class="mp-body">
+  <div class="mp-sidebar">
+    <div style="font-size:11px;font-weight:600;color:#7C3AED;margin-bottom:8px;">PLAYLIST</div>
+    <div id="mpPlaylist"></div>
+  </div>
+  <div class="mp-main">
+    <div class="mp-cover"><i class="fa-solid fa-music" id="mpIcon"></i><div class="visualizer" id="mpVis" style="display:none;"></div></div>
+    <div class="mp-info"><div class="mp-title" id="mpTitle">Select a song</div><div class="mp-artist" id="mpArtist">--</div></div>
+    <div class="mp-progress"><input type="range" id="mpProg" value="0" max="100" oninput="mpSeek()"><div class="mp-time"><span id="mpCur">0:00</span><span id="mpDur">0:00</span></div></div>
+    <div class="mp-controls">
+      <button onclick="mpPrev()"><i class="fa-solid fa-backward-step"></i></button>
+      <button onclick="mpRewind()"><i class="fa-solid fa-backward"></i></button>
+      <button class="play" onclick="mpPlay()" id="mpPlayBtn"><i class="fa-solid fa-play"></i></button>
+      <button onclick="mpForward()"><i class="fa-solid fa-forward"></i></button>
+      <button onclick="mpNext()"><i class="fa-solid fa-forward-step"></i></button>
+    </div>
+  </div>
+</div>
+<div class="mp-bottom">
+  <button onclick="mpToggleShuffle()" id="mpShuffle"><i class="fa-solid fa-shuffle"></i></button>
+  <button onclick="mpToggleRepeat()" id="mpRepeat"><i class="fa-solid fa-repeat"></i></button>
+  <i class="fa-solid fa-volume-high" style="font-size:11px;color:#94A3B8;"></i>
+  <input type="range" id="mpVol" value="80" max="100">
+  <span style="margin-left:auto;font-size:11px;color:#94A3B8;" id="mpStatus">Ready</span>
+</div>
+</div>
+<script>
+(function(){
+const tracks=[{t:'Neon Dreams',a:'Synthwave Collective',d:184},{t:'Digital Rain',a:'Cyber Orchestra',d:226},{t:'Midnight Code',a:'Developer Beats',d:198},{t:'Quantum Flux',a:'Future Sound',d:245},{t:'Binary Sunset',a:'Pixel Artists',d:172},{t:'Kernel Panic',a:'System Band',d:201},{t:'Cloud Nine',a:'Server Farm',d:267},{t:'Debug Mode',a:'Code Jazz Trio',d:189}];
+let idx=0,playing=false,shuffle=false,repeat=false,prog=0,progInt,vol=0.8;
+const $pl=document.getElementById('mpPlaylist');
+function renderPL(){$pl.innerHTML='';tracks.forEach((t,i)=>{const d=document.createElement('div');d.className='mp-playlist-item'+(i===idx?' active':'');d.innerHTML='<i class="fa-solid fa-music"></i><span>'+t.t+' - '+t.a+'</span>';d.onclick=()=>{idx=i;load();};$pl.appendChild(d);});}
+function load(){const t=tracks[idx];document.getElementById('mpTitle').textContent=t.t;document.getElementById('mpArtist').textContent=t.a;document.getElementById('mpDur').textContent=fmt(t.d);prog=0;document.getElementById('mpProg').value=0;document.getElementById('mpCur').textContent='0:00';renderPL();}
+function fmt(s){const m=Math.floor(s/60);return m+':'+String(s%60).padStart(2,'0');}
+window.mpPlay=function(){playing=!playing;document.getElementById('mpPlayBtn').innerHTML=playing?'<i class="fa-solid fa-pause"></i>':'<i class="fa-solid fa-play"></i>';document.getElementById('mpStatus').textContent=playing?'Playing':'Paused';document.getElementById('mpVis').style.display=playing?'flex':'none';if(playing){progInt=setInterval(function(){prog++;const t=tracks[idx];if(prog>=t.d){mpNext();return;}document.getElementById('mpProg').value=(prog/t.d)*100;document.getElementById('mpCur').textContent=fmt(prog);},1000);}else{clearInterval(progInt);}};
+window.mpPrev=function(){idx=(idx-1+tracks.length)%tracks.length;load();if(playing)mpPlay();};
+window.mpNext=function(){idx=shuffle?Math.floor(Math.random()*tracks.length):(idx+1)%tracks.length;load();if(playing){clearInterval(progInt);mpPlay();}};
+window.mpSeek=function(){const t=tracks[idx];prog=Math.floor((document.getElementById('mpProg').value/100)*t.d);document.getElementById('mpCur').textContent=fmt(prog);};
+window.mpRewind=function(){prog=Math.max(0,prog-10);document.getElementById('mpProg').value=(prog/tracks[idx].d)*100;document.getElementById('mpCur').textContent=fmt(prog);};
+window.mpForward=function(){prog=Math.min(tracks[idx].d,prog+10);document.getElementById('mpProg').value=(prog/tracks[idx].d)*100;document.getElementById('mpCur').textContent=fmt(prog);};
+window.mpToggleShuffle=function(){shuffle=!shuffle;document.getElementById('mpShuffle').style.color=shuffle?'#7C3AED':'#94A3B8';};
+window.mpToggleRepeat=function(){repeat=!repeat;document.getElementById('mpRepeat').style.color=repeat?'#7C3AED':'#94A3B8';};
+load();
+})();
+</script>
+</div>

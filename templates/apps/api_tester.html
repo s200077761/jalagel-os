@@ -1,0 +1,55 @@
+<div class="app-container" data-app="api-tester">
+<style>
+.at-wrap{display:flex;flex-direction:column;height:100%;padding:24px;overflow:auto;}
+.at-form{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.at-form select{padding:10px 12px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;}
+.at-form input{flex:1;padding:10px 12px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;min-width:250px;}
+.at-form input:focus{border-color:#7C3AED;}
+.at-tabs{display:flex;gap:4px;margin-bottom:16px;}
+.at-tab{padding:6px 14px;border:1px solid #334155;border-radius:6px;background:transparent;color:#94A3B8;font-size:12px;font-family:inherit;cursor:pointer;}
+.at-tab.active{background:#7C3AED;color:#fff;border-color:#7C3AED;}
+.at-section{display:none;}
+.at-section.active{display:block;}
+.at-kv{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+.at-kv input{flex:1;padding:6px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:12px;}
+.at-kv button{padding:4px 8px;border:none;border-radius:4px;background:transparent;color:#EF4444;cursor:pointer;}
+.at-body{background:#232344;border:1px solid #334155;border-radius:12px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:13px;overflow:auto;max-height:400px;}
+.at-status{padding:8px 12px;border-radius:8px;margin-bottom:12px;font-size:13px;display:none;}
+.at-status.show{display:block;}
+</style>
+<div class="at-wrap">
+<h2 style="margin:0 0 16px;"><i class="fa-solid fa-plug" style="color:#10B981;"></i> API Tester</h2>
+<div class="at-form">
+  <select id="atMethod"><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option><option>PATCH</option></select>
+  <input type="text" id="atUrl" placeholder="https://api.example.com/users" value="https://jsonplaceholder.typicode.com/posts/1">
+  <button class="app-btn primary" onclick="atSend()">Send</button>
+</div>
+<div class="at-tabs">
+  <button class="at-tab active" onclick="atTab('headers')">Headers</button>
+  <button class="at-tab" onclick="atTab('body')">Body</button>
+  <button class="at-tab" onclick="atTab('response')">Response</button>
+</div>
+<div class="at-section active" id="at-sec-headers">
+  <div id="atHeaders"><div class="at-kv"><input placeholder="Key" value="Content-Type"><input placeholder="Value" value="application/json"><button onclick="this.parentElement.remove()">×</button></div></div>
+  <button class="app-btn sm" onclick="atAddHeader()">+ Add Header</button>
+</div>
+<div class="at-section" id="at-sec-body">
+  <textarea id="atBody" style="width:100%;height:150px;padding:12px;border:1px solid #334155;border-radius:8px;background:#0f0f23;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:13px;resize:none;" placeholder='{"key": "value"}'></textarea>
+</div>
+<div class="at-section" id="at-sec-response">
+  <div class="at-status" id="atStatus"></div>
+  <div class="at-body" id="atResponse">Send a request to see the response...</div>
+</div>
+</div>
+<script>
+(function(){
+window.atTab=function(t){document.querySelectorAll('.at-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.at-section').forEach(s=>s.classList.remove('active'));event.target.classList.add('active');document.getElementById('at-sec-'+t).classList.add('active');};
+window.atAddHeader=function(){const d=document.createElement('div');d.className='at-kv';d.innerHTML='<input placeholder="Key"><input placeholder="Value"><button onclick="this.parentElement.remove()">×</button>';document.getElementById('atHeaders').appendChild(d);};
+window.atSend=async function(){const url=document.getElementById('atUrl').value;const method=document.getElementById('atMethod').value;if(!url)return;atTab('response');document.getElementById('atResponse').textContent='Loading...';document.getElementById('atStatus').className='at-status';document.getElementById('atStatus').style.display='none';
+  try{const start=Date.now();const response=await fetch(url,{method,headers:{'Content-Type':'application/json'}});const time=Date.now()-start;const data=await response.text();document.getElementById('atResponse').textContent=data;const s=document.getElementById('atStatus');s.className='at-status show';s.style.background=response.ok?'rgba(16,185,129,0.15)':'rgba(239,68,68,0.15)';s.style.color=response.ok?'#10B981':'#EF4444';s.textContent=response.status+' '+response.statusText+' | '+time+'ms | '+(data.length)+' bytes';
+    try{const json=JSON.parse(data);document.getElementById('atResponse').textContent=JSON.stringify(json,null,2);}catch(e){}
+  }catch(e){document.getElementById('atStatus').className='at-status show';document.getElementById('atStatus').style.background='rgba(239,68,68,0.15)';document.getElementById('atStatus').style.color='#EF4444';document.getElementById('atStatus').textContent='Error: '+e.message;document.getElementById('atResponse').textContent='Request failed. Check the URL and try again.';}
+};
+})();
+</script>
+</div>

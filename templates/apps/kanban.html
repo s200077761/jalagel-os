@@ -1,0 +1,60 @@
+<div class="app-container" data-app="kanban">
+<style>
+.kb-wrap{display:flex;flex-direction:column;height:100%;}
+.kb-header{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;}
+.kb-header h2{margin:0;font-size:16px;flex:1;}
+.kb-board{display:flex;gap:16px;padding:16px;overflow-x:auto;flex:1;}
+.kb-column{min-width:260px;background:#232344;border:1px solid #334155;border-radius:12px;display:flex;flex-direction:column;max-height:100%;}
+.kb-col-header{padding:12px 16px;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between;}
+.kb-col-header h3{margin:0;font-size:14px;}
+.kb-count{padding:2px 8px;border-radius:10px;background:#334155;font-size:11px;color:#94A3B8;}
+.kb-cards{flex:1;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:8px;}
+.kb-card{padding:12px;background:#1A1A2E;border:1px solid #334155;border-radius:8px;cursor:grab;transition:all .15s;font-size:13px;}
+.kb-card:hover{border-color:rgba(124,58,237,0.3);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.15);}
+.kb-card.dragging{opacity:.5;}
+.kb-card-title{margin-bottom:6px;font-weight:500;color:#F1F5F9;}
+.kb-card-meta{display:flex;gap:8px;font-size:11px;color:#94A3B8;align-items:center;}
+.kb-tag{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;}
+.kb-add{padding:10px;margin:0 8px 8px;border:1px dashed #334155;border-radius:8px;background:transparent;color:#94A3B8;font-size:12px;cursor:pointer;text-align:center;font-family:inherit;}
+.kb-add:hover{border-color:#7C3AED;color:#7C3AED;}
+</style>
+<div class="kb-wrap">
+<div class="kb-header">
+  <h2><i class="fa-solid fa-columns" style="color:#7C3AED;"></i> Kanban Board</h2>
+  <button class="app-btn primary" onclick="kbAddCol()"><i class="fa-solid fa-plus"></i> Add Column</button>
+</div>
+<div class="kb-board" id="kbBoard"></div>
+</div>
+<script>
+(function(){
+let cols=[
+  {id:'todo',name:'To Do',color:'#EF4444',cards:[{id:1,title:'Design new landing page',tag:'Design',prio:'high'},{id:2,title:'Fix navigation bug',tag:'Bug',prio:'medium'}]},
+  {id:'progress',name:'In Progress',color:'#F59E0B',cards:[{id:3,title:'Implement user auth',tag:'Feature',prio:'high'}]},
+  {id:'review',name:'Review',color:'#7C3AED',cards:[{id:4,title:'Code review: PR #42',tag:'Review',prio:'low'}]},
+  {id:'done',name:'Done',color:'#10B981',cards:[{id:5,title:'Setup CI/CD pipeline',tag:'DevOps',prio:'medium'}]}
+];
+function render(){const b=document.getElementById('kbBoard');b.innerHTML='';
+  cols.forEach(col=>{
+    const d=document.createElement('div');d.className='kb-column';d.dataset.id=col.id;
+    d.innerHTML='<div class="kb-col-header"><h3 style="color:'+col.color+';">'+col.name+'</h3><span class="kb-count">'+col.cards.length+'</span></div><div class="kb-cards" id="kb-'+col.id+'"></div><button class="kb-add" onclick="kbAddCard(''+col.id+'')">+ Add Card</button>';
+    b.appendChild(d);
+    const cd=d.querySelector('.kb-cards');
+    col.cards.forEach(card=>{
+      const c=document.createElement('div');c.className='kb-card';c.draggable=true;c.dataset.id=card.id;
+      c.innerHTML='<div class="kb-card-title">'+card.title+'</div><div class="kb-card-meta"><span class="kb-tag" style="background:'+(card.prio==='high'?'rgba(239,68,68,0.15);color:#EF4444':card.prio==='medium'?'rgba(245,158,11,0.15);color:#F59E0B':'rgba(16,185,129,0.15);color:#10B981')+'">'+card.prio+'</span><span>'+card.tag+'</span></div>';
+      c.addEventListener('dragstart',e=>{c.classList.add('dragging');e.dataTransfer.setData('text/plain',card.id+':'+col.id);});
+      c.addEventListener('dragend',()=>c.classList.remove('dragging'));
+      cd.appendChild(c);
+    });
+    cd.addEventListener('dragover',e=>e.preventDefault());
+    cd.addEventListener('drop',e=>{e.preventDefault();const data=e.dataTransfer.getData('text/plain').split(':');const cid=parseInt(data[0]),fromCol=data[1];if(fromCol===col.id)return;
+      const fc=cols.find(c=>c.id===fromCol);const tc=cols.find(c=>c.id===col.id);const card=fc.cards.find(c=>c.id===cid);if(card){fc.cards=fc.cards.filter(c=>c.id!==cid);tc.cards.push(card);render();}
+    });
+  });
+}
+window.kbAddCol=function(){const name=prompt('Column name:');if(!name)return;const id='col'+Date.now();cols.push({id,name,color:JALAGEL.Utils.randomColor(),cards:[]});render();};
+window.kbAddCard=function(colId){const title=prompt('Card title:');if(!title)return;const col=cols.find(c=>c.id===colId);col.cards.push({id:Date.now(),title,tag:'General',prio:'medium'});render();};
+render();
+})();
+</script>
+</div>

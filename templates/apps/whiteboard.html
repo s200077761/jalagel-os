@@ -1,0 +1,69 @@
+<div class="app-container" data-app="whiteboard">
+<style>
+.wb-wrap{display:flex;flex-direction:column;height:100%;}
+.wb-toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;}
+.wb-toolbar button{padding:6px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;cursor:pointer;}
+.wb-toolbar button:hover,.wb-toolbar button.active{background:#7C3AED;border-color:#7C3AED;}
+.wb-toolbar input[type=color]{width:28px;height:28px;border:none;border-radius:50%;cursor:pointer;background:none;padding:0;}
+.wb-body{flex:1;position:relative;overflow:hidden;background:#1A1A2E;}
+.wb-canvas{position:absolute;cursor:crosshair;}
+.wb-sticky{position:absolute;padding:12px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);cursor:move;min-width:120px;min-height:100px;font-size:13px;color:#000;user-select:none;}
+.wb-sticky .del{position:absolute;top:4px;right:4px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.2);border-radius:50%;cursor:pointer;font-size:10px;opacity:0;transition:opacity .15s;}
+.wb-sticky:hover .del{opacity:1;}
+.wb-sticky textarea{width:100%;height:calc(100%-20px);border:none;background:transparent;resize:none;outline:none;font-family:inherit;font-size:12px;color:#000;}
+</style>
+<div class="wb-wrap">
+<div class="wb-toolbar">
+  <button class="active" onclick="wbTool('pen')" id="wb-pen"><i class="fa-solid fa-pen"></i></button>
+  <button onclick="wbTool('line')" id="wb-line"><i class="fa-solid fa-minus"></i></button>
+  <button onclick="wbTool('rect')" id="wb-rect"><i class="fa-regular fa-square"></i></button>
+  <button onclick="wbTool('circle')" id="wb-circle"><i class="fa-regular fa-circle"></i></button>
+  <button onclick="wbTool('eraser')" id="wb-eraser"><i class="fa-solid fa-eraser"></i></button>
+  <button onclick="wbSticky()"><i class="fa-solid fa-note-sticky"></i> Sticky</button>
+  <div style="width:1px;height:24px;background:#334155;margin:0 4px;"></div>
+  <input type="color" id="wbColor" value="#7C3AED">
+  <label style="font-size:11px;color:#94A3B8;">Size:</label>
+  <input type="range" id="wbSize" value="3" min="1" max="20" style="width:60px;">
+  <div style="width:1px;height:24px;background:#334155;margin:0 4px;"></div>
+  <button onclick="wbClear()"><i class="fa-solid fa-trash"></i></button>
+  <button onclick="wbUndo()"><i class="fa-solid fa-rotate-left"></i></button>
+  <button onclick="wbExport()"><i class="fa-solid fa-download"></i> PNG</button>
+</div>
+<div class="wb-body" id="wbBody">
+  <canvas class="wb-canvas" id="wbCanvas"></canvas>
+</div>
+</div>
+<script>
+(function(){
+const c=document.getElementById('wbCanvas'),ctx=c.getContext('2d');const body=document.getElementById('wbBody');
+let drawing=false,tool='pen',color='#7C3AED',size=3,startX=0,startY=0,lastX=0,lastY=0,history=[],stickies=[],stId=0;
+function resize(){const r=body.getBoundingClientRect();c.width=r.width;c.height=r.height;}resize();window.addEventListener('resize',resize);
+ctx.fillStyle='#1A1A2E';ctx.fillRect(0,0,c.width,c.height);saveState();
+function saveState(){if(history.length>30)history.shift();history.push(ctx.getImageData(0,0,c.width,c.height));}
+function getPos(e){const r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+c.addEventListener('mousedown',e=>{if(e.target!==c)return;drawing=true;const p=getPos(e);startX=lastX=p.x;startY=lastY=p.y;if(tool==='pen'||tool==='eraser'){ctx.beginPath();ctx.moveTo(p.x,p.y);}});
+c.addEventListener('mousemove',e=>{if(!drawing||e.target!==c)return;const p=getPos(e);ctx.lineWidth=size;ctx.lineCap='round';ctx.strokeStyle=tool==='eraser'?'#1A1A2E':color;ctx.fillStyle=color;
+  if(tool==='pen'){ctx.lineTo(p.x,p.y);ctx.stroke();lastX=p.x;lastY=p.y;}
+  else if(tool==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.lineTo(p.x,p.y);ctx.stroke();ctx.globalCompositeOperation='source-over';lastX=p.x;lastY=p.y;}
+});
+c.addEventListener('mouseup',e=>{if(!drawing)return;drawing=false;const p=getPos(e);ctx.lineWidth=size;ctx.strokeStyle=color;ctx.fillStyle=color;
+  if(tool==='line'){ctx.beginPath();ctx.moveTo(startX,startY);ctx.lineTo(p.x,p.y);ctx.stroke();}
+  if(tool==='rect'){ctx.strokeRect(startX,startY,p.x-startX,p.y-startY);}
+  if(tool==='circle'){const r=Math.sqrt(Math.pow(p.x-startX,2)+Math.pow(p.y-startY,2));ctx.beginPath();ctx.arc(startX,startY,r,0,Math.PI*2);ctx.stroke();}
+  saveState();
+});
+window.wbTool=function(t){tool=t;document.querySelectorAll('.wb-toolbar button').forEach(b=>b.classList.remove('active'));document.getElementById('wb-'+t).classList.add('active');};
+window.wbSticky=function(){const colors=['#FEF3C7','#DBEAFE','#D1FAE5','#FCE7F3','#E9D5FF','#FEE2E2'];const bg=colors[Math.floor(Math.random()*colors.length)];
+  const el=document.createElement('div');el.className='wb-sticky';el.style.cssText='left:'+(50+Math.random()*200)+'px;top:'+(50+Math.random()*150)+'px;background:'+bg+';';
+  el.innerHTML='<div class="del" onclick="this.parentElement.remove()">x</div><textarea placeholder="Note..."></textarea>';
+  let dx,dy,dragging=false;el.addEventListener('mousedown',e=>{if(e.target.classList.contains('del')||e.target.tagName==='TEXTAREA')return;dragging=true;dx=e.clientX-el.offsetLeft;dy=e.clientY-el.offsetTop;});document.addEventListener('mousemove',e=>{if(!dragging)return;el.style.left=(e.clientX-dx)+'px';el.style.top=(e.clientY-dy)+'px';});document.addEventListener('mouseup',()=>dragging=false);
+  body.appendChild(el);
+};
+window.wbClear=function(){ctx.fillStyle='#1A1A2E';ctx.fillRect(0,0,c.width,c.height);saveState();};
+window.wbUndo=function(){if(history.length>1){history.pop();ctx.putImageData(history[history.length-1],0,0);}};
+window.wbExport=function(){const a=document.createElement('a');a.download='whiteboard.png';a.href=c.toDataURL();a.click();JALAGEL.Utils.toast('Exported','success');};
+document.getElementById('wbColor').addEventListener('input',e=>color=e.target.value);
+document.getElementById('wbSize').addEventListener('input',e=>size=parseInt(e.target.value));
+})();
+</script>
+</div>

@@ -1,0 +1,51 @@
+<div class="app-container" data-app="mind-map">
+<style>
+.mm-wrap{display:flex;flex-direction:column;height:100%;}
+.mm-toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;}
+.mm-toolbar button{padding:6px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;cursor:pointer;}
+.mm-toolbar button:hover{background:#7C3AED;border-color:#7C3AED;}
+.mm-body{flex:1;position:relative;overflow:auto;background:#1A1A2E;}
+.mm-canvas{display:block;cursor:grab;}
+.mm-node{position:absolute;padding:8px 16px;background:#232344;border:2px solid #7C3AED;border-radius:10px;color:#F1F5F9;font-size:13px;cursor:pointer;user-select:none;transition:all .15s;z-index:10;white-space:nowrap;}
+.mm-node:hover{box-shadow:0 0 15px rgba(124,58,237,0.4);transform:scale(1.05);}
+.mm-node.root{background:#7C3AED;border-color:#7C3AED;font-weight:700;font-size:15px;}
+.mm-node input{background:transparent;border:none;color:inherit;font:inherit;outline:none;text-align:center;width:100%;}
+</style>
+<div class="mm-wrap">
+<div class="mm-toolbar">
+  <button onclick="mmAddNode()"><i class="fa-solid fa-plus"></i> Add Node</button>
+  <button onclick="mmAddChild()"><i class="fa-solid fa-sitemap"></i> Add Child</button>
+  <button onclick="mmDelete()"><i class="fa-solid fa-trash"></i> Delete</button>
+  <button onclick="mmClear()">Clear</button>
+  <button onclick="mmExport()">Export PNG</button>
+</div>
+<div class="mm-body" id="mmBody">
+  <canvas class="mm-canvas" id="mmCanvas" style="position:absolute;top:0;left:0;"></canvas>
+</div>
+</div>
+<script>
+(function(){
+const body=document.getElementById('mmBody'),canvas=document.getElementById('mmCanvas'),ctx=canvas.getContext('2d');
+let nodes=[{id:0,text:'Main Idea',x:400,y:250,color:'#7C3AED',parent:-1}],selId=0,dragId=-1;
+function resize(){canvas.width=body.scrollWidth;canvas.height=body.scrollHeight;}resize();
+function render(){body.querySelectorAll('.mm-node').forEach(n=>n.remove());resize();ctx.clearRect(0,0,canvas.width,canvas.height);
+  nodes.forEach(n=>{const p=nodes.find(x=>x.id===n.parent);if(p){ctx.strokeStyle='#334155';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.x+60,p.y+15);ctx.lineTo(n.x+40,n.y+15);ctx.stroke();}});
+  nodes.forEach(n=>{const d=document.createElement('div');d.className='mm-node'+(n.id===0?' root':'')+(n.id===selId?' selected':'');d.style.left=n.x+'px';d.style.top=n.y+'px';
+    if(n.id===selId)d.innerHTML='<input type="text" value="'+n.text+'" onblur="mmUpdate(this.value)" onkeydown="if(event.key==='Enter')this.blur()">';
+    else d.textContent=n.text;
+    if(n.id!==0)d.style.borderColor=n.color;
+    d.addEventListener('mousedown',e=>{selId=n.id;dragId=n.id;mmOffX=e.clientX-n.x;mmOffY=e.clientY-n.y;render();});body.appendChild(d);
+  });
+}
+let mmOffX=0,mmOffY=0;document.addEventListener('mousemove',e=>{if(dragId>=0){const n=nodes.find(x=>x.id===dragId);if(n){n.x=e.clientX-mmOffX;n.y=e.clientY-mmOffY;render();}}});
+document.addEventListener('mouseup',()=>dragId=-1);
+window.mmAddNode=function(){const id=nodes.length;nodes.push({id,text:'New Node',x:200+Math.random()*200,y:100+Math.random()*200,color:JALAGEL.Utils.randomColor(),parent:0});selId=id;render();};
+window.mmAddChild=function(){if(selId<0)return;const id=nodes.length;const p=nodes.find(x=>x.id===selId);nodes.push({id,text:'Child',x:p.x+120+Math.random()*50,y:p.y+Math.random()*100-50,color:JALAGEL.Utils.randomColor(),parent:selId});selId=id;render();};
+window.mmDelete=function(){if(selId===0)return;nodes=nodes.filter(x=>x.id!==selId);nodes.forEach(n=>{if(n.parent===selId)n.parent=0;});selId=0;render();};
+window.mmUpdate=function(v){const n=nodes.find(x=>x.id===selId);if(n)n.text=v;render();};
+window.mmClear=function(){nodes=[{id:0,text:'Main Idea',x:400,y:250,color:'#7C3AED',parent:-1}];selId=0;render();};
+window.mmExport=function(){html2canvas(body).then(c=>{const a=document.createElement('a');a.download='mindmap.png';a.href=c.toDataURL();a.click();});};
+render();
+})();
+</script>
+</div>

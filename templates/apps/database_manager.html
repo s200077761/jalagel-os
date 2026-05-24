@@ -1,0 +1,69 @@
+<div class="app-container" data-app="database-manager">
+<style>
+.db-wrap{display:flex;flex-direction:column;height:100%;}
+.db-toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;}
+.db-toolbar button{padding:5px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;cursor:pointer;}
+.db-toolbar button:hover,.db-toolbar button.active{background:#7C3AED;border-color:#7C3AED;}
+.db-body{flex:1;display:flex;overflow:hidden;}
+.db-sidebar{width:180px;border-right:1px solid #334155;background:#232344;padding:8px;overflow:auto;flex-shrink:0;}
+.db-tbl{padding:8px 10px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;color:#94A3B8;margin-bottom:2px;transition:all .15s;}
+.db-tbl:hover,.db-tbl.active{background:rgba(124,58,237,0.15);color:#F1F5F9;}
+.db-tbl i{color:#7C3AED;font-size:10px;}
+.db-content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.db-query{padding:8px 12px;background:#1A1A2E;border-bottom:1px solid #334155;flex-shrink:0;}
+.db-query textarea{width:100%;height:60px;padding:8px;border:1px solid #334155;border-radius:8px;background:#0f0f23;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;resize:none;}
+.db-query button{margin-top:6px;padding:5px 14px;border:none;border-radius:6px;background:#7C3AED;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.db-results{flex:1;overflow:auto;padding:12px;}
+.db-results table{width:100%;border-collapse:collapse;font-size:13px;}
+.db-results th,.db-results td{padding:8px 12px;border:1px solid #334155;text-align:left;}
+.db-results th{background:#232344;color:#94A3B8;font-weight:600;font-size:12px;position:sticky;top:0;}
+.db-results tr:nth-child(even){background:rgba(124,58,237,0.03);}
+.db-schema{display:none;padding:16px;overflow:auto;}
+.db-schema.show{display:block;}
+</style>
+<div class="db-wrap">
+<div class="db-toolbar">
+  <button class="active" onclick="dbTab('data')" id="dbt-data"><i class="fa-solid fa-table"></i> Data</button>
+  <button onclick="dbTab('schema')" id="dbt-schema"><i class="fa-solid fa-sitemap"></i> Schema</button>
+  <button onclick="dbTab('query')" id="dbt-query"><i class="fa-solid fa-terminal"></i> Query</button>
+  <div style="margin-left:auto;font-size:12px;color:#94A3B8;" id="dbInfo">SQLite Browser</div>
+</div>
+<div class="db-body">
+  <div class="db-sidebar">
+    <div style="font-size:11px;font-weight:600;color:#7C3AED;margin-bottom:8px;padding:0 8px;">TABLES</div>
+    <div class="db-tbl active" onclick="dbTable('users')" id="dbtbl-users"><i class="fa-solid fa-table"></i> users</div>
+    <div class="db-tbl" onclick="dbTable('products')" id="dbtbl-products"><i class="fa-solid fa-table"></i> products</div>
+    <div class="db-tbl" onclick="dbTable('orders')" id="dbtbl-orders"><i class="fa-solid fa-table"></i> orders</div>
+    <div class="db-tbl" onclick="dbTable('categories')" id="dbtbl-categories"><i class="fa-solid fa-table"></i> categories</div>
+  </div>
+  <div class="db-content">
+    <div class="db-query" id="dbQueryPanel">
+      <textarea id="dbSql" placeholder="SELECT * FROM users;"></textarea>
+      <button onclick="dbRun()"><i class="fa-solid fa-play"></i> Execute</button>
+    </div>
+    <div class="db-results" id="dbResults"></div>
+    <div class="db-schema" id="dbSchema"></div>
+  </div>
+</div>
+</div>
+<script>
+(function(){
+const schema={users:['id','name','email','role','created_at'],products:['id','name','price','category_id','stock'],orders:['id','user_id','product_id','quantity','total','status'],categories:['id','name','description']};
+const data={users:[[1,'Alice Johnson','alice@example.com','admin','2024-01-01'],[2,'Bob Smith','bob@example.com','user','2024-01-02'],[3,'Carol White','carol@example.com','editor','2024-01-03'],[4,'David Brown','david@example.com','user','2024-01-04'],[5,'Emma Davis','emma@example.com','user','2024-01-05']],products:[[1,'Laptop Pro',1299.99,1,50],[2,'Wireless Mouse',29.99,2,200],[3,'USB-C Hub',59.99,2,150],[4,'4K Monitor',499.99,3,30],[5,'Mechanical Keyboard',149.99,2,75]],orders:[[1,1,1,1,1299.99,'shipped'],[2,2,3,2,119.98,'processing'],[3,3,5,1,149.99,'shipped'],[4,4,2,3,89.97,'pending'],[5,1,4,2,999.98,'processing']],categories:[[1,'Electronics','Electronic devices and accessories'],[2,'Accessories','Computer peripherals'],[3,'Displays','Monitors and screens']]};
+let curTable='users',tab='data';
+function renderTable(t){const s=schema[t],d=data[t];let html='<table><thead><tr>';s.forEach(c=>html+='<th>'+c+'</th>');html+='</tr></thead><tbody>';d.forEach(row=>{html+='<tr>';row.forEach(cell=>html+='<td>'+cell+'</td>');html+='</tr>';});html+='</tbody></table>';document.getElementById('dbResults').innerHTML=html;}
+function renderSchema(){const s=schema[curTable];let html='<h3 style="margin-top:0;">Table: '+curTable+'</h3><table><thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead><tbody>';
+  const types={'id':'INTEGER PRIMARY KEY','name':'VARCHAR(255)','email':'VARCHAR(255) UNIQUE','role':'VARCHAR(50)','created_at':'DATETIME','price':'DECIMAL(10,2)','stock':'INTEGER','category_id':'INTEGER FOREIGN KEY','user_id':'INTEGER FOREIGN KEY','product_id':'INTEGER FOREIGN KEY','quantity':'INTEGER','total':'DECIMAL(10,2)','status':'VARCHAR(50)','description':'TEXT'};
+  s.forEach(col=>html+='<tr><td>'+col+'</td><td>'+(types[col]||'TEXT')+'</td><td></td></tr>');html+='</tbody></table>';document.getElementById('dbSchema').innerHTML=html;
+}
+window.dbTable=function(t){curTable=t;document.querySelectorAll('.db-tbl').forEach(b=>b.classList.remove('active'));document.getElementById('dbtbl-'+t).classList.add('active');document.getElementById('dbSql').value='SELECT * FROM '+t+';';if(tab==='data')renderTable(t);renderSchema();};
+window.dbTab=function(t){tab=t;document.querySelectorAll('.db-toolbar button').forEach(b=>b.classList.remove('active'));document.getElementById('dbt-'+t).classList.add('active');
+  if(t==='data'){document.getElementById('dbResults').style.display='block';document.getElementById('dbSchema').classList.remove('show');document.getElementById('dbQueryPanel').style.display='none';renderTable(curTable);}
+  if(t==='schema'){document.getElementById('dbResults').style.display='none';document.getElementById('dbSchema').classList.add('show');document.getElementById('dbQueryPanel').style.display='none';renderSchema();}
+  if(t==='query'){document.getElementById('dbResults').style.display='block';document.getElementById('dbSchema').classList.remove('show');document.getElementById('dbQueryPanel').style.display='block';}
+};
+window.dbRun=function(){const sql=document.getElementById('dbSql').value.trim().toLowerCase();if(sql.startsWith('select')){const m=sql.match(/from\s+(\w+)/);const t=m&&m[1];if(t&&data[t]){curTable=t;renderTable(t);}else{document.getElementById('dbResults').innerHTML='<div style="padding:24px;color:#94A3B8;">Query executed. '+Math.floor(Math.random()*100)+' rows affected.</div>';}}else{document.getElementById('dbResults').innerHTML='<div style="padding:24px;color:#10B981;">Query executed successfully.</div>';}};
+renderTable('users');renderSchema();
+})();
+</script>
+</div>

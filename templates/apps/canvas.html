@@ -1,0 +1,106 @@
+<div class="app-container" data-app="canvas">
+<style>
+.cv-wrap{display:flex;flex-direction:column;height:100%;}
+.cv-toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:#232344;border-bottom:1px solid #334155;flex-shrink:0;flex-wrap:wrap;}
+.cv-toolbar button{padding:6px 10px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;font-family:inherit;cursor:pointer;}
+.cv-toolbar button:hover,.cv-toolbar button.active{background:#7C3AED;border-color:#7C3AED;}
+.cv-toolbar input[type=color]{width:28px;height:28px;border:none;border-radius:50%;cursor:pointer;background:none;padding:0;}
+.cv-toolbar input[type=range]{width:70px;}
+.cv-toolbar select{padding:5px 8px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;font-size:12px;}
+.cv-body{flex:1;display:flex;overflow:hidden;position:relative;background:#1A1A2E;}
+.cv-sidebar{width:44px;border-right:1px solid #334155;background:#232344;display:flex;flex-direction:column;align-items:center;padding:6px 0;gap:4px;flex-shrink:0;}
+.cv-sbtn{width:32px;height:32px;border:1px solid #334155;border-radius:6px;background:#1A1A2E;color:#F1F5F9;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;}
+.cv-sbtn:hover,.cv-sbtn.active{background:#7C3AED;border-color:#7C3AED;}
+.cv-canvas-wrap{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:16px;}
+.cv-canvas{background:#fff;cursor:crosshair;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.cv-layers{width:180px;border-left:1px solid #334155;background:#232344;overflow:auto;padding:8px;flex-shrink:0;}
+.cv-lay-item{padding:8px;border-radius:6px;margin-bottom:4px;font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer;color:#94A3B8;border:1px solid transparent;}
+.cv-lay-item:hover,.cv-lay-item.active{background:rgba(124,58,237,0.15);color:#F1F5F9;border-color:#334155;}
+</style>
+<div class="cv-wrap">
+<div class="cv-toolbar">
+  <button class="active" onclick="cvTool('pen')" id="cv-pen" title="Pen"><i class="fa-solid fa-pen"></i></button>
+  <button onclick="cvTool('line')" id="cv-line" title="Line"><i class="fa-solid fa-minus" style="transform:rotate(-45deg);"></i></button>
+  <button onclick="cvTool('rect')" id="cv-rect" title="Rectangle"><i class="fa-regular fa-square"></i></button>
+  <button onclick="cvTool('circle')" id="cv-circle" title="Circle"><i class="fa-regular fa-circle"></i></button>
+  <button onclick="cvTool('text')" id="cv-text" title="Text"><i class="fa-solid fa-font"></i></button>
+  <button onclick="cvTool('eraser')" id="cv-eraser" title="Eraser"><i class="fa-solid fa-eraser"></i></button>
+  <button onclick="cvTool('select')" id="cv-select" title="Select"><i class="fa-solid fa-arrow-pointer"></i></button>
+  <div style="width:1px;height:24px;background:#334155;margin:0 4px;"></div>
+  <input type="color" id="cvColor" value="#000000" title="Color">
+  <label style="font-size:11px;color:#94A3B8;">Size:</label>
+  <input type="range" id="cvSize" value="3" min="1" max="50">
+  <label style="font-size:11px;color:#94A3B8;">Opacity:</label>
+  <input type="range" id="cvOp" value="100" min="1" max="100">
+  <select id="cvFill"><option value="stroke">Stroke</option><option value="fill">Fill</option></select>
+  <div style="width:1px;height:24px;background:#334155;margin:0 4px;"></div>
+  <button onclick="cvUndo()"><i class="fa-solid fa-rotate-left"></i></button>
+  <button onclick="cvRedo()"><i class="fa-solid fa-rotate-right"></i></button>
+  <button onclick="cvClear()"><i class="fa-solid fa-trash"></i></button>
+  <button onclick="cvAddLayer()">+ Layer</button>
+  <div style="margin-left:auto;display:flex;gap:6px;">
+    <button onclick="cvImport()"><i class="fa-solid fa-upload"></i></button>
+    <button onclick="cvExport('png')">PNG</button>
+    <button onclick="cvExport('svg')">SVG</button>
+  </div>
+</div>
+<div class="cv-body">
+  <div class="cv-sidebar">
+    <div class="cv-sbtn active" onclick="cvSetTool('pen')" title="Pen"><i class="fa-solid fa-pen"></i></div>
+    <div class="cv-sbtn" onclick="cvSetTool('line')" title="Line"><i class="fa-solid fa-minus"></i></div>
+    <div class="cv-sbtn" onclick="cvSetTool('rect')" title="Rect"><i class="fa-regular fa-square"></i></div>
+    <div class="cv-sbtn" onclick="cvSetTool('circle')" title="Circle"><i class="fa-regular fa-circle"></i></div>
+    <div class="cv-sbtn" onclick="cvSetTool('text')" title="Text"><i class="fa-solid fa-font"></i></div>
+    <div class="cv-sbtn" onclick="cvSetTool('eraser')" title="Eraser"><i class="fa-solid fa-eraser"></i></div>
+    <div class="cv-sbtn" onclick="cvSetTool('select')" title="Select"><i class="fa-solid fa-arrow-pointer"></i></div>
+  </div>
+  <div class="cv-canvas-wrap"><canvas class="cv-canvas" id="cvMain" width="800" height="500"></canvas></div>
+  <div class="cv-layers" id="cvLayers"></div>
+</div>
+</div>
+<script>
+(function(){
+const c=document.getElementById('cvMain'),ctx=c.getContext('2d');
+let tool='pen',drawing=false,layers=[{name:'Layer 1',canvas:document.createElement('canvas'),ctx:null,visible:true,opacity:1}],activeLayer=0,history=[],redoStack=[];
+layers[0].canvas.width=800;layers[0].canvas.height=500;layers[0].ctx=layers[0].canvas.getContext('2d');
+ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,c.width,c.height);
+let startX=0,startY=0,lastX=0,lastY=0,textMode=false;
+function renderLayers(){layers.forEach((l,i)=>{if(l.visible)ctx.globalAlpha=l.opacity;ctx.drawImage(l.canvas,0,0);ctx.globalAlpha=1;});}
+function saveState(){if(history.length>30)history.shift();history.push(layers[activeLayer].canvas.toDataURL());}
+function sync(){ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,c.width,c.height);renderLayers();}
+function getPos(e){const r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*(c.width/r.width),y:(e.clientY-r.top)*(c.height/r.height)};}
+c.addEventListener('mousedown',e=>{
+  if(tool==='text'){const p=getPos(e);const t=prompt('Enter text:');if(t){const l=layers[activeLayer].ctx;l.font=document.getElementById('cvSize').value*3+'px Inter';l.fillStyle=document.getElementById('cvColor').value;l.fillText(t,p.x,p.y);sync();saveState();}return;}
+  drawing=true;const p=getPos(e);startX=lastX=p.x;startY=lastY=p.y;
+  const l=layers[activeLayer].ctx;l.lineWidth=document.getElementById('cvSize').value;l.lineCap='round';l.lineJoin='round';l.strokeStyle=document.getElementById('cvColor').value;l.globalAlpha=document.getElementById('cvOp').value/100;
+  if(tool==='pen'||tool==='eraser'){l.beginPath();l.moveTo(p.x,p.y);}
+});
+c.addEventListener('mousemove',e=>{if(!drawing)return;const p=getPos(e);const l=layers[activeLayer].ctx;l.lineWidth=document.getElementById('cvSize').value;l.globalAlpha=document.getElementById('cvOp').value/100;
+  if(tool==='pen'){l.lineTo(p.x,p.y);l.stroke();lastX=p.x;lastY=p.y;sync();}
+  else if(tool==='eraser'){l.globalCompositeOperation='destination-out';l.lineTo(p.x,p.y);l.stroke();l.globalCompositeOperation='source-over';lastX=p.x;lastY=p.y;sync();}
+  else{sync();ctx.strokeStyle=document.getElementById('cvColor').value;ctx.lineWidth=document.getElementById('cvSize').value;ctx.globalAlpha=document.getElementById('cvOp').value/100;ctx.beginPath();
+    if(tool==='line'){ctx.moveTo(startX,startY);ctx.lineTo(p.x,p.y);ctx.stroke();}
+    if(tool==='rect'){document.getElementById('cvFill').value==='fill'?ctx.fillRect(startX,startY,p.x-startX,p.y-startY):ctx.strokeRect(startX,startY,p.x-startX,p.y-startY);}
+    if(tool==='circle'){const r=Math.sqrt(Math.pow(p.x-startX,2)+Math.pow(p.y-startY,2));ctx.arc(startX,startY,r,0,Math.PI*2);document.getElementById('cvFill').value==='fill'?ctx.fill():ctx.stroke();}
+  }
+});
+c.addEventListener('mouseup',e=>{if(!drawing)return;drawing=false;const p=getPos(e);const l=layers[activeLayer].ctx;l.lineWidth=document.getElementById('cvSize').value;l.strokeStyle=document.getElementById('cvColor').value;l.fillStyle=document.getElementById('cvColor').value;l.globalAlpha=document.getElementById('cvOp').value/100;
+  if(tool==='line'){l.beginPath();l.moveTo(startX,startY);l.lineTo(p.x,p.y);l.stroke();}
+  if(tool==='rect'){document.getElementById('cvFill').value==='fill'?l.fillRect(startX,startY,p.x-startX,p.y-startY):l.strokeRect(startX,startY,p.x-startX,p.y-startY);}
+  if(tool==='circle'){const r=Math.sqrt(Math.pow(p.x-startX,2)+Math.pow(p.y-startY,2));l.beginPath();l.arc(startX,startY,r,0,Math.PI*2);document.getElementById('cvFill').value==='fill'?l.fill():l.stroke();}
+  sync();saveState();
+});
+c.addEventListener('mouseleave',()=>drawing=false);
+window.cvTool=function(t){tool=t;document.querySelectorAll('.cv-toolbar button').forEach(b=>b.classList.remove('active'));document.getElementById('cv-'+t).classList.add('active');c.style.cursor=tool==='text'?'text':tool==='select'?'default':'crosshair';};
+window.cvSetTool=function(t){cvTool(t);};
+window.cvUndo=function(){if(history.length>1){redoStack.push(history.pop());const img=new Image();img.onload=function(){layers[activeLayer].ctx.clearRect(0,0,800,500);layers[activeLayer].ctx.drawImage(img,0,0);sync();};img.src=history[history.length-1];}};
+window.cvRedo=function(){if(redoStack.length){const s=redoStack.pop();history.push(s);const img=new Image();img.onload=function(){layers[activeLayer].ctx.clearRect(0,0,800,500);layers[activeLayer].ctx.drawImage(img,0,0);sync();};img.src=s;}};
+window.cvClear=function(){layers[activeLayer].ctx.clearRect(0,0,800,500);sync();saveState();};
+window.cvExport=function(fmt){const a=document.createElement('a');a.download='drawing.'+fmt;a.href=c.toDataURL(fmt==='png'?'image/png':'image/svg+xml');a.click();JALAGEL.Utils.toast('Exported as '+fmt.toUpperCase(),'success');};
+window.cvImport=function(){const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=e=>{const f=e.target.files[0];const r=new FileReader();r.onload=ev=>{const img=new Image();img.onload=function(){layers[activeLayer].ctx.drawImage(img,0,0,800,500);sync();saveState();};img.src=ev.target.result;};r.readAsDataURL(f);};i.click();};
+window.cvAddLayer=function(){const nc=document.createElement('canvas');nc.width=800;nc.height=500;const nx=layers.length+1;layers.push({name:'Layer '+nx,canvas:nc,ctx:nc.getContext('2d'),visible:true,opacity:1});activeLayer=layers.length-1;renderLayerPanel();sync();};
+function renderLayerPanel(){const p=document.getElementById('cvLayers');p.innerHTML='<div style="font-size:11px;font-weight:600;color:#7C3AED;margin-bottom:8px;">LAYERS</div>';layers.forEach((l,i)=>{const d=document.createElement('div');d.className='cv-lay-item'+(i===activeLayer?' active':'');d.innerHTML='<i class="fa-solid fa-layer-group"></i>'+l.name;d.onclick=()=>{activeLayer=i;renderLayerPanel();};p.appendChild(d);});}
+renderLayerPanel();saveState();
+})();
+</script>
+</div>

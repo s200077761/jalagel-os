@@ -1,0 +1,68 @@
+<div class="app-container" data-app="stocks">
+<style>
+.sk-wrap{display:flex;flex-direction:column;height:100%;overflow:auto;padding:24px;}
+.sk-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:16px;}
+.sk-search{display:flex;gap:8px;}
+.sk-search input{padding:8px 14px;border:1px solid #334155;border-radius:8px;background:#1A1A2E;color:#F1F5F9;font-family:inherit;font-size:13px;outline:none;}
+.sk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:24px;}
+.sk-card{background:#232344;border:1px solid #334155;border-radius:12px;padding:16px;transition:all .15s;}
+.sk-card:hover{border-color:rgba(124,58,237,0.3);}
+.sk-symbol{font-size:14px;font-weight:700;color:#F1F5F9;display:flex;align-items:center;justify-content:space-between;}
+.sk-name{font-size:12px;color:#94A3B8;margin-bottom:8px;}
+.sk-price{font-size:1.8rem;font-weight:700;color:#F1F5F9;font-family:'JetBrains Mono',monospace;}
+.sk-change{font-size:13px;font-weight:600;margin-top:4px;}
+.sk-change.up{color:#10B981;}.sk-change.down{color:#EF4444;}
+.sk-chart{height:200px;background:#232344;border:1px solid #334155;border-radius:12px;padding:16px;position:relative;margin-bottom:24px;}
+.sk-chart canvas{width:100%;height:100%;}
+.sk-watch h3{font-size:14px;margin-bottom:12px;}
+.sk-watch-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#232344;border-radius:8px;margin-bottom:8px;border:1px solid #334155;}
+</style>
+<div class="sk-wrap">
+<div class="sk-header">
+  <h2 style="margin:0;"><i class="fa-solid fa-arrow-trend-up" style="color:#10B981;"></i> Stocks & Ticker</h2>
+  <div class="sk-search">
+    <input type="text" id="skSearch" placeholder="Symbol (e.g., AAPL)" onkeydown="if(event.key==='Enter')skAdd()">
+    <button class="app-btn primary" onclick="skAdd()">Add</button>
+  </div>
+</div>
+<div class="sk-chart"><canvas id="skChart"></canvas></div>
+<div class="sk-grid" id="skGrid"></div>
+<div class="sk-watch">
+  <h3>Watchlist</h3>
+  <div id="skWatch"></div>
+</div>
+</div>
+<script>
+(function(){
+const stocks=[{s:'AAPL',n:'Apple Inc',p:189.52,c:2.34},{s:'GOOGL',n:'Alphabet Inc',p:142.18,c:-0.87},{s:'MSFT',n:'Microsoft',p:378.91,c:5.12},{s:'AMZN',n:'Amazon.com',p:178.35,c:3.21},{s:'TSLA',n:'Tesla Inc',p:248.42,c:-4.56},{s:'NVDA',n:'NVIDIA Corp',p:495.22,c:12.34},{s:'META',n:'Meta Platforms',p:352.18,c:8.91},{s:'NFLX',n:'Netflix Inc',p:475.65,c:-2.18}];
+let watchlist=['AAPL','MSFT','NVDA'];
+function render(){
+  const g=document.getElementById('skGrid');g.innerHTML='';
+  stocks.forEach(st=>{const d=document.createElement('div');d.className='sk-card';const up=st.c>=0;
+    d.innerHTML='<div class="sk-symbol">'+st.s+'<span class="sk-change '+(up?'up':'down')+'">'+(up?'+':'')+st.c.toFixed(2)+'%</span></div><div class="sk-name">'+st.n+'</div><div class="sk-price">$'+st.p.toFixed(2)+'</div>';
+    d.onclick=()=>skChart(st.s);g.appendChild(d);
+  });
+  renderWatch();
+}
+function renderWatch(){const w=document.getElementById('skWatch');w.innerHTML='';
+  watchlist.forEach(sym=>{const st=stocks.find(s=>s.s===sym);if(!st)return;const d=document.createElement('div');d.className='sk-watch-item';
+    d.innerHTML='<span><strong>'+st.s+'</strong> <span style="color:#94A3B8;font-size:12px;">'+st.n+'</span></span><span style="font-family:monospace;font-weight:600;">$'+st.p.toFixed(2)+' <span style="color:'+(st.c>=0?'#10B981':'#EF4444')+';">'+(st.c>=0?'+':'')+st.c+'%</span></span>';
+    w.appendChild(d);
+  });
+}
+function skChart(sym){
+  const canvas=document.getElementById('skChart'),ctx=canvas.getContext('2d');const r=canvas.parentElement.getBoundingClientRect();canvas.width=r.width-32;canvas.height=r.height-32;
+  ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#232344';ctx.fillRect(0,0,canvas.width,canvas.height);
+  const data=Array(50).fill(0).map(()=>100+Math.random()*50+Math.sin(Date.now()/10000)*30);const min=Math.min(...data),max=Math.max(...data);
+  const st=stocks.find(s=>s.s===sym)||stocks[0];const color=st.c>=0?'#10B981':'#EF4444';
+  ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();
+  const step=canvas.width/(data.length-1);
+  data.forEach((v,i)=>{const x=i*step,y=canvas.height-((v-min)/(max-min))*canvas.height*0.8-canvas.height*0.1;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.stroke();
+  ctx.fillStyle='#94A3B8';ctx.font='13px Inter';ctx.fillText(st.s+' - $'+st.p.toFixed(2)+' ('+(st.c>=0?'+':'')+st.c+'%)',10,20);
+}
+window.skAdd=function(){const s=document.getElementById('skSearch').value.toUpperCase();if(s&&!watchlist.includes(s)){watchlist.push(s);renderWatch();document.getElementById('skSearch').value='';}};
+render();skChart('AAPL');
+setInterval(()=>{stocks.forEach(s=>{s.p+=s.p*(Math.random()-.5)*.002;s.c+=Math.random()-.5;});render();skChart('AAPL');},5000);
+})();
+</script>
+</div>
