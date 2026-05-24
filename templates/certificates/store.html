@@ -1,40 +1,103 @@
 {% extends "base.html" %}
-{% block title %}Certificate Store - JALAGEL OS Pro{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/marketing.css') }}">{% endblock %}
+{% block title %}Certificate Store - SSL, Code Signing & Enterprise Certificates{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/certificates.css') }}">
+{% endblock %}
 {% block content %}
-<section class="hero" style="min-height:35vh;padding-top:120px;">
+
+<!-- Hero Section -->
+<section class="cert-hero">
+    <div class="cert-hero-bg"></div>
+    <div class="cert-hero-particles"></div>
     <div class="container">
-        <div class="section-header">
-            <div class="section-label"><i class="fa-solid fa-shield-halved"></i> SSL Certificates</div>
-            <h1 class="hero-title gradient-text">Certificate Store</h1>
-            <p class="hero-tagline">Secure your websites with industry-leading SSL certificates.</p>
+        <div class="cert-hero-content">
+            <div class="cert-hero-shield">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="section-label"><i class="fa-solid fa-lock"></i> Secure Your Digital Presence</div>
+            <h1 class="cert-hero-title gradient-text">Certificate Store</h1>
+            <p class="cert-hero-subtitle">Industry-leading SSL certificates, code signing, and enterprise PKI solutions. Protect your brand, build trust, and encrypt everything.</p>
+            <div class="cert-hero-trust">
+                <div class="cert-trust-item"><i class="fa-solid fa-check-circle"></i> 2048-bit Encryption</div>
+                <div class="cert-trust-item"><i class="fa-solid fa-check-circle"></i> 99.9% Browser Trust</div>
+                <div class="cert-trust-item"><i class="fa-solid fa-check-circle"></i> Instant Issuance</div>
+                <div class="cert-trust-item"><i class="fa-solid fa-check-circle"></i> 24/7 Support</div>
+            </div>
         </div>
     </div>
 </section>
-<section class="section">
+
+<!-- Billing Toggle -->
+<section class="section" style="padding-top:0;">
     <div class="container">
-        <div class="certs-grid">
+        <div class="cert-billing-toggle">
+            <span class="toggle-label toggle-label-monthly" id="labelMonthly">Monthly</span>
+            <div class="toggle-switch on" id="billingToggle"></div>
+            <span class="toggle-label toggle-label-yearly active" id="labelYearly">Yearly <span class="cert-save-badge"><i class="fa-solid fa-tag"></i> Save 20%</span></span>
+        </div>
+    </div>
+</section>
+
+<!-- Certificate Store Grid -->
+<section class="section" style="padding-top:0;">
+    <div class="container">
+        <div class="cert-store-grid">
             {% for template in templates %}
-            <div class="cert-card reveal-on-scroll">
-                <div class="cert-header">
-                    <div class="cert-icon"><i class="{{ template.icon }}"></i></div>
-                    {% if template.price_yearly < 50 %}<div class="cert-badge">Popular</div>{% endif %}
+            {% set icon_class = 'dv' if 'DV' in template.name else 'ov' if 'OV' in template.name else 'ev' if 'EV' in template.name else 'wc' if 'Wildcard' in template.name else 'san' if 'Multi' in template.name else 'cs' if 'Code' in template.name else 'ea' if 'Enterprise' in template.name else 'jp' %}
+            <div class="cert-product-card cert-reveal {% if template.name == 'EV SSL' %}featured{% endif %}">
+                {% if template.name == 'EV SSL' %}
+                <div class="cert-featured-badge">Most Trusted</div>
+                {% endif %}
+                {% if template.name == 'DV SSL' %}
+                <div class="cert-featured-badge" style="background: var(--gradient-accent);">Best Value</div>
+                {% endif %}
+                
+                <div class="cert-card-icon {{ icon_class }}">
+                    <i class="{{ template.icon }}"></i>
                 </div>
-                <h3>{{ template.name }}</h3>
-                <p>{{ template.description|truncate_words(20) }}</p>
-                <div class="cert-price">${{ "%.2f"|format(template.price_yearly) }}<span>/yr</span></div>
-                <ul class="cert-features">
-                    {% for feature in template.get_features()[:4] %}
+                
+                <h3 class="cert-card-title">{{ template.name }}</h3>
+                <div class="cert-card-type">
+                    {% if 'DV' in template.name %}Domain Validated
+                    {% elif 'OV' in template.name %}Organization Validated
+                    {% elif 'EV' in template.name %}Extended Validation
+                    {% elif 'Wildcard' in template.name %}Unlimited Subdomains
+                    {% elif 'Multi' in template.name %}Up to 250 Domains
+                    {% elif 'Code' in template.name %}Software Trust
+                    {% elif 'Enterprise' in template.name %}Private Certificate Authority
+                    {% elif 'JALAGEL' in template.name %}Branded Trust Seal
+                    {% endif %}
+                </div>
+                <p class="cert-card-desc">{{ template.description }}</p>
+                
+                <div class="cert-card-price" id="priceCard{{ template.id }}">
+                    <div class="yearly-price">
+                        <span class="price">${{ "%.2f"|format(template.price_yearly) }}</span>
+                        <span class="period">/year</span>
+                    </div>
+                    <div class="monthly-price">
+                        <span class="price">${{ "%.2f"|format(template.price_monthly) }}</span>
+                        <span class="period">/month</span>
+                    </div>
+                </div>
+                
+                <ul class="cert-card-features">
+                    {% set features = template.get_features() %}
+                    {% for feature in features %}
                     <li><i class="fa-solid fa-check"></i> {{ feature }}</li>
                     {% endfor %}
+                    {% for i in range(10 - features|length) %}
+                    <li class="missing"><i class="fa-solid fa-minus"></i></li>
+                    {% endfor %}
                 </ul>
+                
                 {% if current_user.is_authenticated %}
-                <button class="btn btn-primary btn-sm" style="width:100%;" onclick="purchaseCert({{ template.id }})">
+                <a href="{{ url_for('certificates_purchase') }}?template={{ template.id }}" class="btn btn-primary btn-sm cert-card-btn">
                     <i class="fa-solid fa-cart-shopping"></i> Purchase
-                </button>
+                </a>
                 {% else %}
-                <a href="{{ url_for('auth_login') }}" class="btn btn-outline btn-sm" style="width:100%;">
-                    Sign In to Purchase
+                <a href="{{ url_for('auth_login') }}?next=/certificates/purchase?template={{ template.id }}" class="btn btn-outline btn-sm cert-card-btn">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In to Purchase
                 </a>
                 {% endif %}
             </div>
@@ -42,4 +105,333 @@
         </div>
     </div>
 </section>
+
+<!-- Why SSL Matters Section -->
+<section class="cert-why-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <div class="section-label"><i class="fa-solid fa-chart-line"></i> Industry Insights</div>
+            <h2 class="gradient-text">Why SSL Matters</h2>
+            <p style="color: var(--text-secondary); max-width: 600px; margin: 12px auto 0;">The numbers don't lie. SSL certificates are essential for every website.</p>
+        </div>
+        <div class="cert-why-grid">
+            <div class="cert-why-card cert-reveal">
+                <div class="cert-why-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--color-error); margin: 0 auto 16px;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="cert-why-stat">84%</div>
+                <div class="cert-why-label">of users abandon a purchase if data is sent over an insecure connection</div>
+            </div>
+            <div class="cert-why-card cert-reveal">
+                <div class="cert-why-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--color-warning); margin: 0 auto 16px;">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <div class="cert-why-stat">95%</div>
+                <div class="cert-why-label">of Google traffic is now served over HTTPS. Don't be left behind.</div>
+            </div>
+            <div class="cert-why-card cert-reveal">
+                <div class="cert-why-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--color-success); margin: 0 auto 16px;">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+                <div class="cert-why-stat">+5%</div>
+                <div class="cert-why-label">boost in search rankings when your site uses HTTPS encryption</div>
+            </div>
+            <div class="cert-why-card cert-reveal">
+                <div class="cert-why-icon" style="background: rgba(124, 58, 237, 0.15); color: var(--color-primary-light); margin: 0 auto 16px;">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="cert-why-stat">$4.2M</div>
+                <div class="cert-why-label">average cost of a data breach for businesses without proper encryption</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Comparison Table -->
+<section class="cert-compare-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <div class="section-label"><i class="fa-solid fa-table-list"></i> Compare</div>
+            <h2 class="gradient-text">Certificate Comparison</h2>
+            <p style="color: var(--text-secondary); max-width: 600px; margin: 12px auto 0;">Find the perfect certificate for your needs.</p>
+        </div>
+        <table class="cert-compare-table cert-reveal">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>DV SSL</th>
+                    <th>OV SSL</th>
+                    <th>EV SSL</th>
+                    <th>Wildcard</th>
+                    <th>Multi-Domain</th>
+                    <th>Code Signing</th>
+                    <th>Enterprise</th>
+                    <th>JALAGEL Premium</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Encryption Strength</td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i> 2048-bit</td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i> 2048-bit</td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i> 2048-bit</td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i> 2048-bit</td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i> 2048-bit</td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i> 4096-bit</td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i> 4096-bit</td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i> 2048-bit</td>
+                </tr>
+                <tr>
+                    <td>Issuance Time</td>
+                    <td class="compare-yes">Minutes</td>
+                    <td class="compare-yes">1-2 Days</td>
+                    <td class="compare-yes">1-5 Days</td>
+                    <td class="compare-yes">Minutes</td>
+                    <td class="compare-yes">1-2 Days</td>
+                    <td class="compare-yes">1-3 Days</td>
+                    <td class="compare-yes">1-7 Days</td>
+                    <td class="compare-yes">1-2 Days</td>
+                </tr>
+                <tr>
+                    <td>Domain Validation</td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                </tr>
+                <tr>
+                    <td>Organization Validation</td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                </tr>
+                <tr>
+                    <td>Green Address Bar</td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-partial"><i class="fa-solid fa-minus"></i> Optional</td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                </tr>
+                <tr>
+                    <td>Subdomain Coverage</td>
+                    <td class="compare-no">Single</td>
+                    <td class="compare-no">Single</td>
+                    <td class="compare-no">Single</td>
+                    <td class="compare-yes">Unlimited *.</td>
+                    <td class="compare-yes">Up to 250</td>
+                    <td class="compare-no">N/A</td>
+                    <td class="compare-yes">Unlimited</td>
+                    <td class="compare-no">Single</td>
+                </tr>
+                <tr>
+                    <td>Warranty</td>
+                    <td class="compare-partial">$10,000</td>
+                    <td class="compare-yes">$50,000</td>
+                    <td class="compare-yes">$1,000,000</td>
+                    <td class="compare-yes">$100,000</td>
+                    <td class="compare-yes">$250,000</td>
+                    <td class="compare-yes">$50,000</td>
+                    <td class="compare-yes">$2,000,000</td>
+                    <td class="compare-yes">$100,000</td>
+                </tr>
+                <tr>
+                    <td>Site Seal</td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i> Premium</td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i></td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i> Custom</td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i> Branded</td>
+                </tr>
+                <tr>
+                    <td>API Access</td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-partial"><i class="fa-solid fa-minus"></i></td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                    <td class="compare-yes"><i class="fa-solid fa-check"></i> Full</td>
+                    <td class="compare-no"><i class="fa-solid fa-xmark"></i></td>
+                </tr>
+                <tr>
+                    <td>Reissues</td>
+                    <td class="compare-yes">Unlimited</td>
+                    <td class="compare-yes">Unlimited</td>
+                    <td class="compare-yes">Unlimited</td>
+                    <td class="compare-yes">Unlimited</td>
+                    <td class="compare-yes">Unlimited</td>
+                    <td class="compare-partial">Limited</td>
+                    <td class="compare-yes">Unlimited</td>
+                    <td class="compare-yes">Unlimited</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="cert-faq-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <div class="section-label"><i class="fa-solid fa-circle-question"></i> FAQ</div>
+            <h2 class="gradient-text">Frequently Asked Questions</h2>
+            <p style="color: var(--text-secondary); max-width: 600px; margin: 12px auto 0;">Everything you need to know about SSL certificates.</p>
+        </div>
+        <div class="cert-faq-list">
+            <div class="cert-faq-item open cert-reveal">
+                <div class="cert-faq-question">
+                    <span>What is an SSL certificate and why do I need one?</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="cert-faq-answer">
+                    <p>An SSL (Secure Sockets Layer) certificate encrypts data transmitted between your website and its visitors. It protects sensitive information like passwords, credit card numbers, and personal data. Without SSL, browsers show a "Not Secure" warning, which drives visitors away and hurts your search rankings.</p>
+                </div>
+            </div>
+            <div class="cert-faq-item cert-reveal">
+                <div class="cert-faq-question">
+                    <span>How long does it take to issue a certificate?</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="cert-faq-answer">
+                    <p>Domain Validated (DV) certificates are issued within minutes. Organization Validated (OV) certificates take 1-2 business days while we verify your business. Extended Validation (EV) certificates take 1-5 business days due to the thorough vetting process required for the green address bar.</p>
+                </div>
+            </div>
+            <div class="cert-faq-item cert-reveal">
+                <div class="cert-faq-question">
+                    <span>What's the difference between DV, OV, and EV certificates?</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="cert-faq-answer">
+                    <p><strong>DV (Domain Validation)</strong> validates that you own the domain. Fastest issuance, basic encryption.<br><strong>OV (Organization Validation)</strong> verifies your business identity. Shows organization name in certificate details.<br><strong>EV (Extended Validation)</strong> requires thorough business verification. Displays green address bar with organization name - the highest trust level available.</p>
+                </div>
+            </div>
+            <div class="cert-faq-item cert-reveal">
+                <div class="cert-faq-question">
+                    <span>Will your certificates work with all browsers?</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="cert-faq-answer">
+                    <p>Yes, all JALAGEL certificates are trusted by 99.9% of web browsers and devices, including Chrome, Firefox, Safari, Edge, Opera, and all mobile browsers. Our root certificates are pre-installed in all major operating systems.</p>
+                </div>
+            </div>
+            <div class="cert-faq-item cert-reveal">
+                <div class="cert-faq-question">
+                    <span>Can I transfer my certificate to another server?</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="cert-faq-answer">
+                    <p>Yes! You can install your certificate on multiple servers or move it between servers at any time. We also offer free unlimited reissues if you need to regenerate your certificate with a new private key.</p>
+                </div>
+            </div>
+            <div class="cert-faq-item cert-reveal">
+                <div class="cert-faq-question">
+                    <span>What happens when my certificate expires?</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="cert-faq-answer">
+                    <p>When a certificate expires, browsers will show security warnings to your visitors. We send email reminders at 90, 60, 30, and 7 days before expiry. You can renew your certificate at any time through your dashboard, and we'll automatically update the expiry date.</p>
+                </div>
+            </div>
+            <div class="cert-faq-item cert-reveal">
+                <div class="cert-faq-question">
+                    <span>Do you offer refunds?</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="cert-faq-answer">
+                    <p>Yes, we offer a 30-day money-back guarantee on all certificates. If you're not satisfied for any reason, contact our support team within 30 days of purchase for a full refund, no questions asked.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Bulk Pricing Section -->
+<section class="cert-bulk-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <div class="section-label"><i class="fa-solid fa-building"></i> Enterprise</div>
+            <h2 class="gradient-text">Volume Pricing</h2>
+            <p style="color: var(--text-secondary); max-width: 600px; margin: 12px auto 0;">The more you buy, the more you save. Perfect for agencies and enterprises.</p>
+        </div>
+        <div class="cert-bulk-grid">
+            <div class="cert-bulk-card cert-reveal">
+                <div class="cert-bulk-range">5-9 Certificates</div>
+                <div class="cert-bulk-discount">10% OFF</div>
+                <div class="cert-bulk-label">Per Certificate</div>
+            </div>
+            <div class="cert-bulk-card cert-reveal">
+                <div class="cert-bulk-range">10-24 Certificates</div>
+                <div class="cert-bulk-discount">15% OFF</div>
+                <div class="cert-bulk-label">Per Certificate</div>
+            </div>
+            <div class="cert-bulk-card cert-reveal">
+                <div class="cert-bulk-range">25-49 Certificates</div>
+                <div class="cert-bulk-discount">20% OFF</div>
+                <div class="cert-bulk-label">Per Certificate</div>
+            </div>
+            <div class="cert-bulk-card cert-reveal">
+                <div class="cert-bulk-range">50-99 Certificates</div>
+                <div class="cert-bulk-discount">25% OFF</div>
+                <div class="cert-bulk-label">Per Certificate</div>
+            </div>
+            <div class="cert-bulk-card cert-reveal">
+                <div class="cert-bulk-range">100+ Certificates</div>
+                <div class="cert-bulk-discount">30% OFF</div>
+                <div class="cert-bulk-label">Contact Us for Custom Pricing</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Trust Footer -->
+<section class="cert-trust-footer">
+    <div class="container">
+        <div class="section-header text-center">
+            <div class="section-label"><i class="fa-solid fa-handshake"></i> Trusted</div>
+            <h3 style="font-size: 1.25rem;">Secured by Industry Standards</h3>
+        </div>
+        <div class="cert-trust-seals">
+            <div class="cert-trust-seal">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>SHA-256 Encryption</span>
+            </div>
+            <div class="cert-trust-seal">
+                <i class="fa-solid fa-certificate"></i>
+                <span>2048-bit RSA</span>
+            </div>
+            <div class="cert-trust-seal">
+                <i class="fa-solid fa-globe"></i>
+                <span>99.9% Browser Trust</span>
+            </div>
+            <div class="cert-trust-seal">
+                <i class="fa-solid fa-headset"></i>
+                <span>24/7 Expert Support</span>
+            </div>
+            <div class="cert-trust-seal">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span>30-Day Money Back</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/certificates.js') }}"></script>
 {% endblock %}

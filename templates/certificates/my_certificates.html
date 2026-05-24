@@ -1,44 +1,179 @@
 {% extends "base.html" %}
-{% block title %}My Certificates - JALAGEL OS Pro{% endblock %}
+{% block title %}My Certificates - Dashboard{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/certificates.css') }}">
+{% endblock %}
 {% block content %}
-<section class="section">
+
+<section class="cert-dashboard">
     <div class="container">
-        <div class="section-header">
-            <div class="section-label"><i class="fa-solid fa-shield-halved"></i> My Certificates</div>
-            <h1 class="gradient-text">My Certificates</h1>
+        <!-- Header -->
+        <div class="cert-section-header">
+            <div>
+                <div class="section-label"><i class="fa-solid fa-shield-halved"></i> Dashboard</div>
+                <h1 class="gradient-text">My Certificates</h1>
+            </div>
+            <a href="{{ url_for('certificates_store') }}" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-plus"></i> Purchase New Certificate
+            </a>
         </div>
-        {% if certificates %}
-        <div class="grid grid-3">
-            {% for cert in certificates %}
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">{{ cert.cert_name }}</span>
-                    <span class="badge badge-{{ 'success' if cert.status == 'active' else 'warning' if cert.status == 'pending' else 'error' }}">
-                        {{ cert.status|title }}
-                    </span>
+
+        <!-- Stats Cards -->
+        <div class="cert-stats-grid">
+            <div class="cert-stat-card">
+                <div class="cert-stat-icon active">
+                    <i class="fa-solid fa-check-circle"></i>
                 </div>
-                <div class="card-body">
-                    <p><strong>Domain:</strong> {{ cert.domain or 'N/A' }}</p>
-                    <p><strong>Issuer:</strong> {{ cert.issuer }}</p>
-                    <p><strong>Expiry:</strong> {{ cert.expiry_date|date }}</p>
-                    <p><strong>Days Remaining:</strong> {{ cert.days_until_expiry() }}</p>
-                </div>
-                <div class="card-footer">
-                    <a href="{{ url_for('certificates_verify', cert_id=cert.id) }}" class="btn btn-sm btn-ghost">Verify</a>
-                    {% if cert.status == 'active' %}
-                    <button class="btn btn-sm btn-outline" onclick="renewCert({{ cert.id }})">Renew</button>
-                    {% endif %}
+                <div>
+                    <div class="cert-stat-value" data-count="{{ certificates|selectattr('status','equalto','active')|list|length }}">{{ certificates|selectattr('status','equalto','active')|list|length }}</div>
+                    <div class="cert-stat-label">Active</div>
                 </div>
             </div>
-            {% endfor %}
+            <div class="cert-stat-card">
+                <div class="cert-stat-icon warning">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div>
+                    <div class="cert-stat-value" data-count="{{ certificates|selectattr('days_remaining','le',30)|selectattr('status','equalto','active')|list|length if certificates else 0 }}">{{ certificates|selectattr('days_remaining','defined')|selectattr('status','equalto','active')|list|length if certificates else 0 }}</div>
+                    <div class="cert-stat-label">Expiring Soon</div>
+                </div>
+            </div>
+            <div class="cert-stat-card">
+                <div class="cert-stat-icon error">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </div>
+                <div>
+                    <div class="cert-stat-value" data-count="{{ certificates|selectattr('status','equalto','expired')|list|length + certificates|selectattr('status','equalto','revoked')|list|length }}">{{ certificates|selectattr('status','equalto','expired')|list|length + certificates|selectattr('status','equalto','revoked')|list|length }}</div>
+                    <div class="cert-stat-label">Expired / Revoked</div>
+                </div>
+            </div>
+            <div class="cert-stat-card">
+                <div class="cert-stat-icon info">
+                    <i class="fa-solid fa-certificate"></i>
+                </div>
+                <div>
+                    <div class="cert-stat-value" data-count="{{ certificates|length }}">{{ certificates|length }}</div>
+                    <div class="cert-stat-label">Total Certificates</div>
+                </div>
+            </div>
+        </div>
+
+        {% if certificates %}
+        <!-- Certificate List Table -->
+        <div class="cert-admin-table-wrap">
+            <table class="cert-list-table">
+                <thead>
+                    <tr>
+                        <th>Certificate</th>
+                        <th>Domain</th>
+                        <th>Status</th>
+                        <th>Issued</th>
+                        <th>Expires</th>
+                        <th>Expiry Progress</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cert in certificates %}
+                    {% set days = cert.days_until_expiry() %}
+                    {% set status_class = 'active' if cert.status == 'active' and days > 30 else 'expiring' if cert.status == 'active' and days <= 30 else cert.status %}
+                    {% set icon_type = 'code' if cert.cert_type == 'code' else 'enterprise' if cert.cert_type == 'enterprise' else 'ssl' %}
+                    {% set total_days = 365 %}
+                    {% set pct = ((days / total_days) * 100)|int %}
+                    <tr>
+                        <td>
+                            <div class="cert-list-name">
+                                <div class="cert-list-icon {{ icon_type }}">
+                                    <i class="fa-solid {% if cert.cert_type == 'code' %}fa-file-signature{% elif cert.cert_type == 'enterprise' %}fa-crown{% else %}fa-lock{% endif %}"></i>
+                                </div>
+                                <div class="cert-list-info">
+                                    <div class="name">{{ cert.cert_name }}</div>
+                                    <div class="domain">{{ cert.issuer }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-size: 0.8125rem; color: var(--text-secondary);">{{ cert.domain or 'N/A' }}</td>
+                        <td>
+                            <span class="cert-list-status {{ status_class }}">
+                                {% if cert.status == 'active' and days <= 30 %}
+                                <i class="fa-solid fa-clock"></i> Expiring Soon
+                                {% elif cert.status == 'active' %}
+                                <i class="fa-solid fa-check-circle"></i> Active
+                                {% elif cert.status == 'pending' %}
+                                <i class="fa-solid fa-hourglass-half"></i> Pending
+                                {% elif cert.status == 'expired' %}
+                                <i class="fa-solid fa-circle-xmark"></i> Expired
+                                {% elif cert.status == 'revoked' %}
+                                <i class="fa-solid fa-ban"></i> Revoked
+                                {% else %}
+                                {{ cert.status|title }}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td style="font-size: 0.8125rem; color: var(--text-secondary);">{{ cert.issued_date|date if cert.issued_date else 'Pending' }}</td>
+                        <td style="font-size: 0.8125rem; color: var(--text-secondary);">{{ cert.expiry_date|date }}</td>
+                        <td style="min-width: 120px;">
+                            {% if cert.status != 'revoked' %}
+                            <div class="cert-expiry-bar">
+                                <div class="cert-expiry-fill {{ 'good' if days > 90 else 'warning' if days > 30 else 'danger' }}" data-width="{{ pct }}%" style="width: {{ pct }}%"></div>
+                            </div>
+                            <div class="cert-expiry-text">{{ days }} days left</div>
+                            {% else %}
+                            <span style="font-size: 0.6875rem; color: var(--text-muted);">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="cert-list-actions">
+                                <a href="{{ url_for('certificates_verify', cert_id=cert.id) }}" class="btn btn-ghost btn-sm" title="View Details">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                {% if cert.status == 'active' and cert.cert_data %}
+                                <button class="btn btn-ghost btn-sm" onclick="downloadCert({{ cert.id }})" title="Download PEM">
+                                    <i class="fa-solid fa-download"></i>
+                                </button>
+                                {% endif %}
+                                {% if cert.status == 'pending' %}
+                                <button class="btn btn-primary btn-sm" id="generateBtn{{ cert.id }}" onclick="generateCert({{ cert.id }})" title="Generate Certificate">
+                                    <i class="fa-solid fa-bolt"></i> Generate
+                                </button>
+                                {% endif %}
+                                {% if cert.status == 'active' %}
+                                <button class="btn btn-ghost btn-sm" onclick="renewCert({{ cert.id }})" title="Renew">
+                                    <i class="fa-solid fa-rotate"></i>
+                                </button>
+                                {% endif %}
+                                {% if cert.status in ['active', 'pending', 'expired'] %}
+                                <button class="btn btn-ghost btn-sm" style="color: var(--color-error);" onclick="revokeCert({{ cert.id }})" title="Revoke">
+                                    <i class="fa-solid fa-ban"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         {% else %}
-        <div class="card text-center" style="padding:60px;">
-            <i class="fa-solid fa-shield-halved" style="font-size:3rem;color:var(--text-muted);margin-bottom:16px;"></i>
+        <!-- Empty State -->
+        <div class="cert-empty-state">
+            <div class="empty-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
             <h3>No Certificates Yet</h3>
-            <p>Visit the <a href="{{ url_for('certificates_store') }}">Certificate Store</a> to get started.</p>
+            <p>Secure your websites and applications with industry-leading SSL certificates from JALAGEL.</p>
+            <a href="{{ url_for('certificates_store') }}" class="btn btn-primary btn-lg" style="margin-top: 8px;">
+                <i class="fa-solid fa-cart-shopping"></i> Browse Certificate Store
+            </a>
         </div>
         {% endif %}
     </div>
 </section>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+    window.currentUser = {{ current_user.is_authenticated|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/certificates.js') }}"></script>
 {% endblock %}
