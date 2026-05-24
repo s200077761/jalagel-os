@@ -1,0 +1,131 @@
+{# JALAGEL OS Pro - Reusable Window Component Template #}
+{# This template defines the HTML structure for OS windows. #}
+{# Windows are cloned from this template via JavaScript in os.js #}
+
+<template id="windowComponentTemplate">
+    <div class="os-window" data-window-id="" data-app-id="" data-always-on-top="false" data-transparency="100">
+        <!-- 8-direction resize handles -->
+        <div class="resize-handle resize-n" data-resize="n" title="Resize top"></div>
+        <div class="resize-handle resize-s" data-resize="s" title="Resize bottom"></div>
+        <div class="resize-handle resize-e" data-resize="e" title="Resize right"></div>
+        <div class="resize-handle resize-w" data-resize="w" title="Resize left"></div>
+        <div class="resize-handle resize-ne" data-resize="ne" title="Resize top-right"></div>
+        <div class="resize-handle resize-nw" data-resize="nw" title="Resize top-left"></div>
+        <div class="resize-handle resize-se" data-resize="se" title="Resize bottom-right"></div>
+        <div class="resize-handle resize-sw" data-resize="sw" title="Resize bottom-left"></div>
+
+        <!-- Title Bar -->
+        <div class="window-titlebar" oncontextmenu="return false;">
+            <div class="window-titlebar-drag-region">
+                <div class="window-icon">
+                    <i class="fa-solid fa-cube"></i>
+                </div>
+                <div class="window-title">Window Title</div>
+            </div>
+            <div class="window-controls">
+                <button class="win-btn win-pin" title="Always on top">
+                    <i class="fa-solid fa-thumbtack"></i>
+                </button>
+                <button class="win-btn win-minimize" title="Minimize">
+                    <i class="fa-solid fa-minus"></i>
+                </button>
+                <button class="win-btn win-maximize" title="Maximize">
+                    <i class="fa-regular fa-square"></i>
+                </button>
+                <button class="win-btn win-close" title="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Window Controls Menu (hidden, shown on right-click titlebar) -->
+        <div class="window-controls-menu" id="windowControlsMenu">
+            <div class="wcm-item" data-action="restore">
+                <i class="fa-solid fa-window-restore"></i> Restore
+            </div>
+            <div class="wcm-item" data-action="minimize">
+                <i class="fa-solid fa-minus"></i> Minimize
+            </div>
+            <div class="wcm-item" data-action="maximize">
+                <i class="fa-regular fa-square"></i> Maximize
+            </div>
+            <div class="wcm-divider"></div>
+            <div class="wcm-item" data-action="always-on-top">
+                <i class="fa-solid fa-arrow-up"></i> Always on Top
+                <span class="wcm-check"><i class="fa-solid fa-check"></i></span>
+            </div>
+            <div class="wcm-item wcm-transparency">
+                <i class="fa-solid fa-droplet"></i> Transparency
+                <input type="range" class="wcm-transparency-slider" min="30" max="100" value="100">
+            </div>
+            <div class="wcm-divider"></div>
+            <div class="wcm-item" data-action="snap-left">
+                <i class="fa-solid fa-arrow-left"></i> Snap Left
+            </div>
+            <div class="wcm-item" data-action="snap-right">
+                <i class="fa-solid fa-arrow-right"></i> Snap Right
+            </div>
+            <div class="wcm-item" data-action="snap-full">
+                <i class="fa-solid fa-expand"></i> Snap Fullscreen
+            </div>
+            <div class="wcm-divider"></div>
+            <div class="wcm-item" data-action="close">
+                <i class="fa-solid fa-xmark"></i> Close
+            </div>
+        </div>
+
+        <!-- Toolbar (app-specific, shown when needed) -->
+        <div class="window-toolbar" style="display:none">
+            <!-- Populated by individual apps -->
+        </div>
+
+        <!-- Content Area with iframe -->
+        <div class="window-content">
+            <iframe class="window-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="window-statusbar" style="display:none">
+            <span class="status-text">Ready</span>
+            <span class="status-indicator"></span>
+        </div>
+    </div>
+</template>
+
+{# Window Preview Tooltip (shown on taskbar hover) #}
+<div class="window-preview-tooltip" id="windowPreviewTooltip">
+    <div class="wpt-thumbnail">
+        <div class="wpt-placeholder">
+            <i class="fa-solid fa-image"></i>
+        </div>
+    </div>
+    <div class="wpt-info">
+        <div class="wpt-title">Window Title</div>
+        <div class="wpt-app">Application Name</div>
+    </div>
+    <div class="wpt-actions">
+        <button class="wpt-btn wpt-close" title="Close window">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+</div>
+
+{# Window Snap Indicator Overlay #}
+<div class="snap-indicator-overlay" id="snapIndicatorOverlay">
+    <div class="snap-indicator snap-ind-left">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Left Half</span>
+    </div>
+    <div class="snap-indicator snap-ind-right">
+        <i class="fa-solid fa-arrow-right"></i>
+        <span>Right Half</span>
+    </div>
+    <div class="snap-indicator snap-ind-top">
+        <i class="fa-solid fa-arrow-up"></i>
+        <span>Maximize</span>
+    </div>
+    <div class="snap-indicator snap-ind-bottom">
+        <i class="fa-solid fa-arrow-down"></i>
+        <span>Bottom Half</span>
+    </div>
+</div>

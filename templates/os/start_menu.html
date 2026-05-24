@@ -1,0 +1,136 @@
+{# JALAGEL OS Pro - Start Menu Component #}
+<div class="start-menu-overlay" id="startMenuOverlay"></div>
+
+<div class="start-menu" id="startMenu">
+    <!-- User Profile Section -->
+    <div class="start-menu-header">
+        <div class="start-user-info">
+            <div class="start-user-avatar" id="startUserAvatar">
+                {% if current_user.avatar %}
+                <img src="{{ current_user.avatar }}" alt="{{ current_user.username }}">
+                {% else %}
+                <i class="fa-solid fa-user-circle"></i>
+                {% endif %}
+            </div>
+            <div class="start-user-details">
+                <div class="start-user-name">{{ current_user.full_name or current_user.username }}</div>
+                <div class="start-user-email">{{ current_user.email }}</div>
+                <div class="start-user-tier">
+                    <span class="tier-badge tier-{{ current_user.license_tier }}">
+                        {{ current_user.license_tier|title }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <button class="start-menu-close" id="startMenuClose" title="Close (Esc)">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="start-search-box">
+        <i class="fa-solid fa-search"></i>
+        <input type="text" id="startSearchInput" placeholder="Search apps, files, and settings..." autocomplete="off">
+        <kbd class="search-shortcut">Ctrl+Space</kbd>
+    </div>
+
+    <!-- Start Menu Content -->
+    <div class="start-menu-body" id="startMenuBody">
+        <!-- Recent Apps Section -->
+        <div class="start-section" id="startRecentSection">
+            <div class="start-section-header">
+                <span class="start-section-title">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Recent
+                </span>
+                <button class="start-section-clear" id="clearRecentApps" title="Clear recent">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+            <div class="start-recent-grid" id="startRecentGrid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="start-categories" id="startCategories">
+            <button class="start-cat-tab active" data-category="all">
+                <i class="fa-solid fa-border-all"></i> All
+            </button>
+            <button class="start-cat-tab" data-category="Productivity">
+                <i class="fa-solid fa-briefcase"></i> Productivity
+            </button>
+            <button class="start-cat-tab" data-category="Creative">
+                <i class="fa-solid fa-palette"></i> Creative
+            </button>
+            <button class="start-cat-tab" data-category="Development">
+                <i class="fa-solid fa-code"></i> Dev
+            </button>
+            <button class="start-cat-tab" data-category="Utilities">
+                <i class="fa-solid fa-screwdriver-wrench"></i> Utilities
+            </button>
+            <button class="start-cat-tab" data-category="Media">
+                <i class="fa-solid fa-photo-film"></i> Media
+            </button>
+            <button class="start-cat-tab" data-category="System">
+                <i class="fa-solid fa-microchip"></i> System
+            </button>
+        </div>
+
+        <!-- App Grid -->
+        <div class="start-app-grid-section">
+            <div class="start-pinned-label">
+                <span id="startAppGridTitle">All Applications</span>
+                <span class="start-app-count" id="startAppCount"></span>
+            </div>
+            <div class="start-app-grid" id="startAppGrid">
+                <!-- Apps rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Power Options Footer -->
+    <div class="start-menu-footer">
+        <div class="start-footer-left">
+            <a href="{{ url_for('auth_profile') }}" class="start-footer-btn" title="Profile">
+                <i class="fa-solid fa-id-card"></i>
+                <span>Profile</span>
+            </a>
+            <button class="start-footer-btn" id="startSettingsBtn" title="Settings" data-slug="settings">
+                <i class="fa-solid fa-gear"></i>
+                <span>Settings</span>
+            </button>
+        </div>
+        <div class="start-power-menu" id="startPowerMenu">
+            <button class="start-power-toggle" id="startPowerToggle" title="Power">
+                <i class="fa-solid fa-power-off"></i>
+            </button>
+            <div class="start-power-dropdown" id="startPowerDropdown">
+                <div class="power-item" data-action="settings">
+                    <i class="fa-solid fa-gear"></i> Settings
+                </div>
+                <div class="power-item" data-action="lock">
+                    <i class="fa-solid fa-lock"></i> Lock
+                </div>
+                <div class="power-divider"></div>
+                <div class="power-item" data-action="logout">
+                    <i class="fa-solid fa-right-from-bracket"></i> Log Out
+                </div>
+                <div class="power-item" data-action="restart">
+                    <i class="fa-solid fa-rotate-right"></i> Restart
+                </div>
+                <div class="power-item power-danger" data-action="shutdown">
+                    <i class="fa-solid fa-power-off"></i> Shut Down
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Start Menu Keyboard Navigation Help #}
+<div class="start-keyboard-hint" id="startKeyboardHint">
+    <div class="kb-hint-row">
+        <kbd>Esc</kbd> <span>Close</span>
+        <kbd>&#8593;&#8595;</kbd> <span>Navigate</span>
+        <kbd>Enter</kbd> <span>Open</span>
+    </div>
+</div>
