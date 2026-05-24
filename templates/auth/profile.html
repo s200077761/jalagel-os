@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Profile - {{ current_user.username }}{% endblock %}
+{% block content %}
+<section class="section">
+    <div class="container-narrow">
+        <div class="section-header">
+            <div class="section-label"><i class="fa-solid fa-user"></i> Profile</div>
+            <h1 class="gradient-text">My Profile</h1>
+        </div>
+        <div class="grid grid-2">
+            <div class="card">
+                <h3 style="margin-bottom:20px;"><i class="fa-solid fa-id-card" style="color:var(--color-primary);"></i> Account Info</h3>
+                <form method="POST" action="{{ url_for('auth_profile') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-input" value="{{ current_user.username }}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="full_name" class="form-input" value="{{ current_user.full_name or '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-input" value="{{ current_user.email }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save"></i> Update Profile
+                    </button>
+                </form>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom:20px;"><i class="fa-solid fa-shield-halved" style="color:var(--color-accent);"></i> Security</h3>
+                <form method="POST" action="{{ url_for('auth_profile') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group">
+                        <label class="form-label">Current Password</label>
+                        <input type="password" name="current_password" class="form-input" placeholder="Current password">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">New Password</label>
+                        <input type="password" name="new_password" class="form-input" placeholder="New password" minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fa-solid fa-key"></i> Change Password
+                    </button>
+                </form>
+                <div class="divider"></div>
+                <h4 style="margin-bottom:12px;font-size:1rem;"><i class="fa-solid fa-id-card" style="color:var(--color-warning);"></i> License</h4>
+                <p style="font-size:0.875rem;">
+                    <span class="badge badge-primary">{{ current_user.license_tier|title }}</span>
+                    {% if current_user.license_expires %}
+                    <br><br>Expires: {{ current_user.license_expires|date }}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

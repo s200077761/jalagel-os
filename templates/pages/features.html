@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Features - JALAGEL OS Pro{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/marketing.css') }}">{% endblock %}
+{% block content %}
+<section class="hero" style="min-height:40vh;padding-top:120px;">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label"><i class="fa-solid fa-star"></i> Features</div>
+            <h1 class="hero-title gradient-text">Powerful Features</h1>
+            <p class="hero-tagline">Everything you need in a modern web-based operating system.</p>
+        </div>
+    </div>
+</section>
+<section class="section section-features">
+    <div class="container">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon primary"><i class="fa-solid fa-grid-2"></i></div>
+                <h3>50+ Professional Apps</h3>
+                <p>Code editor, file manager, terminal, notes, calendar, calculator, and many more.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon accent"><i class="fa-solid fa-shield-halved"></i></div>
+                <h3>SSL Certificate Store</h3>
+                <p>8 certificate types from DV to Enterprise CA with full lifecycle management.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon secondary"><i class="fa-solid fa-moon"></i></div>
+                <h3>Dark Theme UI</h3>
+                <p>Beautiful dark interface with glassmorphism effects and gradient accents.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon success"><i class="fa-solid fa-window-restore"></i></div>
+                <h3>Window System</h3>
+                <p>Draggable, resizable windows with snap-to-grid and taskbar integration.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon warning"><i class="fa-solid fa-id-card"></i></div>
+                <h3>License Tiers</h3>
+                <p>Free, Pro, and Enterprise plans with feature-based access control.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon primary"><i class="fa-solid fa-bolt"></i></div>
+                <h3>Lightning Fast</h3>
+                <p>Python Flask backend with optimized frontend for snappy performance.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

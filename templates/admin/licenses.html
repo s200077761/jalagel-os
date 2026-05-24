@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Licenses - Admin - JALAGEL OS Pro{% endblock %}
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label"><i class="fa-solid fa-id-card"></i> Admin</div>
+            <h1 class="gradient-text">Manage Licenses</h1>
+        </div>
+        <div class="card" style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="border-bottom:2px solid var(--border-color);">
+                        <th style="text-align:left;padding:12px;">User</th>
+                        <th style="text-align:left;padding:12px;">Tier</th>
+                        <th style="text-align:left;padding:12px;">License Key</th>
+                        <th style="text-align:left;padding:12px;">Expires</th>
+                        <th style="text-align:left;padding:12px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr style="border-bottom:1px solid var(--border-color);">
+                        <td style="padding:12px;"><strong>{{ user.username }}</strong><br><span style="font-size:0.75rem;color:var(--text-muted);">{{ user.email }}</span></td>
+                        <td style="padding:12px;"><span class="badge badge-{{ 'primary' if user.license_tier == 'enterprise' else 'accent' }}">{{ user.license_tier|title }}</span></td>
+                        <td style="padding:12px;font-family:var(--font-mono);font-size:0.75rem;color:var(--text-secondary);">{{ user.license_key[:16] }}...</td>
+                        <td style="padding:12px;font-size:0.8125rem;">{{ user.license_expires|date }}</td>
+                        <td style="padding:12px;"><span class="badge badge-{{ 'success' if user.license_is_valid() else 'error' }}">{{ 'Active' if user.license_is_valid() else 'Expired' }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

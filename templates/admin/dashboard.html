@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - JALAGEL OS Pro{% endblock %}
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label"><i class="fa-solid fa-shield-halved"></i> Admin</div>
+            <h1 class="gradient-text">Dashboard</h1>
+        </div>
+        <div class="grid grid-4" style="margin-bottom:40px;">
+            <div class="card">
+                <div class="card-icon primary"><i class="fa-solid fa-users"></i></div>
+                <div class="card-title">{{ stats.total_users }} Users</div>
+                <p>{{ stats.active_users }} active</p>
+            </div>
+            <div class="card">
+                <div class="card-icon accent"><i class="fa-solid fa-certificate"></i></div>
+                <div class="card-title">{{ stats.total_certs }} Certificates</div>
+                <p>{{ stats.pending_certs }} pending</p>
+            </div>
+            <div class="card">
+                <div class="card-icon success"><i class="fa-solid fa-rocket"></i></div>
+                <div class="card-title">{{ stats.total_apps }} Apps</div>
+                <p>{{ stats.premium_users }} premium users</p>
+            </div>
+            <div class="card">
+                <div class="card-icon warning"><i class="fa-solid fa-id-card"></i></div>
+                <div class="card-title">{{ stats.premium_users }} Pro/Enterprise</div>
+                <p>{{ stats.free_users }} free users</p>
+            </div>
+        </div>
+        <div class="grid grid-2">
+            <div class="card">
+                <h3 style="margin-bottom:16px;"><i class="fa-solid fa-users" style="color:var(--color-primary);"></i> Recent Users</h3>
+                {% for user in recent_users[:5] %}
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-color);">
+                    <span><strong>{{ user.username }}</strong> <span style="color:var(--text-muted);font-size:0.8125rem;">({{ user.email }})</span></span>
+                    <span class="badge badge-{{ 'primary' if user.license_tier == 'enterprise' else 'accent' if user.license_tier == 'pro' else 'secondary' }}">{{ user.license_tier|title }}</span>
+                </div>
+                {% endfor %}
+                <a href="{{ url_for('admin_users') }}" class="btn btn-ghost btn-sm" style="margin-top:12px;width:100%;">View All Users</a>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom:16px;"><i class="fa-solid fa-certificate" style="color:var(--color-accent);"></i> Recent Certificates</h3>
+                {% for cert in recent_certs[:5] %}
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-color);">
+                    <span><strong>{{ cert.cert_name }}</strong></span>
+                    <span class="badge badge-{{ 'success' if cert.status == 'active' else 'warning' if cert.status == 'pending' else 'error' }}">{{ cert.status|title }}</span>
+                </div>
+                {% endfor %}
+                <a href="{{ url_for('admin_certificates') }}" class="btn btn-ghost btn-sm" style="margin-top:12px;width:100%;">View All Certificates</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

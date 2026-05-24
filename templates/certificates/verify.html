@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Verify Certificate - {{ certificate.cert_name }}{% endblock %}
+{% block content %}
+<section class="section">
+    <div class="container-narrow">
+        <div class="section-header">
+            <div class="section-label"><i class="fa-solid fa-shield-halved"></i> Certificate Verification</div>
+            <h1 class="gradient-text">Verify Certificate</h1>
+        </div>
+        <div class="card">
+            <div class="text-center" style="margin-bottom:24px;">
+                <div style="width:64px;height:64px;background:{% if certificate.status == 'active' %}rgba(16,185,129,0.15){% else %}rgba(239,68,68,0.15){% endif %};border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.75rem;color:{% if certificate.status == 'active' %}var(--color-success){% else %}var(--color-error){% endif %};">
+                    <i class="fa-solid {% if certificate.status == 'active' %}fa-check{% else %}fa-xmark{% endif %}"></i>
+                </div>
+                <h2>{{ certificate.cert_name }}</h2>
+                <span class="badge badge-{{ 'success' if certificate.status == 'active' else 'warning' if certificate.status == 'pending' else 'error' }}">
+                    {{ certificate.status|title }}
+                </span>
+            </div>
+            <div class="divider"></div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+                <div><strong>Domain:</strong><br><span style="color:var(--text-secondary);">{{ certificate.domain or 'N/A' }}</span></div>
+                <div><strong>Issuer:</strong><br><span style="color:var(--text-secondary);">{{ certificate.issuer }}</span></div>
+                <div><strong>Issued:</strong><br><span style="color:var(--text-secondary);">{{ certificate.issued_date|date }}</span></div>
+                <div><strong>Expires:</strong><br><span style="color:var(--text-secondary);">{{ certificate.expiry_date|date }}</span></div>
+                <div><strong>Type:</strong><br><span style="color:var(--text-secondary);">{{ certificate.cert_type|upper }}</span></div>
+                <div><strong>Days Left:</strong><br><span style="color:var(--text-secondary);">{{ certificate.days_until_expiry() }}</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

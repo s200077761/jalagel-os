@@ -1,0 +1,666 @@
+{% extends "base.html" %}
+
+{% block title %}JALAGEL OS Pro - Web-Based Operating System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/marketing.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-bg">
+        <div class="hero-orb orb-1"></div>
+        <div class="hero-orb orb-2"></div>
+        <div class="hero-orb orb-3"></div>
+        <canvas class="hero-particles" id="heroParticles"></canvas>
+        <div class="hero-grid-overlay"></div>
+    </div>
+
+    <div class="hero-content">
+        <div class="hero-badge animate-fadeInUp">
+            <span class="badge badge-accent"><i class="fa-solid fa-sparkles"></i> v{{ app_version }} Now Available</span>
+        </div>
+
+        <h1 class="hero-title animate-fadeInUp stagger-1">
+            <span class="gradient-text-primary">JALAGEL</span> OS Pro
+        </h1>
+
+        <p class="hero-tagline animate-fadeInUp stagger-2">
+            Experience the Future of Computing. A complete web-based operating system
+            with 50+ professional apps, SSL certificate management, and enterprise licensing.
+        </p>
+
+        <div class="hero-cta animate-fadeInUp stagger-3">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('os_desktop') }}" class="btn btn-lg btn-primary">
+                <i class="fa-solid fa-desktop"></i> Launch OS
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth_register') }}" class="btn btn-lg btn-primary">
+                <i class="fa-solid fa-rocket"></i> Get Started Free
+            </a>
+            {% endif %}
+            <a href="{{ url_for('pricing') }}" class="btn btn-lg btn-outline">
+                <i class="fa-solid fa-tag"></i> View Pricing
+            </a>
+        </div>
+
+        <div class="hero-stats animate-fadeInUp stagger-4">
+            <div class="hero-stat">
+                <div class="hero-stat-number" data-count="50">0</div>
+                <div class="hero-stat-label">Professional Apps</div>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <div class="hero-stat-number" data-count="8">0</div>
+                <div class="hero-stat-label">SSL Certificates</div>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <div class="hero-stat-number" data-count="99">0</div>
+                <div class="hero-stat-label">% Uptime SLA</div>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <div class="hero-stat-number" data-count="24">0</div>
+                <div class="hero-stat-label">/7 Support</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-scroll-indicator">
+        <div class="scroll-mouse">
+            <div class="scroll-wheel"></div>
+        </div>
+        <span>Scroll to explore</span>
+    </div>
+</section>
+
+<!-- OS Preview Section -->
+<section class="section section-preview">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label">
+                <i class="fa-solid fa-desktop"></i> Desktop Environment
+            </div>
+            <h2 class="section-title gradient-text">Your Workspace, Reimagined</h2>
+            <p class="section-desc">
+                A fully functional desktop with draggable windows, taskbar, start menu, 
+                and system notifications - all running in your browser.
+            </p>
+        </div>
+
+        <div class="os-preview-container reveal-on-scroll">
+            <div class="os-preview-frame">
+                <div class="os-preview-header">
+                    <div class="preview-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div class="preview-title">
+                        <i class="fa-solid fa-layer-group"></i> JALAGEL OS Pro Desktop
+                    </div>
+                </div>
+                <div class="os-preview-body">
+                    <div class="preview-desktop">
+                        <div class="preview-icons">
+                            <div class="preview-icon">
+                                <i class="fa-solid fa-gear"></i>
+                                <span>Settings</span>
+                            </div>
+                            <div class="preview-icon">
+                                <i class="fa-solid fa-folder-open"></i>
+                                <span>Files</span>
+                            </div>
+                            <div class="preview-icon">
+                                <i class="fa-solid fa-terminal"></i>
+                                <span>Terminal</span>
+                            </div>
+                            <div class="preview-icon">
+                                <i class="fa-solid fa-note-sticky"></i>
+                                <span>Notes</span>
+                            </div>
+                            <div class="preview-icon">
+                                <i class="fa-solid fa-calendar-days"></i>
+                                <span>Calendar</span>
+                            </div>
+                            <div class="preview-icon">
+                                <i class="fa-solid fa-code"></i>
+                                <span>Code</span>
+                            </div>
+                        </div>
+                        <div class="preview-windows">
+                            <div class="preview-window" style="top:8%;left:20%;width:50%;height:55%;">
+                                <div class="preview-win-titlebar">
+                                    <i class="fa-solid fa-code"></i>
+                                    <span>Code Editor</span>
+                                    <div class="preview-win-controls">
+                                        <i class="fa-solid fa-minus"></i>
+                                        <i class="fa-regular fa-square"></i>
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </div>
+                                </div>
+                                <div class="preview-win-content">
+                                    <div class="preview-code">
+                                        <div class="code-line"><span class="code-kw">import</span> <span class="code-var">os</span></div>
+                                        <div class="code-line"></div>
+                                        <div class="code-line"><span class="code-kw">class</span> <span class="code-class">JalagelOS</span>:</div>
+                                        <div class="code-line">    <span class="code-kw">def</span> <span class="code-func">__init__</span>(<span class="code-kw">self</span>):</div>
+                                        <div class="code-line">        <span class="code-kw">self</span>.version = <span class="code-str">"1.0.0"</span></div>
+                                        <div class="code-line">        <span class="code-kw">self</span>.apps = []</div>
+                                        <div class="code-line"></div>
+                                        <div class="code-line">    <span class="code-kw">def</span> <span class="code-func">launch</span>(<span class="code-kw">self</span>, app):</div>
+                                        <div class="code-line">        <span class="code-kw">return</span> app.run()</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="preview-window preview-window-2" style="top:20%;left:55%;width:35%;height:45%;">
+                                <div class="preview-win-titlebar">
+                                    <i class="fa-solid fa-note-sticky"></i>
+                                    <span>Notes</span>
+                                    <div class="preview-win-controls">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </div>
+                                </div>
+                                <div class="preview-win-content" style="padding:16px;">
+                                    <div style="font-size:0.8125rem;color:var(--text-secondary);line-height:1.8;">
+                                        <div style="font-weight:600;color:var(--text-primary);margin-bottom:8px;">Project Ideas</div>
+                                        <div>- Build a web-based OS</div>
+                                        <div>- Add 50+ applications</div>
+                                        <div>- Certificate management</div>
+                                        <div>- Enterprise licensing</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="preview-taskbar">
+                            <div class="preview-taskbar-start">
+                                <i class="fa-solid fa-layer-group"></i>
+                            </div>
+                            <div class="preview-taskbar-apps">
+                                <i class="fa-solid fa-folder-open active"></i>
+                                <i class="fa-solid fa-code active"></i>
+                                <i class="fa-solid fa-note-sticky"></i>
+                                <i class="fa-solid fa-globe"></i>
+                            </div>
+                            <div class="preview-taskbar-tray">
+                                <span>2:42 PM</span>
+                                <span>1/15/2024</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="section section-features">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label">
+                <i class="fa-solid fa-star"></i> Features
+            </div>
+            <h2 class="section-title gradient-text">Everything You Need</h2>
+            <p class="section-desc">
+                A comprehensive suite of 50+ applications covering productivity, development, 
+                creativity, media, utilities, and security - all in one place.
+            </p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon primary">
+                    <i class="fa-solid fa-grid-2"></i>
+                </div>
+                <h3>50+ Apps</h3>
+                <p>A complete suite of professional applications including code editor, file manager, terminal, notes, calendar, and more.</p>
+            </div>
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon accent">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h3>SSL Certificates</h3>
+                <p>Purchase, generate, and manage SSL certificates. From DV to Enterprise CA - all integrated into your OS.</p>
+            </div>
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon secondary">
+                    <i class="fa-solid fa-moon"></i>
+                </div>
+                <h3>Dark Theme</h3>
+                <p>Beautiful dark UI designed for extended use. Easy on the eyes with carefully chosen color contrasts.</p>
+            </div>
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon success">
+                    <i class="fa-solid fa-window-restore"></i>
+                </div>
+                <h3>Window System</h3>
+                <p>Draggable, resizable, minimizable windows with snap-to-grid, keyboard shortcuts, and taskbar integration.</p>
+            </div>
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon warning">
+                    <i class="fa-solid fa-id-card"></i>
+                </div>
+                <h3>License System</h3>
+                <p>Flexible licensing tiers from Free to Enterprise. Feature-based access control with automatic validation.</p>
+            </div>
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon primary">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <h3>Lightning Fast</h3>
+                <p>Built with Python Flask and optimized frontend. Responsive, snappy, and production-ready performance.</p>
+            </div>
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon accent">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+                <h3>File System</h3>
+                <p>Virtual file system with folders, files, favorites, trash, and full CRUD operations per user.</p>
+            </div>
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon secondary">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h3>Enterprise Security</h3>
+                <p>bcrypt password hashing, CSRF protection, rate limiting, session management, and input sanitization.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Apps Showcase Section -->
+<section class="section section-apps">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label">
+                <i class="fa-solid fa-rocket"></i> Applications
+            </div>
+            <h2 class="section-title gradient-text">50+ Apps at Your Fingertips</h2>
+            <p class="section-desc">
+                From essential productivity tools to advanced development utilities.
+                Organized by category for quick access.
+            </p>
+        </div>
+
+        <div class="apps-showcase">
+            <div class="apps-category-tabs">
+                <button class="app-tab active" data-category="all">All</button>
+                <button class="app-tab" data-category="System">System</button>
+                <button class="app-tab" data-category="Productivity">Productivity</button>
+                <button class="app-tab" data-category="Development">Development</button>
+                <button class="app-tab" data-category="Creative">Creative</button>
+                <button class="app-tab" data-category="Media">Media</button>
+                <button class="app-tab" data-category="Utilities">Utilities</button>
+            </div>
+
+            <div class="apps-grid" id="appsGrid">
+                <!-- Will be populated by JS -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Certificates Section -->
+<section class="section section-certs">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label">
+                <i class="fa-solid fa-shield-halved"></i> SSL Certificates
+            </div>
+            <h2 class="section-title gradient-text">Secure Your Digital Presence</h2>
+            <p class="section-desc">
+                From basic domain validation to enterprise-grade certificate authorities.
+                Manage everything from within your OS.
+            </p>
+        </div>
+
+        <div class="certs-grid">
+            <div class="cert-card reveal-on-scroll">
+                <div class="cert-header">
+                    <div class="cert-icon"><i class="fa-solid fa-lock"></i></div>
+                    <div class="cert-badge">Popular</div>
+                </div>
+                <h3>DV SSL</h3>
+                <p>Domain Validated SSL with basic encryption. Issued in minutes.</p>
+                <div class="cert-price">$9.99<span>/yr</span></div>
+                <ul class="cert-features">
+                    <li><i class="fa-solid fa-check"></i> Domain Validation</li>
+                    <li><i class="fa-solid fa-check"></i> 2048-bit Encryption</li>
+                    <li><i class="fa-solid fa-check"></i> Browser Padlock</li>
+                    <li><i class="fa-solid fa-check"></i> Free Reissues</li>
+                </ul>
+                <a href="{{ url_for('certificates_store') }}" class="btn btn-outline btn-sm" style="width:100%;">View Details</a>
+            </div>
+
+            <div class="cert-card reveal-on-scroll featured">
+                <div class="cert-header">
+                    <div class="cert-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="cert-badge popular">Best Value</div>
+                </div>
+                <h3>EV SSL</h3>
+                <p>Extended Validation with green bar display. Maximum trust.</p>
+                <div class="cert-price">$149.99<span>/yr</span></div>
+                <ul class="cert-features">
+                    <li><i class="fa-solid fa-check"></i> Extended Validation</li>
+                    <li><i class="fa-solid fa-check"></i> Green Address Bar</li>
+                    <li><i class="fa-solid fa-check"></i> $1M Warranty</li>
+                    <li><i class="fa-solid fa-check"></i> Priority Support</li>
+                </ul>
+                <a href="{{ url_for('certificates_store') }}" class="btn btn-primary btn-sm" style="width:100%;">View Details</a>
+            </div>
+
+            <div class="cert-card reveal-on-scroll">
+                <div class="cert-header">
+                    <div class="cert-icon"><i class="fa-solid fa-crown"></i></div>
+                    <div class="cert-badge">Enterprise</div>
+                </div>
+                <h3>Enterprise CA</h3>
+                <p>Custom Certificate Authority with full API access.</p>
+                <div class="cert-price">$499.99<span>/yr</span></div>
+                <ul class="cert-features">
+                    <li><i class="fa-solid fa-check"></i> Private CA</li>
+                    <li><i class="fa-solid fa-check"></i> Unlimited Certs</li>
+                    <li><i class="fa-solid fa-check"></i> Full API Access</li>
+                    <li><i class="fa-solid fa-check"></i> Dedicated Manager</li>
+                </ul>
+                <a href="{{ url_for('certificates_store') }}" class="btn btn-outline btn-sm" style="width:100%;">View Details</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="section section-pricing">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label">
+                <i class="fa-solid fa-tag"></i> Pricing
+            </div>
+            <h2 class="section-title gradient-text">Choose Your Plan</h2>
+            <p class="section-desc">
+                Start free, upgrade when you need more. All plans include core OS features 
+                with progressive access to apps and capabilities.
+            </p>
+        </div>
+
+        <div class="pricing-toggle">
+            <span class="toggle-label active" data-period="monthly">Monthly</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="pricingToggle" checked>
+                <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label" data-period="yearly">Yearly <span class="save-badge">Save 20%</span></span>
+        </div>
+
+        <div class="pricing-grid">
+            <div class="pricing-card reveal-on-scroll">
+                <div class="pricing-header">
+                    <h3>Free</h3>
+                    <p>For personal exploration</p>
+                    <div class="pricing-amount">
+                        <span class="price">$0</span>
+                        <span class="period">/month</span>
+                    </div>
+                </div>
+                <ul class="pricing-features">
+                    <li><i class="fa-solid fa-check"></i> 10 Apps</li>
+                    <li><i class="fa-solid fa-check"></i> 100 MB Storage</li>
+                    <li><i class="fa-solid fa-check"></i> Basic File Manager</li>
+                    <li><i class="fa-solid fa-check"></i> Notes & Todos</li>
+                    <li><i class="fa-solid fa-check"></i> Community Support</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Certificate Manager</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Premium Apps</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Priority Support</li>
+                </ul>
+                <a href="{{ url_for('auth_register') }}" class="btn btn-outline" style="width:100%;">Get Started</a>
+            </div>
+
+            <div class="pricing-card featured reveal-on-scroll">
+                <div class="pricing-popular">Most Popular</div>
+                <div class="pricing-header">
+                    <h3>Pro</h3>
+                    <p>For professionals & teams</p>
+                    <div class="pricing-amount">
+                        <span class="price" data-monthly="19.99" data-yearly="16.66">$16.66</span>
+                        <span class="period">/month</span>
+                    </div>
+                </div>
+                <ul class="pricing-features">
+                    <li><i class="fa-solid fa-check"></i> 35 Apps</li>
+                    <li><i class="fa-solid fa-check"></i> 1 GB Storage</li>
+                    <li><i class="fa-solid fa-check"></i> Advanced File Manager</li>
+                    <li><i class="fa-solid fa-check"></i> Notes, Todos, Calendar</li>
+                    <li><i class="fa-solid fa-check"></i> Certificate Manager</li>
+                    <li><i class="fa-solid fa-check"></i> Cloud Sync</li>
+                    <li><i class="fa-solid fa-check"></i> Priority Support</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Custom Branding</li>
+                </ul>
+                <a href="{{ url_for('auth_register') }}" class="btn btn-primary" style="width:100%;">Upgrade to Pro</a>
+            </div>
+
+            <div class="pricing-card reveal-on-scroll">
+                <div class="pricing-header">
+                    <h3>Enterprise</h3>
+                    <p>For organizations</p>
+                    <div class="pricing-amount">
+                        <span class="price" data-monthly="49.99" data-yearly="41.66">$41.66</span>
+                        <span class="period">/month</span>
+                    </div>
+                </div>
+                <ul class="pricing-features">
+                    <li><i class="fa-solid fa-check"></i> All 50+ Apps</li>
+                    <li><i class="fa-solid fa-check"></i> 10 GB Storage</li>
+                    <li><i class="fa-solid fa-check"></i> Full File System</li>
+                    <li><i class="fa-solid fa-check"></i> Everything in Pro</li>
+                    <li><i class="fa-solid fa-check"></i> Custom Branding</li>
+                    <li><i class="fa-solid fa-check"></i> API Access</li>
+                    <li><i class="fa-solid fa-check"></i> Dedicated Support</li>
+                    <li><i class="fa-solid fa-check"></i> SSO Integration</li>
+                </ul>
+                <a href="{{ url_for('auth_register') }}" class="btn btn-outline" style="width:100%;">Contact Sales</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="section section-testimonials">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label">
+                <i class="fa-solid fa-quote-left"></i> Testimonials
+            </div>
+            <h2 class="section-title gradient-text">Loved by Users</h2>
+            <p class="section-desc">See what our users are saying about JALAGEL OS Pro.</p>
+        </div>
+
+        <div class="testimonials-grid">
+            <div class="testimonial-card reveal-on-scroll">
+                <div class="testimonial-stars">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <p class="testimonial-text">
+                    "JALAGEL OS Pro transformed how our team works. Having everything in one place - 
+                    code editor, file manager, and SSL certificate management - is a game changer."
+                </p>
+                <div class="testimonial-author">
+                    <div class="author-avatar"><i class="fa-solid fa-user"></i></div>
+                    <div class="author-info">
+                        <div class="author-name">Sarah Chen</div>
+                        <div class="author-role">CTO, TechVentures Inc.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testimonial-card reveal-on-scroll">
+                <div class="testimonial-stars">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <p class="testimonial-text">
+                    "The certificate management alone is worth the Pro license. Being able to purchase, 
+                    generate, and renew SSL certs directly from the OS is incredibly convenient."
+                </p>
+                <div class="testimonial-author">
+                    <div class="author-avatar"><i class="fa-solid fa-user"></i></div>
+                    <div class="author-info">
+                        <div class="author-name">Michael Torres</div>
+                        <div class="author-role">DevOps Lead, CloudScale</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testimonial-card reveal-on-scroll">
+                <div class="testimonial-stars">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star-half-stroke"></i>
+                </div>
+                <p class="testimonial-text">
+                    "Beautiful dark theme, smooth window animations, and 50+ useful apps. 
+                    This is what a web OS should look like. The enterprise licensing system is top-notch."
+                </p>
+                <div class="testimonial-author">
+                    <div class="author-avatar"><i class="fa-solid fa-user"></i></div>
+                    <div class="author-info">
+                        <div class="author-name">Emma Watson</div>
+                        <div class="author-role">Product Designer, StudioX</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section section-cta">
+    <div class="container">
+        <div class="cta-box reveal-on-scroll">
+            <div class="cta-orb"></div>
+            <div class="cta-content">
+                <h2>Ready to Experience the Future?</h2>
+                <p>Join thousands of users who trust JALAGEL OS Pro for their daily computing needs. 
+                   Start free today and upgrade when you need more.</p>
+                <div class="cta-buttons">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('os_desktop') }}" class="btn btn-lg btn-primary">
+                        <i class="fa-solid fa-desktop"></i> Launch OS
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth_register') }}" class="btn btn-lg btn-primary">
+                        <i class="fa-solid fa-rocket"></i> Get Started Free
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('demo') }}" class="btn btn-lg btn-ghost">
+                        <i class="fa-solid fa-play"></i> Try Demo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Apps data for the showcase
+const APPS_DATA = [
+    { name: 'Settings', icon: 'fa-solid fa-gear', category: 'System' },
+    { name: 'File Manager', icon: 'fa-solid fa-folder-open', category: 'System' },
+    { name: 'Terminal', icon: 'fa-solid fa-terminal', category: 'System' },
+    { name: 'System Monitor', icon: 'fa-solid fa-chart-line', category: 'System' },
+    { name: 'Notes', icon: 'fa-solid fa-note-sticky', category: 'Productivity' },
+    { name: 'Todo List', icon: 'fa-solid fa-list-check', category: 'Productivity' },
+    { name: 'Calendar', icon: 'fa-solid fa-calendar-days', category: 'Productivity' },
+    { name: 'Clock & Alarm', icon: 'fa-solid fa-clock', category: 'Productivity' },
+    { name: 'Timer', icon: 'fa-solid fa-stopwatch', category: 'Productivity' },
+    { name: 'World Clock', icon: 'fa-solid fa-earth-americas', category: 'Productivity' },
+    { name: 'Contacts', icon: 'fa-solid fa-address-book', category: 'Productivity' },
+    { name: 'Music Player', icon: 'fa-solid fa-music', category: 'Media' },
+    { name: 'Video Player', icon: 'fa-solid fa-film', category: 'Media' },
+    { name: 'Photos', icon: 'fa-solid fa-images', category: 'Media' },
+    { name: 'Camera', icon: 'fa-solid fa-camera', category: 'Media' },
+    { name: 'Voice Recorder', icon: 'fa-solid fa-microphone', category: 'Media' },
+    { name: 'Code Editor', icon: 'fa-solid fa-code', category: 'Development' },
+    { name: 'JSON Formatter', icon: 'fa-solid fa-brackets-curly', category: 'Development' },
+    { name: 'Regex Tester', icon: 'fa-solid fa-spell-check', category: 'Development' },
+    { name: 'Base64 Encoder', icon: 'fa-solid fa-lock', category: 'Development' },
+    { name: 'Hash Generator', icon: 'fa-solid fa-fingerprint', category: 'Development' },
+    { name: 'Database Manager', icon: 'fa-solid fa-database', category: 'Development' },
+    { name: 'Network Tools', icon: 'fa-solid fa-network-wired', category: 'Development' },
+    { name: 'Paint', icon: 'fa-solid fa-palette', category: 'Creative' },
+    { name: 'Canvas Drawing', icon: 'fa-solid fa-paintbrush', category: 'Creative' },
+    { name: 'Whiteboard', icon: 'fa-solid fa-chalkboard', category: 'Creative' },
+    { name: 'Color Picker', icon: 'fa-solid fa-eye-dropper', category: 'Creative' },
+    { name: 'Mind Map', icon: 'fa-solid fa-diagram-project', category: 'Creative' },
+    { name: 'Calculator', icon: 'fa-solid fa-calculator', category: 'Utilities' },
+    { name: 'Calculator Pro', icon: 'fa-solid fa-square-root-variable', category: 'Utilities' },
+    { name: 'Unit Converter', icon: 'fa-solid fa-right-left', category: 'Utilities' },
+    { name: 'Translator', icon: 'fa-solid fa-language', category: 'Utilities' },
+    { name: 'Weather', icon: 'fa-solid fa-cloud-sun', category: 'Utilities' },
+    { name: 'Password Manager', icon: 'fa-solid fa-key', category: 'Utilities' },
+    { name: 'Maps', icon: 'fa-solid fa-map-location-dot', category: 'Utilities' },
+    { name: 'QR Code', icon: 'fa-solid fa-qrcode', category: 'Utilities' },
+    { name: 'Barcode Scanner', icon: 'fa-solid fa-barcode', category: 'Utilities' },
+    { name: 'Text Editor', icon: 'fa-solid fa-file-lines', category: 'Documents' },
+    { name: 'PDF Viewer', icon: 'fa-solid fa-file-pdf', category: 'Documents' },
+    { name: 'Spreadsheet', icon: 'fa-solid fa-table-cells', category: 'Documents' },
+    { name: 'Slides', icon: 'fa-solid fa-person-chalkboard', category: 'Documents' },
+    { name: 'Kanban', icon: 'fa-solid fa-columns', category: 'Documents' },
+    { name: 'Time Tracker', icon: 'fa-solid fa-hourglass-half', category: 'Documents' },
+    { name: 'Browser', icon: 'fa-solid fa-globe', category: 'Communication' },
+    { name: 'Email', icon: 'fa-solid fa-envelope', category: 'Communication' },
+    { name: 'Chat', icon: 'fa-solid fa-comments', category: 'Communication' },
+    { name: 'News', icon: 'fa-solid fa-newspaper', category: 'Information' },
+    { name: 'Stocks', icon: 'fa-solid fa-arrow-trend-up', category: 'Information' },
+    { name: 'Certificate Manager', icon: 'fa-solid fa-shield-halved', category: 'Security' },
+];
+
+// Render apps grid
+function renderAppsGrid(category = 'all') {
+    const grid = document.getElementById('appsGrid');
+    if (!grid) return;
+    
+    const apps = category === 'all' 
+        ? APPS_DATA 
+        : APPS_DATA.filter(a => a.category === category);
+    
+    grid.innerHTML = apps.map(app => `
+        <div class="apps-grid-item" data-category="${app.category}">
+            <div class="apps-grid-icon">
+                <i class="${app.icon}"></i>
+            </div>
+            <span class="apps-grid-name">${app.name}</span>
+            <span class="apps-grid-cat">${app.category}</span>
+        </div>
+    `).join('');
+}
+
+// Category tabs
+document.querySelectorAll('.app-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.app-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderAppsGrid(tab.dataset.category);
+    });
+});
+
+// Initialize
+renderAppsGrid();
+</script>
+{% endblock %}

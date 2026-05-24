@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Get Started - JALAGEL OS Pro{% endblock %}
+{% block content %}
+<section class="section" style="display:flex;align-items:center;justify-content:center;min-height:85vh;">
+    <div class="container-narrow">
+        <div class="card" style="max-width:420px;margin:0 auto;">
+            <div class="text-center" style="margin-bottom:24px;">
+                <div class="logo-icon" style="margin:0 auto 16px;width:48px;height:48px;font-size:1.5rem;">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <h2 style="margin-bottom:4px;">Create Account</h2>
+                <p style="font-size:0.875rem;">Start your JALAGEL OS Pro journey for free</p>
+            </div>
+            <form method="POST" action="{{ url_for('auth_register') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" name="username" class="form-input" placeholder="Choose a username" required minlength="3">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-input" placeholder="Your email address" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="full_name" class="form-input" placeholder="Your full name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-input" placeholder="Create a password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" name="confirm_password" class="form-input" placeholder="Confirm password" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;">
+                    <i class="fa-solid fa-rocket"></i> Create Account
+                </button>
+            </form>
+            <div class="divider"></div>
+            <p class="text-center" style="font-size:0.875rem;">
+                Already have an account? <a href="{{ url_for('auth_login') }}">Sign In</a>
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}

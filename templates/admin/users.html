@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Users - Admin - JALAGEL OS Pro{% endblock %}
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label"><i class="fa-solid fa-users"></i> Admin</div>
+            <h1 class="gradient-text">Manage Users</h1>
+        </div>
+        <div class="card" style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="border-bottom:2px solid var(--border-color);">
+                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">ID</th>
+                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">Username</th>
+                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">Email</th>
+                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">Role</th>
+                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">License</th>
+                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">Created</th>
+                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users.items %}
+                    <tr style="border-bottom:1px solid var(--border-color);">
+                        <td style="padding:12px;font-size:0.8125rem;">{{ user.id }}</td>
+                        <td style="padding:12px;font-size:0.8125rem;"><strong>{{ user.username }}</strong></td>
+                        <td style="padding:12px;font-size:0.8125rem;color:var(--text-secondary);">{{ user.email }}</td>
+                        <td style="padding:12px;"><span class="badge badge-{{ 'primary' if user.role == 'admin' else 'secondary' }}">{{ user.role|title }}</span></td>
+                        <td style="padding:12px;"><span class="badge badge-{{ 'primary' if user.license_tier == 'enterprise' else 'accent' if user.license_tier == 'pro' else 'secondary' }}">{{ user.license_tier|title }}</span></td>
+                        <td style="padding:12px;font-size:0.8125rem;color:var(--text-secondary);">{{ user.created_at|date }}</td>
+                        <td style="padding:12px;">
+                            <select class="form-select" style="min-width:120px;font-size:0.75rem;padding:6px 8px;" onchange="updateLicense({{ user.id }}, this.value)">
+                                <option value="free" {{ 'selected' if user.license_tier == 'free' }}>Free</option>
+                                <option value="pro" {{ 'selected' if user.license_tier == 'pro' }}>Pro</option>
+                                <option value="enterprise" {{ 'selected' if user.license_tier == 'enterprise' }}>Enterprise</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if users.has_prev or users.has_next %}
+        <div style="display:flex;justify-content:center;gap:12px;margin-top:24px;">
+            {% if users.has_prev %}<a href="?page={{ users.prev_num }}" class="btn btn-sm btn-outline">Previous</a>{% endif %}
+            {% if users.has_next %}<a href="?page={{ users.next_num }}" class="btn btn-sm btn-outline">Next</a>{% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

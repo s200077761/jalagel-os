@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Pricing - JALAGEL OS Pro{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/marketing.css') }}">{% endblock %}
+{% block content %}
+<section class="hero" style="min-height:40vh;padding-top:120px;">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label"><i class="fa-solid fa-tag"></i> Pricing</div>
+            <h1 class="hero-title gradient-text">Simple Pricing</h1>
+            <p class="hero-tagline">Start free. Upgrade when you need more.</p>
+        </div>
+    </div>
+</section>
+<section class="section section-pricing">
+    <div class="container">
+        <div class="pricing-grid">
+            {% for tier_key, tier in license_tiers.items() %}
+            <div class="pricing-card {{ 'featured' if tier_key == 'pro' }}">
+                {% if tier_key == 'pro' %}<div class="pricing-popular">Most Popular</div>{% endif %}
+                <div class="pricing-header">
+                    <h3>{{ tier.name }}</h3>
+                    <div class="pricing-amount">
+                        <span class="price">${{ "%.0f"|format(tier.price_monthly) if tier.price_monthly > 0 else '0' }}</span>
+                        <span class="period">/month</span>
+                    </div>
+                </div>
+                <ul class="pricing-features">
+                    <li><i class="fa-solid fa-check"></i> Up to {{ tier.max_apps }} Apps</li>
+                    <li><i class="fa-solid fa-check"></i> {{ tier.max_storage // (1024*1024) }} MB Storage</li>
+                    {% for feature in tier.features %}
+                    <li><i class="fa-solid fa-check"></i> {{ feature }}</li>
+                    {% endfor %}
+                </ul>
+                <a href="{{ url_for('auth_register') }}" class="btn {{ 'btn-primary' if tier_key == 'pro' else 'btn-outline' }}" style="width:100%;">
+                    {{ 'Upgrade to Pro' if tier_key == 'pro' else ('Get Started' if tier_key == 'free' else 'Contact Sales') }}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

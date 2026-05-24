@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0F0F23">
+    <title>{% block title %}JALAGEL OS Pro{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- OS Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/os.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="os-body">
+    <!-- Desktop Environment -->
+    <div class="os-desktop" id="osDesktop">
+        <!-- Animated Background -->
+        <div class="desktop-bg" id="desktopBg">
+            <div class="desktop-bg-gradient"></div>
+            <div class="desktop-bg-mesh">
+                <div class="mesh-orb orb-1"></div>
+                <div class="mesh-orb orb-2"></div>
+                <div class="mesh-orb orb-3"></div>
+                <div class="mesh-orb orb-4"></div>
+            </div>
+            <canvas class="desktop-particles" id="desktopParticles"></canvas>
+        </div>
+
+        <!-- Desktop Icons -->
+        <div class="desktop-icons-grid" id="desktopIcons">
+            <!-- Icons rendered by JS -->
+        </div>
+
+        <!-- Window Container -->
+        <div class="window-container" id="windowContainer">
+            <!-- Windows rendered by JS -->
+        </div>
+
+        <!-- Context Menu -->
+        <div class="context-menu" id="contextMenu">
+            <div class="context-item" data-action="refresh">
+                <i class="fa-solid fa-rotate"></i> Refresh
+            </div>
+            <div class="context-divider"></div>
+            <div class="context-item" data-action="new-folder">
+                <i class="fa-solid fa-folder-plus"></i> New Folder
+            </div>
+            <div class="context-item" data-action="new-file">
+                <i class="fa-solid fa-file-plus"></i> New File
+            </div>
+            <div class="context-divider"></div>
+            <div class="context-item" data-action="sort">
+                <i class="fa-solid fa-arrow-down-wide-short"></i> Sort By
+            </div>
+            <div class="context-item" data-action="view">
+                <i class="fa-solid fa-grid-2"></i> View Options
+            </div>
+            <div class="context-divider"></div>
+            <div class="context-item" data-action="settings">
+                <i class="fa-solid fa-gear"></i> Desktop Settings
+            </div>
+        </div>
+
+        <!-- Snap Zone Indicators -->
+        <div class="snap-zones" id="snapZones">
+            <div class="snap-zone snap-left" data-zone="left"></div>
+            <div class="snap-zone snap-right" data-zone="right"></div>
+            <div class="snap-zone snap-top" data-zone="top"></div>
+            <div class="snap-zone snap-full" data-zone="full"></div>
+        </div>
+    </div>
+
+    <!-- Start Menu -->
+    <div class="start-menu" id="startMenu">
+        <div class="start-menu-header">
+            <div class="start-user-info">
+                <div class="start-user-avatar">
+                    <i class="fa-solid fa-user-circle"></i>
+                </div>
+                <div class="start-user-details">
+                    <div class="start-user-name">{{ current_user.username }}</div>
+                    <div class="start-user-tier">{{ current_user.license_tier|title }}</div>
+                </div>
+            </div>
+            <button class="start-menu-close" id="startMenuClose">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="start-search-box">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="startSearchInput" placeholder="Search apps..." autocomplete="off">
+        </div>
+
+        <div class="start-pinned-label">
+            <span>Pinned</span>
+            <button id="startAllAppsBtn"><i class="fa-solid fa-th-large"></i> All Apps</button>
+        </div>
+
+        <div class="start-app-grid" id="startAppGrid">
+            <!-- Apps rendered by JS -->
+        </div>
+
+        <div class="start-menu-footer">
+            <a href="{{ url_for('auth_profile') }}" class="start-footer-btn">
+                <i class="fa-solid fa-id-card"></i> Profile
+            </a>
+            <a href="{{ url_for('auth_logout') }}" class="start-footer-btn">
+                <i class="fa-solid fa-power-off"></i> Sign Out
+            </a>
+        </div>
+    </div>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel" id="notificationPanel">
+        <div class="notification-header">
+            <h3>Notifications</h3>
+            <button class="notif-clear-all" id="notifClearAll">Clear All</button>
+        </div>
+        <div class="notification-list" id="notificationList">
+            <div class="notification-empty">
+                <i class="fa-solid fa-bell-slash"></i>
+                <p>No notifications</p>
+            </div>
+        </div>
+        <div class="notification-footer">
+            <button id="notifDndToggle"><i class="fa-solid fa-moon"></i> Focus Mode</button>
+        </div>
+    </div>
+
+    <!-- Taskbar -->
+    <div class="os-taskbar" id="osTaskbar">
+        <div class="taskbar-start">
+            <button class="taskbar-start-btn" id="taskbarStartBtn" title="Start Menu">
+                <div class="taskbar-logo-icon">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+            </button>
+        </div>
+
+        <div class="taskbar-search">
+            <button class="taskbar-search-btn" id="taskbarSearchBtn" title="Search">
+                <i class="fa-solid fa-search"></i>
+            </button>
+        </div>
+
+        <div class="taskbar-pins" id="taskbarPins">
+            <!-- Pinned apps rendered by JS -->
+        </div>
+
+        <div class="taskbar-items" id="taskbarItems">
+            <!-- Running app buttons rendered by JS -->
+        </div>
+
+        <div class="taskbar-tray" id="taskbarTray">
+            <div class="tray-icons">
+                <button class="tray-icon" id="trayWifi" title="Network Connected">
+                    <i class="fa-solid fa-wifi"></i>
+                </button>
+                <button class="tray-icon" id="trayVolume" title="Volume: 80%">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <button class="tray-icon" id="trayBattery" title="Battery: 85%">
+                    <i class="fa-solid fa-battery-three-quarters"></i>
+                </button>
+            </div>
+
+            <div class="tray-clock" id="trayClock" title="Click for calendar">
+                <div class="tray-time" id="trayTime">12:00 PM</div>
+                <div class="tray-date" id="trayDate">Jan 1, 2024</div>
+            </div>
+
+            <button class="tray-notifications" id="trayNotifications" title="Notifications">
+                <i class="fa-solid fa-bell"></i>
+                <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+            </button>
+
+            <button class="tray-show-desktop" id="trayShowDesktop" title="Show Desktop"></button>
+        </div>
+    </div>
+
+    <!-- Window Templates (Hidden) -->
+    <template id="windowTemplate">
+        <div class="os-window" data-window-id="">
+            <!-- Resize Handles -->
+            <div class="resize-handle resize-n"></div>
+            <div class="resize-handle resize-e"></div>
+            <div class="resize-handle resize-s"></div>
+            <div class="resize-handle resize-w"></div>
+            <div class="resize-handle resize-ne"></div>
+            <div class="resize-handle resize-nw"></div>
+            <div class="resize-handle resize-se"></div>
+            <div class="resize-handle resize-sw"></div>
+
+            <!-- Title Bar -->
+            <div class="window-titlebar">
+                <div class="window-icon">
+                    <i class="fa-solid fa-cube"></i>
+                </div>
+                <div class="window-title">Window</div>
+                <div class="window-controls">
+                    <button class="win-btn win-minimize" title="Minimize">
+                        <i class="fa-solid fa-minus"></i>
+                    </button>
+                    <button class="win-btn win-maximize" title="Maximize">
+                        <i class="fa-regular fa-square"></i>
+                    </button>
+                    <button class="win-btn win-close" title="Close">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="window-toolbar" style="display:none">
+                <!-- App-specific toolbar -->
+            </div>
+
+            <!-- Content -->
+            <div class="window-content">
+                <iframe class="window-iframe" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="window-statusbar" style="display:none">
+                <span class="status-text">Ready</span>
+            </div>
+        </div>
+    </template>
+
+    <!-- Loading Overlay -->
+    <div class="os-loading-overlay" id="osLoadingOverlay">
+        <div class="os-loading-content">
+            <div class="os-loading-logo">
+                <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <div class="os-loading-text">JALAGEL OS Pro</div>
+            <div class="os-loading-spinner"></div>
+            <div class="os-loading-version">v{{ app_version }}</div>
+        </div>
+    </div>
+
+    <!-- OS Kernel Scripts -->
+    <script>
+        window.OS_CONFIG = {
+            user: {
+                id: {{ current_user.id }},
+                username: "{{ current_user.username }}",
+                name: "{{ current_user.full_name or current_user.username }}",
+                tier: "{{ current_user.license_tier }}",
+                isAdmin: {{ 'true' if current_user.is_admin() else 'false' }}
+            },
+            version: "{{ app_version }}",
+            csrfToken: "{{ csrf_token() if csrf_token is defined else '' }}"
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/os.js') }}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Certificates - Admin - JALAGEL OS Pro{% endblock %}
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label"><i class="fa-solid fa-certificate"></i> Admin</div>
+            <h1 class="gradient-text">Manage Certificates</h1>
+        </div>
+        <div class="card" style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="border-bottom:2px solid var(--border-color);">
+                        <th style="text-align:left;padding:12px;">ID</th>
+                        <th style="text-align:left;padding:12px;">Name</th>
+                        <th style="text-align:left;padding:12px;">Type</th>
+                        <th style="text-align:left;padding:12px;">Domain</th>
+                        <th style="text-align:left;padding:12px;">Status</th>
+                        <th style="text-align:left;padding:12px;">Issued</th>
+                        <th style="text-align:left;padding:12px;">Expires</th>
+                        <th style="text-align:left;padding:12px;">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cert in certificates %}
+                    <tr style="border-bottom:1px solid var(--border-color);">
+                        <td style="padding:12px;font-size:0.8125rem;">{{ cert.id }}</td>
+                        <td style="padding:12px;font-size:0.8125rem;"><strong>{{ cert.cert_name }}</strong></td>
+                        <td style="padding:12px;"><span class="badge badge-accent">{{ cert.cert_type|upper }}</span></td>
+                        <td style="padding:12px;font-size:0.8125rem;color:var(--text-secondary);">{{ cert.domain or 'N/A' }}</td>
+                        <td style="padding:12px;"><span class="badge badge-{{ 'success' if cert.status == 'active' else 'warning' if cert.status == 'pending' else 'error' }}">{{ cert.status|title }}</span></td>
+                        <td style="padding:12px;font-size:0.8125rem;color:var(--text-secondary);">{{ cert.issued_date|date }}</td>
+                        <td style="padding:12px;font-size:0.8125rem;color:var(--text-secondary);">{{ cert.expiry_date|date }}</td>
+                        <td style="padding:12px;font-size:0.8125rem;">${{ "%.2f"|format(cert.price_paid) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
