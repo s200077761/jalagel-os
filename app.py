@@ -1365,6 +1365,16 @@ def seed_data(app):
 
 app = create_app()
 
+# Auto-seed on startup (for Docker/Render)
+with app.app_context():
+    try:
+        db.create_all()
+        seed_data(app)
+    except Exception as e:
+        import logging
+        logging.basicConfig(level=logging.INFO)
+        logging.getLogger('jalagel').warning(f'Seed skipped (may already exist): {e}')
+
 @app.cli.command('seed')
 def seed_command():
     """Seed the database with initial data."""
