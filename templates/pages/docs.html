@@ -2,33 +2,709 @@
 {% block title %}Documentation - JALAGEL OS Pro{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/marketing.css') }}">{% endblock %}
 {% block content %}
+
+<!-- ===== HERO SECTION ===== -->
 <section class="hero" style="min-height:40vh;padding-top:120px;">
-    <div class="container-narrow">
+    <div class="hero-bg">
+        <div class="hero-orb orb-1" style="background:rgba(124,58,237,0.2);"></div>
+        <div class="hero-orb orb-2" style="background:rgba(6,182,212,0.2);"></div>
+        <div class="hero-grid-overlay"></div>
+        <canvas class="hero-particles" id="heroParticles"></canvas>
+    </div>
+    <div class="hero-content">
         <div class="section-header">
             <div class="section-label"><i class="fa-solid fa-book"></i> Documentation</div>
             <h1 class="hero-title gradient-text">Documentation</h1>
-            <p class="hero-tagline">Learn how to use JALAGEL OS Pro effectively.</p>
+            <p class="hero-tagline">Everything you need to know about JALAGEL OS Pro — from getting started to advanced configuration.</p>
+        </div>
+        <!-- Search -->
+        <div class="docs-search">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" placeholder="Search documentation..." id="docsSearchInput" onkeyup="searchDocs()">
         </div>
     </div>
 </section>
-<section class="section">
-    <div class="container-narrow">
-        <div class="card" style="margin-bottom:24px;">
-            <h3><i class="fa-solid fa-rocket" style="color:var(--color-primary);"></i> Getting Started</h3>
-            <p>Create an account, log in, and launch the OS to access all your applications.</p>
-        </div>
-        <div class="card" style="margin-bottom:24px;">
-            <h3><i class="fa-solid fa-desktop" style="color:var(--color-accent);"></i> Desktop Environment</h3>
-            <p>Use the Start Menu to open apps. Drag and resize windows. Use keyboard shortcuts for quick access.</p>
-        </div>
-        <div class="card" style="margin-bottom:24px;">
-            <h3><i class="fa-solid fa-shield-halved" style="color:var(--color-success);"></i> Certificates</h3>
-            <p>Navigate to the Certificate Store to purchase and manage SSL certificates for your domains.</p>
-        </div>
-        <div class="card">
-            <h3><i class="fa-solid fa-id-card" style="color:var(--color-warning);"></i> Licensing</h3>
-            <p>Choose between Free, Pro, and Enterprise tiers. Upgrade anytime from your profile settings.</p>
-        </div>
+
+<!-- ===== DOCS LAYOUT ===== -->
+<section class="section docs-section">
+    <div class="container docs-container">
+        <!-- Sidebar Navigation -->
+        <aside class="docs-sidebar">
+            <nav class="docs-nav">
+                <div class="docs-nav-group">
+                    <h4><i class="fa-solid fa-rocket"></i> Getting Started</h4>
+                    <ul>
+                        <li><a href="#introduction" class="docs-nav-link active">Introduction</a></li>
+                        <li><a href="#quickstart" class="docs-nav-link">Quick Start Guide</a></li>
+                        <li><a href="#system-requirements" class="docs-nav-link">System Requirements</a></li>
+                        <li><a href="#installation" class="docs-nav-link">Installation</a></li>
+                    </ul>
+                </div>
+                <div class="docs-nav-group">
+                    <h4><i class="fa-solid fa-desktop"></i> Desktop Environment</h4>
+                    <ul>
+                        <li><a href="#desktop-overview" class="docs-nav-link">Desktop Overview</a></li>
+                        <li><a href="#window-management" class="docs-nav-link">Window Management</a></li>
+                        <li><a href="#keyboard-shortcuts" class="docs-nav-link">Keyboard Shortcuts</a></li>
+                    </ul>
+                </div>
+                <div class="docs-nav-group">
+                    <h4><i class="fa-solid fa-th"></i> Applications</h4>
+                    <ul>
+                        {% for app_group in app_docs %}
+                        <li><a href="#app-{{ app_group.id }}" class="docs-nav-link">{{ app_group.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="docs-nav-group">
+                    <h4><i class="fa-solid fa-shield-halved"></i> Certificates</h4>
+                    <ul>
+                        <li><a href="#cert-overview" class="docs-nav-link">Overview</a></li>
+                        <li><a href="#cert-types" class="docs-nav-link">Certificate Types</a></li>
+                        <li><a href="#cert-management" class="docs-nav-link">Management Guide</a></li>
+                    </ul>
+                </div>
+                <div class="docs-nav-group">
+                    <h4><i class="fa-solid fa-code"></i> API Reference</h4>
+                    <ul>
+                        <li><a href="#api-authentication" class="docs-nav-link">Authentication</a></li>
+                        <li><a href="#api-endpoints" class="docs-nav-link">Endpoints</a></li>
+                    </ul>
+                </div>
+                <div class="docs-nav-group">
+                    <h4><i class="fa-solid fa-user-shield"></i> Admin Guide</h4>
+                    <ul>
+                        <li><a href="#admin-dashboard" class="docs-nav-link">Dashboard</a></li>
+                        <li><a href="#admin-users" class="docs-nav-link">User Management</a></li>
+                        <li><a href="#admin-licenses" class="docs-nav-link">License Management</a></li>
+                    </ul>
+                </div>
+                <div class="docs-nav-group">
+                    <h4><i class="fa-solid fa-circle-question"></i> Support</h4>
+                    <ul>
+                        <li><a href="#faq" class="docs-nav-link">FAQ</a></li>
+                        <li><a href="#troubleshooting" class="docs-nav-link">Troubleshooting</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <article class="docs-content">
+
+            <!-- GETTING STARTED -->
+            <div class="docs-section-group" id="getting-started">
+                <h2 class="docs-h1"><i class="fa-solid fa-rocket"></i> Getting Started</h2>
+
+                <div class="docs-card" id="introduction">
+                    <h3 class="docs-h2">Introduction</h3>
+                    <p>JALAGEL OS Pro is a commercial-grade, web-based operating system built with Python Flask. It provides a complete desktop environment with 50+ applications, enterprise SSL certificate management, and multi-tier licensing — all accessible from any modern web browser.</p>
+                    <h4 class="docs-h3">Key Features</h4>
+                    <ul class="docs-list">
+                        <li><strong>50+ Professional Apps</strong> — From productivity tools to developer utilities</li>
+                        <li><strong>Desktop Environment</strong> — Draggable windows, taskbar, start menu, and virtual desktops</li>
+                        <li><strong>SSL Certificate Store</strong> — 8 certificate types with full lifecycle management</li>
+                        <li><strong>Multi-tier Licensing</strong> — Free, Pro, and Enterprise plans</li>
+                        <li><strong>Dark Theme UI</strong> — Beautiful glassmorphism design with gradient accents</li>
+                        <li><strong>Cloud Sync</strong> — Your data follows you across devices</li>
+                    </ul>
+                </div>
+
+                <div class="docs-card" id="quickstart">
+                    <h3 class="docs-h2">Quick Start Guide</h3>
+                    <p>Get up and running with JALAGEL OS Pro in under 5 minutes:</p>
+                    <div class="docs-steps">
+                        <div class="docs-step">
+                            <span class="docs-step-num">1</span>
+                            <div class="docs-step-body">
+                                <strong>Create an account</strong>
+                                <p>Visit the <a href="{{ url_for('auth_register') }}">registration page</a> and fill in your details. No credit card required for the Free tier.</p>
+                            </div>
+                        </div>
+                        <div class="docs-step">
+                            <span class="docs-step-num">2</span>
+                            <div class="docs-step-body">
+                                <strong>Log in</strong>
+                                <p>Use your username/email and password to <a href="{{ url_for('auth_login') }}">log in</a>.</p>
+                            </div>
+                        </div>
+                        <div class="docs-step">
+                            <span class="docs-step-num">3</span>
+                            <div class="docs-step-body">
+                                <strong>Launch the OS</strong>
+                                <p>Click "Launch OS" from the navigation bar or your profile to open the desktop environment.</p>
+                            </div>
+                        </div>
+                        <div class="docs-step">
+                            <span class="docs-step-num">4</span>
+                            <div class="docs-step-body">
+                                <strong>Open an app</strong>
+                                <p>Click the Start Menu button (bottom-left) or double-click a desktop icon to launch apps.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="docs-card" id="system-requirements">
+                    <h3 class="docs-h2">System Requirements</h3>
+                    <p>JALAGEL OS Pro runs entirely in your browser. Here are the minimum requirements:</p>
+                    <table class="docs-table">
+                        <thead>
+                            <tr><th>Requirement</th><th>Minimum</th><th>Recommended</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><i class="fa-brands fa-chrome"></i> Browser</td><td>Chrome 90+, Firefox 88+, Safari 14+, Edge 90+</td><td>Latest stable release</td></tr>
+                            <tr><td><i class="fa-solid fa-memory"></i> RAM</td><td>2 GB</td><td>4 GB+</td></tr>
+                            <tr><td><i class="fa-solid fa-microchip"></i> Processor</td><td>Dual-core 1.6 GHz</td><td>Quad-core 2.0 GHz+</td></tr>
+                            <tr><td><i class="fa-solid fa-wifi"></i> Internet</td><td>1 Mbps</td><td>5 Mbps+</td></tr>
+                            <tr><td><i class="fa-solid fa-display"></i> Screen</td><td>1024 x 768</td><td>1920 x 1080+</td></tr>
+                            <tr><td><i class="fa-brands fa-js"></i> JavaScript</td><td>Enabled (required)</td><td>Enabled</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="docs-card" id="installation">
+                    <h3 class="docs-h2">Self-Hosted Installation</h3>
+                    <p>To install JALAGEL OS Pro on your own server:</p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span><i class="fa-solid fa-terminal"></i> Terminal</span>
+                            <button class="code-copy" onclick="copyCode(this)"><i class="fa-solid fa-copy"></i> Copy</button>
+                        </div>
+                        <pre><code><span class="code-comment"># Clone the repository</span>
+$ git clone https://github.com/jalagel-os/jalagel-os-pro.git
+$ cd jalagel-os-pro
+
+<span class="code-comment"># Create virtual environment</span>
+$ python -m venv venv
+$ source venv/bin/activate  <span class="code-comment"># Linux/Mac</span>
+$ venv\Scripts\activate     <span class="code-comment"># Windows</span>
+
+<span class="code-comment"># Install dependencies</span>
+$ pip install -r requirements.txt
+
+<span class="code-comment"># Initialize database</span>
+$ flask seed
+
+<span class="code-comment"># Run the application</span>
+$ flask run --host=0.0.0.0 --port=5000</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DESKTOP ENVIRONMENT -->
+            <div class="docs-section-group" id="desktop-env">
+                <h2 class="docs-h1"><i class="fa-solid fa-desktop"></i> Desktop Environment</h2>
+
+                <div class="docs-card" id="desktop-overview">
+                    <h3 class="docs-h2">Desktop Overview</h3>
+                    <p>The JALAGEL OS desktop provides a familiar computing environment with these core components:</p>
+                    <ul class="docs-list">
+                        <li><strong>Desktop</strong> — The main workspace with draggable app icons and a live wallpaper</li>
+                        <li><strong>Taskbar</strong> — Bottom bar showing running apps, system tray, and the Start Menu button</li>
+                        <li><strong>Start Menu</strong> — Click the JALAGEL logo to open the app launcher with search</li>
+                        <li><strong>Windows</strong> — Each app opens in its own draggable, resizable window</li>
+                        <li><strong>System Tray</strong> — Clock, network status, notifications, and quick settings</li>
+                        <li><strong>Notifications</strong> — Slide-out panel for system and app notifications</li>
+                    </ul>
+                </div>
+
+                <div class="docs-card" id="window-management">
+                    <h3 class="docs-h2">Window Management</h3>
+                    <p>Each application runs in its own window with the following controls:</p>
+                    <table class="docs-table">
+                        <thead>
+                            <tr><th>Action</th><th>Method</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Move window</td><td>Drag the title bar</td></tr>
+                            <tr><td>Resize window</td><td>Drag any edge or corner</td></tr>
+                            <tr><td>Minimize</td><td>Click <i class="fa-solid fa-minus" style="font-size:0.75rem;"></i> on the title bar</td></tr>
+                            <tr><td>Maximize</td><td>Click <i class="fa-solid fa-square" style="font-size:0.75rem;"></i> on the title bar</td></tr>
+                            <tr><td>Close</td><td>Click <i class="fa-solid fa-xmark" style="font-size:0.75rem;"></i> on the title bar</td></tr>
+                            <tr><td>Snap to left</td><td>Drag to left edge of screen</td></tr>
+                            <tr><td>Snap to right</td><td>Drag to right edge of screen</td></tr>
+                            <tr><td>Bring to front</td><td>Click anywhere on the window</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="docs-card" id="keyboard-shortcuts">
+                    <h3 class="docs-h2">Keyboard Shortcuts</h3>
+                    <p>Master these keyboard shortcuts to work faster in JALAGEL OS Pro:</p>
+                    <table class="docs-table">
+                        <thead>
+                            <tr><th>Shortcut</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd></td><td>Open Terminal</td></tr>
+                            <tr><td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd></td><td>Open Notes</td></tr>
+                            <tr><td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>C</kbd></td><td>Open Code Editor</td></tr>
+                            <tr><td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>F</kbd></td><td>Open File Manager</td></tr>
+                            <tr><td><kbd>Alt</kbd> + <kbd>Tab</kbd></td><td>Switch between open windows</td></tr>
+                            <tr><td><kbd>Alt</kbd> + <kbd>F4</kbd></td><td>Close active window</td></tr>
+                            <tr><td><kbd>Super</kbd> / <kbd>Win</kbd></td><td>Open Start Menu</td></tr>
+                            <tr><td><kbd>Ctrl</kbd> + <kbd>+</kbd></td><td>Zoom in</td></tr>
+                            <tr><td><kbd>Ctrl</kbd> + <kbd>-</kbd></td><td>Zoom out</td></tr>
+                            <tr><td><kbd>F11</kbd></td><td>Fullscreen mode</td></tr>
+                            <tr><td><kbd>Ctrl</kbd> + <kbd>S</kbd></td><td>Save (in supported apps)</td></tr>
+                            <tr><td><kbd>Ctrl</kbd> + <kbd>Z</kbd></td><td>Undo</td></tr>
+                            <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td><td>Redo</td></tr>
+                            <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>5</kbd></td><td>Take screenshot</td></tr>
+                            <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd></td><td>Toggle dark/light theme</td></tr>
+                            <tr><td><kbd>Esc</kbd></td><td>Close modals and menus</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- APP DOCUMENTATION -->
+            <div class="docs-section-group" id="app-documentation">
+                <h2 class="docs-h1"><i class="fa-solid fa-th"></i> Application Documentation</h2>
+                <p>Detailed documentation for all built-in applications:</p>
+
+                {% for app_group in app_docs %}
+                <div class="docs-card docs-app-card" id="app-{{ app_group.id }}">
+                    <div class="docs-app-header">
+                        <div class="docs-app-icon"><i class="fa-solid {{ app_group.icon }}"></i></div>
+                        <div>
+                            <h3 class="docs-h2">{{ app_group.name }}</h3>
+                            <span class="docs-app-category">{{ app_group.category|title }}</span>
+                            {% if app_group.premium %}<span class="docs-app-premium">PRO</span>{% endif %}
+                        </div>
+                    </div>
+                    <p>{{ app_group.description }}</p>
+                    <h4 class="docs-h3">Features</h4>
+                    <ul class="docs-list docs-feature-list">
+                        {% for feature in app_group.features %}
+                        <li><i class="fa-solid fa-check" style="color:var(--color-success);font-size:0.625rem;"></i> {{ feature }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% if app_group.shortcut %}
+                    <div class="docs-app-shortcut">
+                        <i class="fa-solid fa-keyboard"></i> Shortcut: <kbd>{{ app_group.shortcut }}</kbd>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- CERTIFICATES -->
+            <div class="docs-section-group" id="certificates">
+                <h2 class="docs-h1"><i class="fa-solid fa-shield-halved"></i> Certificate Management</h2>
+
+                <div class="docs-card" id="cert-overview">
+                    <h3 class="docs-h2">Overview</h3>
+                    <p>JALAGEL OS Pro includes a comprehensive SSL certificate management system. You can purchase, generate, renew, and revoke certificates directly from the OS interface.</p>
+                    <p>Certificates are essential for securing your custom domains, signing code, and establishing trust with your users.</p>
+                </div>
+
+                <div class="docs-card" id="cert-types">
+                    <h3 class="docs-h2">Certificate Types</h3>
+                    <table class="docs-table">
+                        <thead>
+                            <tr><th>Type</th><th>Price/yr</th><th>Best For</th><th>Validation</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><i class="fa-solid fa-lock" style="color:var(--color-success);"></i> <strong>DV SSL</strong></td>
+                                <td>$9.99</td>
+                                <td>Personal sites, blogs</td>
+                                <td>Domain only</td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-building" style="color:var(--color-info);"></i> <strong>OV SSL</strong></td>
+                                <td>$49.99</td>
+                                <td>Business websites</td>
+                                <td>Organization</td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-certificate" style="color:var(--color-primary);"></i> <strong>EV SSL</strong></td>
+                                <td>$149.99</td>
+                                <td>E-commerce, banking</td>
+                                <td>Extended</td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-asterisk" style="color:var(--color-accent);"></i> <strong>Wildcard</strong></td>
+                                <td>$199.99</td>
+                                <td>Unlimited subdomains</td>
+                                <td>Domain</td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-globe" style="color:var(--color-secondary);"></i> <strong>Multi-Domain</strong></td>
+                                <td>$299.99</td>
+                                <td>Up to 250 domains</td>
+                                <td>Domain</td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-file-signature" style="color:var(--color-warning);"></i> <strong>Code Signing</strong></td>
+                                <td>$199.99</td>
+                                <td>Software distribution</td>
+                                <td>Organization</td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-crown" style="color:var(--color-primary);"></i> <strong>Enterprise</strong></td>
+                                <td>$499.99</td>
+                                <td>Custom CA, API access</td>
+                                <td>Full</td>
+                            </tr>
+                            <tr>
+                                <td><i class="fa-solid fa-seal" style="color:var(--color-success);"></i> <strong>Premium JALAGEL</strong></td>
+                                <td>$99.99</td>
+                                <td>Branded trust seal</td>
+                                <td>Organization</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="docs-card" id="cert-management">
+                    <h3 class="docs-h2">Certificate Management Guide</h3>
+                    <h4 class="docs-h3">Purchasing a Certificate</h4>
+                    <ol class="docs-list">
+                        <li>Navigate to <strong>Certificates</strong> from the navigation bar or open the Certificate Manager app</li>
+                        <li>Browse the available certificate types</li>
+                        <li>Click <strong>Purchase</strong> on your chosen certificate</li>
+                        <li>Enter your domain name and complete the checkout</li>
+                        <li>The certificate will appear in "My Certificates" with status <em>Pending</em></li>
+                    </ol>
+
+                    <h4 class="docs-h3">Generating/Activating</h4>
+                    <ol class="docs-list">
+                        <li>Go to <strong>My Certificates</strong></li>
+                        <li>Find your pending certificate and click <strong>Generate</strong></li>
+                        <li>The system will create your certificate and private key</li>
+                        <li>Status changes to <em>Active</em> — your certificate is ready to use</li>
+                    </ol>
+
+                    <h4 class="docs-h3">Renewing</h4>
+                    <ol class="docs-list">
+                        <li>Certificates expire after the purchased period (typically 1 year)</li>
+                        <li>Before expiry, you'll receive renewal notifications</li>
+                        <li>Click <strong>Renew</strong> in My Certificates to extend for another year</li>
+                    </ol>
+
+                    <h4 class="docs-h3">Revoking</h4>
+                    <ol class="docs-list">
+                        <li>If a certificate is compromised, click <strong>Revoke</strong> immediately</li>
+                        <li>Revoked certificates cannot be renewed — you must purchase a new one</li>
+                        <li>The revocation is published to certificate transparency logs</li>
+                    </ol>
+
+                    <h4 class="docs-h3">Downloading</h4>
+                    <p>Active certificates can be downloaded in PEM format for use with web servers:</p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span><i class="fa-solid fa-file-code"></i> Certificate Files</span>
+                            <button class="code-copy" onclick="copyCode(this)"><i class="fa-solid fa-copy"></i> Copy</button>
+                        </div>
+                        <pre><code><span class="code-comment"># Download these files from My Certificates:</span>
+certificate.pem   <span class="code-comment"># Your SSL certificate</span>
+private_key.pem   <span class="code-comment"># Private key (keep secure!)</span>
+chain.pem         <span class="code-comment"># Certificate chain</span>
+
+<span class="code-comment"># For Nginx:</span>
+ssl_certificate     /path/to/certificate.pem;
+ssl_certificate_key /path/to/private_key.pem;
+ssl_trusted_certificate /path/to/chain.pem;</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API REFERENCE -->
+            <div class="docs-section-group" id="api-reference">
+                <h2 class="docs-h1"><i class="fa-solid fa-code"></i> API Reference</h2>
+
+                <div class="docs-card" id="api-authentication">
+                    <h3 class="docs-h2">Authentication</h3>
+                    <p>All API endpoints require authentication. Use session-based auth (cookies) or API key authentication.</p>
+                    <p>For API key auth, include your key in the header:</p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span><i class="fa-solid fa-key"></i> Headers</span>
+                            <button class="code-copy" onclick="copyCode(this)"><i class="fa-solid fa-copy"></i> Copy</button>
+                        </div>
+                        <pre><code>Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json</code></pre>
+                    </div>
+                </div>
+
+                <div class="docs-card" id="api-endpoints">
+                    <h3 class="docs-h2">Endpoints</h3>
+
+                    <h4 class="docs-h3">Apps</h4>
+                    <div class="api-endpoint">
+                        <span class="api-method get">GET</span> <code>/api/apps</code>
+                        <p>List all available applications</p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span> <code>/api/apps/launch</code>
+                        <p>Launch an app (tracks usage). Body: <code>{"app_id": 1}</code></p>
+                    </div>
+
+                    <h4 class="docs-h3">Files</h4>
+                    <div class="api-endpoint">
+                        <span class="api-method get">GET</span> <code>/api/files?parent_id={id}</code>
+                        <p>List files and folders</p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span> <code>/api/files</code>
+                        <p>Create file or folder. Body: <code>{"name": "...", "type": "file|folder"}</code></p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method put">PUT</span> <code>/api/files/{id}</code>
+                        <p>Update file. Body: <code>{"name": "...", "content": "..."}</code></p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method delete">DELETE</span> <code>/api/files/{id}</code>
+                        <p>Move file to trash</p>
+                    </div>
+
+                    <h4 class="docs-h3">Notes</h4>
+                    <div class="api-endpoint">
+                        <span class="api-method get">GET</span> <code>/api/notes</code>
+                        <p>List all notes</p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span> <code>/api/notes</code>
+                        <p>Create note. Body: <code>{"title": "...", "content": "...", "color": "#7C3AED"}</code></p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method put">PUT</span> <code>/api/notes/{id}</code>
+                        <p>Update note</p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method delete">DELETE</span> <code>/api/notes/{id}</code>
+                        <p>Delete note</p>
+                    </div>
+
+                    <h4 class="docs-h3">Todos</h4>
+                    <div class="api-endpoint">
+                        <span class="api-method get">GET</span> <code>/api/todos</code>
+                        <p>List all todos</p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span> <code>/api/todos</code>
+                        <p>Create todo. Body: <code>{"text": "...", "priority": "medium"}</code></p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method put">PUT</span> <code>/api/todos/{id}</code>
+                        <p>Update todo</p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span> <code>/api/todos/{id}/toggle</code>
+                        <p>Toggle completion</p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method delete">DELETE</span> <code>/api/todos/{id}</code>
+                        <p>Delete todo</p>
+                    </div>
+
+                    <h4 class="docs-h3">Certificates</h4>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span> <code>/api/certificates/purchase</code>
+                        <p>Purchase certificate. Body: <code>{"template_id": 1, "domain": "..."}</code></p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span> <code>/api/certificates/generate</code>
+                        <p>Generate SSL cert. Body: <code>{"certificate_id": 1}</code></p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span> <code>/api/certificates/renew</code>
+                        <p>Renew certificate. Body: <code>{"certificate_id": 1}</code></p>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span> <code>/api/certificates/revoke</code>
+                        <p>Revoke certificate. Body: <code>{"certificate_id": 1}</code></p>
+                    </div>
+
+                    <h4 class="docs-h3">Admin</h4>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span> <code>/api/admin/users/{id}/license</code>
+                        <p>Update user license. Body: <code>{"tier": "pro|enterprise", "expires": "2026-01-01"}</code></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN GUIDE -->
+            <div class="docs-section-group" id="admin-guide">
+                <h2 class="docs-h1"><i class="fa-solid fa-user-shield"></i> Admin Guide</h2>
+
+                <div class="docs-card" id="admin-dashboard">
+                    <h3 class="docs-h2">Admin Dashboard</h3>
+                    <p>The admin dashboard provides an overview of your JALAGEL OS instance:</p>
+                    <ul class="docs-list">
+                        <li><strong>Total Users</strong> — Count of registered accounts</li>
+                        <li><strong>Active Users</strong> — Currently active accounts</li>
+                        <li><strong>Total Certificates</strong> — All issued certificates</li>
+                        <li><strong>Pending Certificates</strong> — Certificates awaiting generation</li>
+                        <li><strong>Premium Users</strong> — Pro and Enterprise subscribers</li>
+                        <li><strong>Storage Usage</strong> — Aggregated disk consumption</li>
+                    </ul>
+                    <p>Access the dashboard at <code>/admin</code> (admin role required).</p>
+                </div>
+
+                <div class="docs-card" id="admin-users">
+                    <h3 class="docs-h2">User Management</h3>
+                    <p>Admins can manage users from the <strong>Admin &gt; Users</strong> page:</p>
+                    <ul class="docs-list">
+                        <li><strong>View Users</strong> — Browse all registered users with pagination (50 per page)</li>
+                        <li><strong>Edit User</strong> — Modify user details, roles, and license tiers</li>
+                        <li><strong>Deactivate</strong> — Disable user accounts without deleting data</li>
+                        <li><strong>Search</strong> — Find users by username, email, or license tier</li>
+                    </ul>
+                </div>
+
+                <div class="docs-card" id="admin-licenses">
+                    <h3 class="docs-h2">License Management</h3>
+                    <p>Manage user licenses from the <strong>Admin &gt; Licenses</strong> page:</p>
+                    <ul class="docs-list">
+                        <li>View all Pro and Enterprise subscribers</li>
+                        <li>See expiration dates and renewal status</li>
+                        <li>Upgrade or downgrade user tiers</li>
+                        <li>Extend license expiration dates</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- FAQ -->
+            <div class="docs-section-group" id="support">
+                <h2 class="docs-h1"><i class="fa-solid fa-circle-question"></i> Frequently Asked Questions</h2>
+
+                <div class="docs-card" id="faq">
+                    <h3 class="docs-h2">General Questions</h3>
+
+                    <div class="faq-item-simple">
+                        <h4><i class="fa-solid fa-question-circle" style="color:var(--color-primary);"></i> What is JALAGEL OS Pro?</h4>
+                        <p>A commercial-grade web-based operating system that runs entirely in your browser. It provides a full desktop environment with 50+ applications, SSL certificate management, and enterprise licensing.</p>
+                    </div>
+
+                    <div class="faq-item-simple">
+                        <h4><i class="fa-solid fa-question-circle" style="color:var(--color-primary);"></i> Do I need to install anything?</h4>
+                        <p>No. JALAGEL OS Pro runs entirely in your web browser. For self-hosting, you can install it on your own server using the installation instructions above.</p>
+                    </div>
+
+                    <div class="faq-item-simple">
+                        <h4><i class="fa-solid fa-question-circle" style="color:var(--color-primary);"></i> Is my data secure?</h4>
+                        <p>Yes. We use bcrypt password hashing, CSRF protection, session management, rate limiting, and input sanitization. All data is stored encrypted at rest.</p>
+                    </div>
+
+                    <div class="faq-item-simple">
+                        <h4><i class="fa-solid fa-question-circle" style="color:var(--color-primary);"></i> Can I use it offline?</h4>
+                        <p>Currently, JALAGEL OS Pro requires an internet connection. Offline support is on our roadmap for a future release.</p>
+                    </div>
+
+                    <div class="faq-item-simple">
+                        <h4><i class="fa-solid fa-question-circle" style="color:var(--color-primary);"></i> How do I report a bug?</h4>
+                        <p>Use the support chat in the OS, or email support@jalagel.com. Pro and Enterprise users get priority bug fixes.</p>
+                    </div>
+
+                    <div class="faq-item-simple">
+                        <h4><i class="fa-solid fa-question-circle" style="color:var(--color-primary);"></i> Can I contribute?</h4>
+                        <p>We welcome contributions! Check our GitHub repository for contribution guidelines, coding standards, and open issues.</p>
+                    </div>
+                </div>
+
+                <div class="docs-card" id="troubleshooting">
+                    <h3 class="docs-h2">Troubleshooting</h3>
+
+                    <div class="faq-item-simple">
+                        <h4><i class="fa-solid fa-triangle-exclamation" style="color:var(--color-warning);"></i> Desktop won't load</h4>
+                        <p>Clear your browser cache, ensure JavaScript is enabled, and try a hard refresh (Ctrl+F5). Check that you're using a supported browser version.</p>
+                    </div>
+
+                    <div class="faq-item-simple">
+                        <h4><i class="fa-solid fa-triangle-exclamation" style="color:var(--color-warning);"></i> Apps are slow</h4>
+                        <p>Close unused app windows to free up memory. Check your internet connection speed. For best performance, use a modern browser on a device with 4GB+ RAM.</p>
+                    </div>
+
+                    <div class="faq-item-simple">
+                        <h4><i class="fa-solid fa-triangle-exclamation" style="color:var(--color-warning);"></i> Can't upload files</h4>
+                        <p>Check your storage quota in Settings. Free users have 100MB, Pro has 5GB, and Enterprise has 50GB. Ensure your files don't exceed the individual file size limit (10MB).</p>
+                    </div>
+
+                    <div class="faq-item-simple">
+                        <h4><i class="fa-solid fa-triangle-exclamation" style="color:var(--color-warning);"></i> Certificate generation failed</h4>
+                        <p>Ensure you've entered a valid domain name. Check that your license tier includes certificates. Contact support if the issue persists.</p>
+                    </div>
+                </div>
+            </div>
+
+        </article>
     </div>
 </section>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+// ===== SIDEBAR NAVIGATION =====
+(function() {
+    const sidebarLinks = document.querySelectorAll('.docs-nav-link');
+    const sections = document.querySelectorAll('.docs-card, .docs-section-group');
+
+    // Active link highlighting on scroll
+    function onScroll() {
+        const scrollPos = window.scrollY + 150;
+        sections.forEach(section => {
+            if (section.offsetTop <= scrollPos && section.offsetTop + section.offsetHeight > scrollPos) {
+                const id = section.getAttribute('id');
+                sidebarLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + id) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }
+    window.addEventListener('scroll', onScroll);
+
+    // Smooth scroll for sidebar links
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                window.scrollTo({ top: target.offsetTop - 120, behavior: 'smooth' });
+            }
+        });
+    });
+})();
+
+// ===== CODE COPY =====
+function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    const code = pre.textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+        setTimeout(() => btn.innerHTML = original, 2000);
+    });
+}
+
+// ===== SEARCH =====
+function searchDocs() {
+    const query = document.getElementById('docsSearchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.docs-card');
+    const groups = document.querySelectorAll('.docs-section-group');
+
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (text.includes(query)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = query === '' ? 'block' : 'none';
+        }
+    });
+
+    // Show/hide section headers based on visible cards
+    groups.forEach(group => {
+        const visibleCards = group.querySelectorAll('.docs-card[style="display: block;"], .docs-card:not([style*="none"])');
+        const header = group.querySelector('.docs-h1');
+        if (header) {
+            header.style.display = visibleCards.length > 0 ? 'block' : 'none';
+        }
+    });
+}
+</script>
 {% endblock %}

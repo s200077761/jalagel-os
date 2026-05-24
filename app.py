@@ -10,6 +10,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+import click
 
 from config import get_config
 from models import db, User, Certificate, CertificateTemplate, App, FileSystem, Note, Todo, DEFAULT_APPS, CERTIFICATE_TEMPLATES
@@ -89,6 +90,15 @@ def create_app(config_class=None):
         if len(words) > num_words:
             return ' '.join(words[:num_words]) + '...'
         return value
+
+    @app.template_filter('from_json')
+    def from_json_filter(value):
+        if not value:
+            return []
+        try:
+            return json.loads(value)
+        except (ValueError, TypeError):
+            return []
     
     # ============================================================
     # Context Processors
@@ -157,6 +167,10 @@ def create_app(config_class=None):
                                cert_count=cert_count,
                                license_tiers=app.config.get('LICENSE_TIERS', {}))
     
+    # ============================================================
+    # ENHANCED MARKETING ROUTES
+    # ============================================================
+
     @app.route('/features')
     def features():
         apps_by_category = {}
@@ -165,24 +179,186 @@ def create_app(config_class=None):
             if cat not in apps_by_category:
                 apps_by_category[cat] = []
             apps_by_category[cat].append(app_item)
-        return render_template('pages/features.html', 
+        # Ensure all 6 display categories exist even if DB is empty
+        for cat in ['productivity', 'creativity', 'development', 'utilities', 'communication', 'security', 'media', 'system']:
+            if cat not in apps_by_category:
+                apps_by_category[cat] = []
+        return render_template('pages/features.html',
                                apps_by_category=apps_by_category,
                                total_apps=App.query.count())
-    
+
     @app.route('/pricing')
     def pricing():
         tiers = app.config.get('LICENSE_TIERS', {})
-        certs = CertificateTemplate.query.filter_by(is_active=True).all()
+        certs = CertificateTemplate.query.filter_by(is_active=True).order_by(
+            CertificateTemplate.price_yearly).all()
         return render_template('pages/pricing.html', tiers=tiers, certificates=certs)
-    
+
     @app.route('/demo')
     def demo():
         demo_apps = App.query.limit(10).all()
         return render_template('pages/demo.html', demo_apps=demo_apps)
-    
+
     @app.route('/docs')
     def docs():
-        return render_template('pages/docs.html')
+        # Rich structured documentation data for 20+ apps
+        app_docs = [
+            {
+                'id': 'notes', 'name': 'Notes', 'icon': 'fa-sticky-note',
+                'category': 'productivity', 'premium': False,
+                'description': 'Rich text note-taking with color-coded notes, tags, search, pinning, and archive functionality.',
+                'features': ['Create rich text notes', 'Color code your notes', 'Add tags for organization', 'Pin important notes', 'Search across all notes', 'Archive old notes', 'Export to text/JSON'],
+                'shortcut': 'Ctrl+Alt+N'
+            },
+            {
+                'id': 'calendar', 'name': 'Calendar', 'icon': 'fa-calendar-alt',
+                'category': 'productivity', 'premium': False,
+                'description': 'Full-featured calendar application with event creation, reminders, and multiple views.',
+                'features': ['Month/week/day views', 'Drag-and-drop events', 'Recurring events', 'Event reminders', 'Color-coded categories', 'Calendar sharing'],
+                'shortcut': None
+            },
+            {
+                'id': 'todo', 'name': 'Todo List', 'icon': 'fa-check-circle',
+                'category': 'productivity', 'premium': False,
+                'description': 'Task management with priorities, categories, due dates, and progress tracking.',
+                'features': ['Create tasks with priorities', 'Set due dates', 'Organize by categories', 'Track completion', 'Filter by status', 'Sort by priority/date'],
+                'shortcut': None
+            },
+            {
+                'id': 'email', 'name': 'Email Client', 'icon': 'fa-envelope',
+                'category': 'communication', 'premium': False,
+                'description': 'Send, receive, and manage emails with folders, filters, and HTML composition.',
+                'features': ['Send/receive emails', 'HTML composition', 'Folder management', 'Contact integration', 'Email filters', 'Draft autosave'],
+                'shortcut': None
+            },
+            {
+                'id': 'contacts', 'name': 'Contacts', 'icon': 'fa-address-book',
+                'category': 'productivity', 'premium': False,
+                'description': 'Contact management with groups, search, import/export, and detailed profiles.',
+                'features': ['Add/edit contacts', 'Group management', 'Search contacts', 'Import from CSV', 'Export contacts', 'Email integration'],
+                'shortcut': None
+            },
+            {
+                'id': 'paint', 'name': 'Paint Studio', 'icon': 'fa-paint-brush',
+                'category': 'creativity', 'premium': True,
+                'description': 'Canvas-based drawing tool with multiple brushes, shapes, layers, and export.',
+                'features': ['Multiple brush types', 'Shape tools', 'Color picker', 'Layer support', 'Undo/redo', 'Export PNG/JPG'],
+                'shortcut': None
+            },
+            {
+                'id': 'canvas', 'name': 'Canvas Editor', 'icon': 'fa-vector-square',
+                'category': 'creativity', 'premium': True,
+                'description': 'Advanced vector drawing with Bezier curves, gradients, and SVG export.',
+                'features': ['Bezier curve tools', 'Gradient fills', 'SVG export/import', 'Shape manipulation', 'Path editing', 'Layer management'],
+                'shortcut': None
+            },
+            {
+                'id': 'photos', 'name': 'Photos Viewer', 'icon': 'fa-images',
+                'category': 'creativity', 'premium': True,
+                'description': 'Photo browser with organization, basic editing, filters, and slideshow mode.',
+                'features': ['Browse photo library', 'Apply filters', 'Crop and rotate', 'Slideshow mode', 'Album creation', 'Metadata viewing'],
+                'shortcut': None
+            },
+            {
+                'id': 'music', 'name': 'Music Player', 'icon': 'fa-music',
+                'category': 'media', 'premium': False,
+                'description': 'Audio player with playlists, visualizer, equalizer, and playback controls.',
+                'features': ['Play audio files', 'Create playlists', 'Visualizer effects', 'Equalizer settings', 'Repeat/shuffle', 'Background playback'],
+                'shortcut': None
+            },
+            {
+                'id': 'video', 'name': 'Video Editor', 'icon': 'fa-video',
+                'category': 'creativity', 'premium': True,
+                'description': 'Timeline-based video editing with trim, merge, transitions, and export.',
+                'features': ['Timeline editing', 'Trim and split clips', 'Add transitions', 'Text overlays', 'Audio mixing', 'Export MP4'],
+                'shortcut': None
+            },
+            {
+                'id': 'code-editor', 'name': 'Code Editor', 'icon': 'fa-code',
+                'category': 'development', 'premium': True,
+                'description': 'Syntax-highlighting code editor supporting 50+ languages with themes.',
+                'features': ['50+ language support', 'Syntax highlighting', 'Multiple themes', 'Auto-indentation', 'Search and replace', 'Line numbers'],
+                'shortcut': 'Ctrl+Alt+C'
+            },
+            {
+                'id': 'terminal', 'name': 'Terminal', 'icon': 'fa-terminal',
+                'category': 'development', 'premium': True,
+                'description': 'Web-based terminal emulator with command history and file operations.',
+                'features': ['Command execution', 'Command history', 'File operations', 'Directory navigation', 'Tab completion', 'Custom aliases'],
+                'shortcut': 'Ctrl+Alt+T'
+            },
+            {
+                'id': 'git', 'name': 'Git Manager', 'icon': 'fa-code-branch',
+                'category': 'development', 'premium': True,
+                'description': 'Visual Git client with commit history, branching, and merge tools.',
+                'features': ['Visual commit history', 'Branch management', 'Merge conflict resolution', 'Diff viewer', 'Stash support', 'Remote sync'],
+                'shortcut': None
+            },
+            {
+                'id': 'db-manager', 'name': 'Database Manager', 'icon': 'fa-database',
+                'category': 'development', 'premium': True,
+                'description': 'Connect to and manage SQLite, MySQL, and PostgreSQL databases.',
+                'features': ['Multi-database support', 'Query editor', 'Table browser', 'Schema viewer', 'Export results', 'Connection management'],
+                'shortcut': None
+            },
+            {
+                'id': 'api-tester', 'name': 'API Tester', 'icon': 'fa-network-wired',
+                'category': 'development', 'premium': True,
+                'description': 'Test REST APIs with support for all HTTP methods, headers, and auth.',
+                'features': ['All HTTP methods', 'Custom headers', 'JSON body editor', 'Response viewer', 'Auth support', 'Request history'],
+                'shortcut': None
+            },
+            {
+                'id': 'calculator', 'name': 'Calculator', 'icon': 'fa-calculator',
+                'category': 'utilities', 'premium': False,
+                'description': 'Standard and scientific calculator with history and unit conversion.',
+                'features': ['Standard mode', 'Scientific mode', 'Calculation history', 'Expression evaluation', 'Unit conversion', 'Memory functions'],
+                'shortcut': None
+            },
+            {
+                'id': 'converter', 'name': 'Unit Converter', 'icon': 'fa-exchange-alt',
+                'category': 'utilities', 'premium': False,
+                'description': 'Convert between 200+ units across length, weight, temperature, and currency.',
+                'features': ['200+ unit types', 'Currency conversion', 'Real-time rates', 'Favorites', 'Recent conversions', 'Batch convert'],
+                'shortcut': None
+            },
+            {
+                'id': 'password-manager', 'name': 'Password Manager', 'icon': 'fa-key',
+                'category': 'security', 'premium': True,
+                'description': 'Secure password storage with generator, autofill, and encrypted vault.',
+                'features': ['Encrypted vault', 'Password generator', 'Autofill support', 'Categories', 'Secure notes', 'Import/export'],
+                'shortcut': None
+            },
+            {
+                'id': 'system-monitor', 'name': 'System Monitor', 'icon': 'fa-tachometer-alt',
+                'category': 'utilities', 'premium': True,
+                'description': 'Real-time system monitoring with CPU, memory, disk, and network charts.',
+                'features': ['CPU usage graphs', 'Memory monitoring', 'Disk usage', 'Network traffic', 'Process list', 'Alert thresholds'],
+                'shortcut': None
+            },
+            {
+                'id': 'cert-manager', 'name': 'Certificate Manager', 'icon': 'fa-certificate',
+                'category': 'security', 'premium': True,
+                'description': 'Full lifecycle SSL certificate management from purchase to revocation.',
+                'features': ['Purchase certificates', 'Generate SSL certs', 'Renew certificates', 'Revoke certificates', 'Download PEM files', 'Verify certificates'],
+                'shortcut': None
+            },
+            {
+                'id': 'chat', 'name': 'Chat Messenger', 'icon': 'fa-comment-dots',
+                'category': 'communication', 'premium': False,
+                'description': 'Real-time messaging with channels, file sharing, and emoji reactions.',
+                'features': ['Real-time messaging', 'Channel creation', 'File sharing', 'Emoji reactions', 'Read receipts', 'Message search'],
+                'shortcut': None
+            },
+            {
+                'id': 'file-manager', 'name': 'File Manager', 'icon': 'fa-folder',
+                'category': 'utilities', 'premium': False,
+                'description': 'Browse, organize, and manage your files with drag-and-drop support.',
+                'features': ['File/folder creation', 'Drag-and-drop', 'Copy/move/delete', 'Search files', 'Starred items', 'Trash recovery'],
+                'shortcut': 'Ctrl+Alt+F'
+            },
+        ]
+        return render_template('pages/docs.html', app_docs=app_docs)
     
     # ============================================================
     # Auth Routes
@@ -807,9 +983,6 @@ def create_admin_command(username, email, password):
         db.session.add(user)
         db.session.commit()
         click.echo(f'Admin user {username} created.')
-
-
-import click
 
 
 # ============================================================

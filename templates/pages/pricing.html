@@ -2,41 +2,298 @@
 {% block title %}Pricing - JALAGEL OS Pro{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/marketing.css') }}">{% endblock %}
 {% block content %}
-<section class="hero" style="min-height:40vh;padding-top:120px;">
-    <div class="container">
+
+<!-- ===== HERO SECTION ===== -->
+<section class="hero" style="min-height:45vh;padding-top:120px;">
+    <div class="hero-bg">
+        <div class="hero-orb orb-1" style="background:rgba(236,72,153,0.2);"></div>
+        <div class="hero-orb orb-2" style="background:rgba(124,58,237,0.2);"></div>
+        <div class="hero-orb orb-3" style="background:rgba(6,182,212,0.15);"></div>
+        <div class="hero-grid-overlay"></div>
+        <canvas class="hero-particles" id="heroParticles"></canvas>
+    </div>
+    <div class="hero-content">
         <div class="section-header">
             <div class="section-label"><i class="fa-solid fa-tag"></i> Pricing</div>
-            <h1 class="hero-title gradient-text">Simple Pricing</h1>
-            <p class="hero-tagline">Start free. Upgrade when you need more.</p>
+            <h1 class="hero-title gradient-text">Choose Your Plan</h1>
+            <p class="hero-tagline">Start free and scale as you grow. No hidden fees, no surprises.</p>
         </div>
     </div>
 </section>
+
+<!-- ===== PRICING TIERS ===== -->
 <section class="section section-pricing">
     <div class="container">
+        <!-- Monthly/Yearly Toggle -->
+        <div class="pricing-toggle reveal-on-scroll">
+            <span class="toggle-label active" data-period="monthly">Monthly</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="pricingToggle" checked>
+                <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label" data-period="yearly">Yearly <span class="save-badge">Save 17%</span></span>
+        </div>
+
         <div class="pricing-grid">
-            {% for tier_key, tier in license_tiers.items() %}
-            <div class="pricing-card {{ 'featured' if tier_key == 'pro' }}">
-                {% if tier_key == 'pro' %}<div class="pricing-popular">Most Popular</div>{% endif %}
+            <!-- FREE TIER -->
+            <div class="pricing-card reveal-on-scroll">
                 <div class="pricing-header">
-                    <h3>{{ tier.name }}</h3>
+                    <h3>Free</h3>
+                    <p>For individuals getting started</p>
                     <div class="pricing-amount">
-                        <span class="price">${{ "%.0f"|format(tier.price_monthly) if tier.price_monthly > 0 else '0' }}</span>
+                        <span class="price" data-monthly="0" data-yearly="0">$0</span>
                         <span class="period">/month</span>
                     </div>
                 </div>
                 <ul class="pricing-features">
-                    <li><i class="fa-solid fa-check"></i> Up to {{ tier.max_apps }} Apps</li>
-                    <li><i class="fa-solid fa-check"></i> {{ tier.max_storage // (1024*1024) }} MB Storage</li>
-                    {% for feature in tier.features %}
+                    <li><i class="fa-solid fa-check"></i> 10 core apps</li>
+                    <li><i class="fa-solid fa-check"></i> 100 MB storage</li>
+                    <li><i class="fa-solid fa-check"></i> Community support</li>
+                    <li><i class="fa-solid fa-check"></i> Basic file manager</li>
+                    <li><i class="fa-solid fa-check"></i> Notes & Todos</li>
+                    <li><i class="fa-solid fa-check"></i> Calculator & Calendar</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> SSL Certificates</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Cloud sync</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Priority support</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Developer tools</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> API access</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Custom domain</li>
+                </ul>
+                <a href="{{ url_for('auth_register') }}" class="btn btn-outline" style="width:100%;">
+                    <i class="fa-solid fa-rocket"></i> Get Started
+                </a>
+            </div>
+
+            <!-- PRO TIER -->
+            <div class="pricing-card featured reveal-on-scroll">
+                <div class="pricing-popular"><i class="fa-solid fa-crown"></i> Most Popular</div>
+                <div class="pricing-header">
+                    <h3>Pro</h3>
+                    <p>For professionals and power users</p>
+                    <div class="pricing-amount">
+                        <span class="price" data-monthly="19.99" data-yearly="16.58">$16.58</span>
+                        <span class="period">/month (billed yearly)</span>
+                    </div>
+                </div>
+                <ul class="pricing-features">
+                    <li><i class="fa-solid fa-check"></i> <strong>All 50+ apps</strong></li>
+                    <li><i class="fa-solid fa-check"></i> 5 GB storage</li>
+                    <li><i class="fa-solid fa-check"></i> Priority email support</li>
+                    <li><i class="fa-solid fa-check"></i> Advanced file manager</li>
+                    <li><i class="fa-solid fa-check"></i> Full notes with sync</li>
+                    <li><i class="fa-solid fa-check"></i> Code editor + Terminal</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>1 SSL Certificate</strong></li>
+                    <li><i class="fa-solid fa-check"></i> Cloud sync across devices</li>
+                    <li><i class="fa-solid fa-check"></i> Password manager</li>
+                    <li><i class="fa-solid fa-check"></i> API access (100 req/hr)</li>
+                    <li class="disabled"><i class="fa-solid fa-xmark"></i> Custom domain</li>
+                </ul>
+                <a href="{{ url_for('auth_register') }}" class="btn btn-primary" style="width:100%;">
+                    <i class="fa-solid fa-crown"></i> Upgrade to Pro
+                </a>
+            </div>
+
+            <!-- ENTERPRISE TIER -->
+            <div class="pricing-card reveal-on-scroll">
+                <div class="pricing-header">
+                    <h3>Enterprise</h3>
+                    <p>For teams and organizations</p>
+                    <div class="pricing-amount">
+                        <span class="price" data-monthly="49.99" data-yearly="41.58">$41.58</span>
+                        <span class="period">/month (billed yearly)</span>
+                    </div>
+                </div>
+                <ul class="pricing-features">
+                    <li><i class="fa-solid fa-check"></i> <strong>Everything in Pro</strong></li>
+                    <li><i class="fa-solid fa-check"></i> 50 GB storage</li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Dedicated support</strong></li>
+                    <li><i class="fa-solid fa-check"></i> <strong>Unlimited SSL Certificates</strong></li>
+                    <li><i class="fa-solid fa-check"></i> Full API access</li>
+                    <li><i class="fa-solid fa-check"></i> Custom domain</li>
+                    <li><i class="fa-solid fa-check"></i> Team collaboration</li>
+                    <li><i class="fa-solid fa-check"></i> Admin dashboard</li>
+                    <li><i class="fa-solid fa-check"></i> User management</li>
+                    <li><i class="fa-solid fa-check"></i> Audit logs</li>
+                    <li><i class="fa-solid fa-check"></i> SLA guarantee</li>
+                </ul>
+                <a href="{{ url_for('auth_register') }}" class="btn btn-outline" style="width:100%;">
+                    <i class="fa-solid fa-building"></i> Contact Sales
+                </a>
+            </div>
+        </div>
+
+        <!-- Money-back guarantee -->
+        <div class="guarantee-badge reveal-on-scroll" style="text-align:center;margin-top:40px;">
+            <div class="guarantee-content">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span><strong>30-Day Money-Back Guarantee</strong> — No questions asked, full refund within 30 days.</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CERTIFICATE ADD-ONS ===== -->
+<section class="section section-certs">
+    <div class="container">
+        <div class="section-header text-center reveal-on-scroll">
+            <div class="section-label"><i class="fa-solid fa-certificate"></i> SSL Certificates</div>
+            <h2 class="section-title">Certificate <span class="gradient-text">Add-ons</span></h2>
+            <p class="section-subtitle">Purchase additional SSL certificates a la carte or get them included with your plan.</p>
+        </div>
+        <div class="certs-grid">
+            {% for cert in certificates %}
+            <div class="cert-card reveal-on-scroll {{ 'featured' if cert.cert_type == 'premium_jalagel' }}">
+                {% if cert.cert_type == 'premium_jalagel' %}<div class="cert-badge popular">Popular</div>{% endif %}
+                <div class="cert-header">
+                    <div class="cert-icon"><i class="fa-solid {{ cert.icon }}"></i></div>
+                    {% if cert.cert_type == 'ev_ssl' %}<div class="cert-badge">Best Value</div>{% endif %}
+                </div>
+                <h3>{{ cert.name }}</h3>
+                <p>{{ cert.description }}</p>
+                <div class="cert-price">${{ "%.2f"|format(cert.price_yearly) }}<span>/year</span></div>
+                <ul class="cert-features">
+                    {% for feature in cert.features|from_json if feature %}
                     <li><i class="fa-solid fa-check"></i> {{ feature }}</li>
                     {% endfor %}
                 </ul>
-                <a href="{{ url_for('auth_register') }}" class="btn {{ 'btn-primary' if tier_key == 'pro' else 'btn-outline' }}" style="width:100%;">
-                    {{ 'Upgrade to Pro' if tier_key == 'pro' else ('Get Started' if tier_key == 'free' else 'Contact Sales') }}
+                <a href="{{ url_for('certificates_store') }}" class="btn btn-outline btn-sm" style="width:100%;">
+                    <i class="fa-solid fa-cart-plus"></i> Purchase
                 </a>
             </div>
             {% endfor %}
         </div>
     </div>
 </section>
+
+<!-- ===== FAQ SECTION ===== -->
+<section class="section section-faq">
+    <div class="container-narrow">
+        <div class="section-header text-center reveal-on-scroll">
+            <div class="section-label"><i class="fa-solid fa-circle-question"></i> FAQ</div>
+            <h2 class="section-title">Frequently Asked <span class="gradient-text">Questions</span></h2>
+            <p class="section-subtitle">Got questions? We've got answers.</p>
+        </div>
+        <div class="faq-accordion" id="faqAccordion">
+            <div class="faq-item reveal-on-scroll">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span><i class="fa-solid fa-credit-card"></i> Can I switch plans at any time?</span>
+                    <i class="fa-solid fa-chevron-down faq-chevron"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Yes! You can upgrade or downgrade your plan at any time. When upgrading, you'll be charged the prorated difference. When downgrading, your new rate takes effect at the next billing cycle.</p>
+                </div>
+            </div>
+            <div class="faq-item reveal-on-scroll">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span><i class="fa-solid fa-rotate-left"></i> What's your refund policy?</span>
+                    <i class="fa-solid fa-chevron-down faq-chevron"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>We offer a 30-day money-back guarantee on all paid plans. If you're not satisfied, contact our support team within 30 days for a full refund — no questions asked.</p>
+                </div>
+            </div>
+            <div class="faq-item reveal-on-scroll">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span><i class="fa-solid fa-shield-halved"></i> Do I need an SSL certificate?</span>
+                    <i class="fa-solid fa-chevron-down faq-chevron"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>SSL certificates are included with Pro (1 cert) and Enterprise (unlimited) plans. Free users can purchase certificates separately from our certificate store starting at $9.99/year.</p>
+                </div>
+            </div>
+            <div class="faq-item reveal-on-scroll">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span><i class="fa-solid fa-users"></i> Is there a team or family plan?</span>
+                    <i class="fa-solid fa-chevron-down faq-chevron"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Our Enterprise plan supports multiple users with team collaboration, admin dashboard, and user management. Contact us for custom team pricing with more than 10 members.</p>
+                </div>
+            </div>
+            <div class="faq-item reveal-on-scroll">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span><i class="fa-solid fa-code"></i> Do you offer API access?</span>
+                    <i class="fa-solid fa-chevron-down faq-chevron"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Pro plans include API access with 100 requests per hour. Enterprise plans get unlimited API access with dedicated endpoints, webhooks, and custom integrations.</p>
+                </div>
+            </div>
+            <div class="faq-item reveal-on-scroll">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span><i class="fa-solid fa-server"></i> Where is my data stored?</span>
+                    <i class="fa-solid fa-chevron-down faq-chevron"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Your data is securely stored on our encrypted servers with automatic backups. Enterprise customers can request data residency in specific geographic regions.</p>
+                </div>
+            </div>
+            <div class="faq-item reveal-on-scroll">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span><i class="fa-solid fa-wrench"></i> Can I self-host JALAGEL OS?</span>
+                    <i class="fa-solid fa-chevron-down faq-chevron"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Enterprise plans include a self-hosted option with full source code access. Contact our sales team to discuss on-premises deployment and custom licensing.</p>
+                </div>
+            </div>
+            <div class="faq-item reveal-on-scroll">
+                <button class="faq-question" onclick="toggleFaq(this)">
+                    <span><i class="fa-solid fa-headset"></i> How do I get support?</span>
+                    <i class="fa-solid fa-chevron-down faq-chevron"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Free users get community support via our forums. Pro users get priority email support with 24-hour response time. Enterprise users get dedicated support with a direct line and 4-hour SLA.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CUSTOM SOLUTION CTA ===== -->
+<section class="section section-cta">
+    <div class="container">
+        <div class="cta-box reveal-on-scroll">
+            <div class="cta-orb"></div>
+            <div class="cta-content">
+                <h2><i class="fa-solid fa-building" style="color:var(--color-primary-light);"></i> Need a Custom Solution?</h2>
+                <p>For organizations with specific requirements, we offer custom deployments, dedicated infrastructure, white-labeling, and bespoke feature development. Let's build something amazing together.</p>
+                <div class="cta-buttons">
+                    <a href="mailto:enterprise@jalagel.com" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-envelope"></i> Contact Sales
+                    </a>
+                    <a href="{{ url_for('docs') }}" class="btn btn-outline btn-lg">
+                        <i class="fa-solid fa-book"></i> Read Docs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+// FAQ Accordion
+function toggleFaq(button) {
+    const item = button.parentElement;
+    const answer = item.querySelector('.faq-answer');
+    const chevron = button.querySelector('.faq-chevron');
+    const isOpen = item.classList.contains('open');
+
+    // Close all
+    document.querySelectorAll('.faq-item').forEach(i => {
+        i.classList.remove('open');
+        i.querySelector('.faq-answer').style.maxHeight = null;
+        i.querySelector('.faq-chevron').style.transform = 'rotate(0deg)';
+    });
+
+    // Open clicked if it was closed
+    if (!isOpen) {
+        item.classList.add('open');
+        answer.style.maxHeight = answer.scrollHeight + 'px';
+        chevron.style.transform = 'rotate(180deg)';
+    }
+}
+</script>
 {% endblock %}
