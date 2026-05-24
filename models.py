@@ -26,6 +26,10 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, nullable=True)
+    bio = db.Column(db.Text, default='')
+    email_verified = db.Column(db.Boolean, default=False)
+    reset_token = db.Column(db.String(128), nullable=True)
+    reset_expires = db.Column(db.DateTime, nullable=True)
 
     # Relationships
     certificates = db.relationship('Certificate', backref='owner', lazy='dynamic',

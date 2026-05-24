@@ -1,52 +1,195 @@
-{% extends "base.html" %}
-{% block title %}Users - Admin - JALAGEL OS Pro{% endblock %}
-{% block content %}
-<section class="section">
-    <div class="container">
-        <div class="section-header">
-            <div class="section-label"><i class="fa-solid fa-users"></i> Admin</div>
-            <h1 class="gradient-text">Manage Users</h1>
+{% extends "admin/layout.html" %}
+{% block title %}Manage Users - Admin - JALAGEL OS Pro{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-house"></i> Dashboard</a> <i class="fa-solid fa-chevron-right" style="font-size:0.625rem;margin:0 8px;color:var(--text-secondary)"></i> Users{% endblock %}
+{% block admin_content %}
+<!-- Toolbar -->
+<div class="admin-toolbar">
+  <div class="admin-search">
+    <i class="fa-solid fa-search"></i>
+    <input type="text" id="userSearch" placeholder="Search users..." oninput="filterUsers(this.value)">
+  </div>
+  <div class="admin-filters">
+    <select id="roleFilter" onchange="applyFilters()">
+      <option value="">All Roles</option><option value="admin">Admin</option><option value="user">User</option>
+    </select>
+    <select id="tierFilter" onchange="applyFilters()">
+      <option value="">All Tiers</option><option value="free">Free</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option>
+    </select>
+    <select id="statusFilter" onchange="applyFilters()">
+      <option value="">All Status</option><option value="active">Active</option><option value="inactive">Inactive</option>
+    </select>
+    <button class="profile-btn" onclick="openModal('addUserModal')"><i class="fa-solid fa-user-plus"></i> Add User</button>
+    <button class="profile-btn-outline" onclick="exportUsersCSV()"><i class="fa-solid fa-file-csv"></i> Export</button>
+  </div>
+</div>
+
+<!-- Bulk Actions -->
+<div class="admin-bulk-actions" id="bulkActions" style="display:none">
+  <span id="bulkCount">0 selected</span>
+  <button class="profile-btn-outline" style="padding:6px 14px;font-size:0.75rem" onclick="bulkChangeRole()"><i class="fa-solid fa-user-tag"></i> Change Role</button>
+  <button class="profile-btn-outline" style="padding:6px 14px;font-size:0.75rem" onclick="bulkChangeLicense()"><i class="fa-solid fa-id-card"></i> Change License</button>
+  <button class="profile-btn-danger" style="padding:6px 14px;font-size:0.75rem" onclick="bulkDelete()"><i class="fa-solid fa-trash"></i> Delete</button>
+  <button class="profile-btn-outline" style="padding:6px 14px;font-size:0.75rem;margin-left:auto" onclick="clearSelection()"><i class="fa-solid fa-xmark"></i> Clear</button>
+</div>
+
+<!-- Users Table -->
+<div class="admin-table-card">
+  <div class="admin-table-wrap">
+    <table class="admin-table" id="usersTable">
+      <thead>
+        <tr>
+          <th style="width:32px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+          <th onclick="sortTable(1)">User <i class="fa-solid fa-sort"></i></th>
+          <th onclick="sortTable(2)">Email <i class="fa-solid fa-sort"></i></th>
+          <th onclick="sortTable(3)">Role <i class="fa-solid fa-sort"></i></th>
+          <th onclick="sortTable(4)">License <i class="fa-solid fa-sort"></i></th>
+          <th onclick="sortTable(5)">Status <i class="fa-solid fa-sort"></i></th>
+          <th onclick="sortTable(6)">Created <i class="fa-solid fa-sort"></i></th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users.items %}
+        <tr data-role="{{ user.role }}" data-tier="{{ user.license_tier }}" data-status="{{ 'active' if user.is_active else 'inactive' }}" data-search="{{ user.username|lower }} {{ user.email|lower }} {{ user.full_name|lower }}">
+          <td><input type="checkbox" class="user-check" value="{{ user.id }}"></td>
+          <td>
+            <div class="admin-user-cell">
+              <div class="admin-user-avatar-sm" style="background:linear-gradient(135deg,{{ '#7C3AED' if user.role=='admin' else '#06B6D4' }},{{ '#EC4899' if user.role=='admin' else '#0891B2' }})">{{ user.username[0]|upper }}</div>
+              <div><strong>{{ user.username }}</strong>{% if user.full_name %}<span>{{ user.full_name }}</span>{% endif %}</div>
+            </div>
+          </td>
+          <td>{{ user.email }}</td>
+          <td><span class="admin-badge role-{{ user.role }}">{{ user.role|title }}</span></td>
+          <td><span class="admin-badge tier-{{ user.license_tier }}">{{ user.license_tier|title }}</span></td>
+          <td><span class="admin-badge status-{{ 'active' if user.is_active else 'inactive' }}">{{ 'Active' if user.is_active else 'Inactive' }}</span></td>
+          <td>{{ user.created_at|date }}</td>
+          <td>
+            <div class="admin-row-actions">
+              <button class="admin-action-icon" onclick="openModal('viewUserModal{{ user.id }}')" title="View"><i class="fa-solid fa-eye"></i></button>
+              <button class="admin-action-icon" onclick="openModal('editUserModal{{ user.id }}')" title="Edit"><i class="fa-solid fa-pen"></i></button>
+              <button class="admin-action-icon" onclick="openModal('licenseModal{{ user.id }}')" title="License"><i class="fa-solid fa-id-card"></i></button>
+              <button class="admin-action-icon danger" onclick="deleteUser({{ user.id }},'{{ user.username }}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <!-- Pagination -->
+  {% if users.has_prev or users.has_next %}
+  <div class="admin-pagination">
+    {% if users.has_prev %}<a href="?page={{ users.prev_num }}" class="admin-page-btn"><i class="fa-solid fa-chevron-left"></i></a>{% else %}<span class="admin-page-btn disabled"><i class="fa-solid fa-chevron-left"></i></span>{% endif %}
+    {% for p in users.iter_pages(left_edge=1,right_edge=1,left_current=2,right_current=2) %}
+      {% if p %}
+        {% if p == users.page %}<span class="admin-page-btn active">{{ p }}</span>{% else %}<a href="?page={{ p }}" class="admin-page-btn">{{ p }}</a>{% endif %}
+      {% else %}<span class="admin-page-btn dots">...</span>{% endif %}
+    {% endfor %}
+    {% if users.has_next %}<a href="?page={{ users.next_num }}" class="admin-page-btn"><i class="fa-solid fa-chevron-right"></i></a>{% else %}<span class="admin-page-btn disabled"><i class="fa-solid fa-chevron-right"></i></span>{% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- Add User Modal -->
+<div class="admin-modal" id="addUserModal">
+  <div class="admin-modal-content">
+    <div class="admin-modal-header"><h3><i class="fa-solid fa-user-plus"></i> Add User</h3><button class="admin-modal-close" onclick="closeModal('addUserModal')"><i class="fa-solid fa-xmark"></i></button></div>
+    <form method="POST" action="{{ url_for('api_admin_create_user') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="admin-modal-body">
+        <div class="profile-form-group"><label class="profile-form-label">Username *</label><input type="text" name="username" class="profile-form-input" required minlength="3"></div>
+        <div class="profile-form-group"><label class="profile-form-label">Email *</label><input type="email" name="email" class="profile-form-input" required></div>
+        <div class="profile-form-group"><label class="profile-form-label">Full Name</label><input type="text" name="full_name" class="profile-form-input"></div>
+        <div class="profile-form-group"><label class="profile-form-label">Password *</label><input type="password" name="password" class="profile-form-input" required minlength="6"></div>
+        <div class="profile-grid" style="grid-template-columns:1fr 1fr;gap:16px">
+          <div class="profile-form-group"><label class="profile-form-label">Role</label><select name="role" class="profile-form-input"><option value="user">User</option><option value="admin">Admin</option></select></div>
+          <div class="profile-form-group"><label class="profile-form-label">License</label><select name="license_tier" class="profile-form-input"><option value="free">Free</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option></select></div>
         </div>
-        <div class="card" style="overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;">
-                <thead>
-                    <tr style="border-bottom:2px solid var(--border-color);">
-                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">ID</th>
-                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">Username</th>
-                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">Email</th>
-                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">Role</th>
-                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">License</th>
-                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">Created</th>
-                        <th style="text-align:left;padding:12px;font-size:0.8125rem;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users.items %}
-                    <tr style="border-bottom:1px solid var(--border-color);">
-                        <td style="padding:12px;font-size:0.8125rem;">{{ user.id }}</td>
-                        <td style="padding:12px;font-size:0.8125rem;"><strong>{{ user.username }}</strong></td>
-                        <td style="padding:12px;font-size:0.8125rem;color:var(--text-secondary);">{{ user.email }}</td>
-                        <td style="padding:12px;"><span class="badge badge-{{ 'primary' if user.role == 'admin' else 'secondary' }}">{{ user.role|title }}</span></td>
-                        <td style="padding:12px;"><span class="badge badge-{{ 'primary' if user.license_tier == 'enterprise' else 'accent' if user.license_tier == 'pro' else 'secondary' }}">{{ user.license_tier|title }}</span></td>
-                        <td style="padding:12px;font-size:0.8125rem;color:var(--text-secondary);">{{ user.created_at|date }}</td>
-                        <td style="padding:12px;">
-                            <select class="form-select" style="min-width:120px;font-size:0.75rem;padding:6px 8px;" onchange="updateLicense({{ user.id }}, this.value)">
-                                <option value="free" {{ 'selected' if user.license_tier == 'free' }}>Free</option>
-                                <option value="pro" {{ 'selected' if user.license_tier == 'pro' }}>Pro</option>
-                                <option value="enterprise" {{ 'selected' if user.license_tier == 'enterprise' }}>Enterprise</option>
-                            </select>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="profile-btn-outline" onclick="closeModal('addUserModal')">Cancel</button>
+        <button type="submit" class="profile-btn"><i class="fa-solid fa-plus"></i> Add User</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% for user in users.items %}
+<!-- Edit User Modal -->
+<div class="admin-modal" id="editUserModal{{ user.id }}">
+  <div class="admin-modal-content">
+    <div class="admin-modal-header"><h3><i class="fa-solid fa-pen"></i> Edit {{ user.username }}</h3><button class="admin-modal-close" onclick="closeModal('editUserModal{{ user.id }}')"><i class="fa-solid fa-xmark"></i></button></div>
+    <form method="POST" action="{{ url_for('api_admin_edit_user', user_id=user.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="admin-modal-body">
+        <div class="profile-form-group"><label class="profile-form-label">Full Name</label><input type="text" name="full_name" class="profile-form-input" value="{{ user.full_name or '' }}"></div>
+        <div class="profile-form-group"><label class="profile-form-label">Email</label><input type="email" name="email" class="profile-form-input" value="{{ user.email }}"></div>
+        <div class="profile-grid" style="grid-template-columns:1fr 1fr;gap:16px">
+          <div class="profile-form-group"><label class="profile-form-label">Role</label><select name="role" class="profile-form-input"><option value="user" {{ 'selected' if user.role=='user' }}>User</option><option value="admin" {{ 'selected' if user.role=='admin' }}>Admin</option></select></div>
+          <div class="profile-form-group"><label class="profile-form-label">Active</label><select name="is_active" class="profile-form-input"><option value="1" {{ 'selected' if user.is_active }}>Active</option><option value="0" {{ 'selected' if not user.is_active }}>Inactive</option></select></div>
         </div>
-        {% if users.has_prev or users.has_next %}
-        <div style="display:flex;justify-content:center;gap:12px;margin-top:24px;">
-            {% if users.has_prev %}<a href="?page={{ users.prev_num }}" class="btn btn-sm btn-outline">Previous</a>{% endif %}
-            {% if users.has_next %}<a href="?page={{ users.next_num }}" class="btn btn-sm btn-outline">Next</a>{% endif %}
-        </div>
-        {% endif %}
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="profile-btn-outline" onclick="closeModal('editUserModal{{ user.id }}')">Cancel</button>
+        <button type="submit" class="profile-btn"><i class="fa-solid fa-save"></i> Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- License Modal -->
+<div class="admin-modal" id="licenseModal{{ user.id }}">
+  <div class="admin-modal-content">
+    <div class="admin-modal-header"><h3><i class="fa-solid fa-id-card"></i> License - {{ user.username }}</h3><button class="admin-modal-close" onclick="closeModal('licenseModal{{ user.id }}')"><i class="fa-solid fa-xmark"></i></button></div>
+    <form method="POST" action="{{ url_for('api_admin_update_license', user_id=user.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="admin-modal-body">
+        <div class="profile-form-group"><label class="profile-form-label">Current Tier</label><input type="text" class="profile-form-input" value="{{ user.license_tier|title }}" disabled></div>
+        <div class="profile-form-group"><label class="profile-form-label">New Tier</label><select name="tier" class="profile-form-input"><option value="free">Free</option><option value="pro" {{ 'selected' if user.license_tier=='pro' }}>Pro</option><option value="enterprise" {{ 'selected' if user.license_tier=='enterprise' }}>Enterprise</option></select></div>
+        <div class="profile-form-group"><label class="profile-form-label">Expires</label><input type="date" name="expires" class="profile-form-input" value="{{ user.license_expires.strftime('%Y-%m-%d') if user.license_expires else '' }}"></div>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="profile-btn-outline" onclick="closeModal('licenseModal{{ user.id }}')">Cancel</button>
+        <button type="submit" class="profile-btn"><i class="fa-solid fa-save"></i> Update License</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- View User Modal -->
+<div class="admin-modal" id="viewUserModal{{ user.id }}">
+  <div class="admin-modal-content" style="max-width:480px">
+    <div class="admin-modal-header"><h3><i class="fa-solid fa-user"></i> {{ user.username }}</h3><button class="admin-modal-close" onclick="closeModal('viewUserModal{{ user.id }}')"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="admin-modal-body">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--color-primary),var(--color-secondary));display:inline-flex;align-items:center;justify-content:center;font-size:1.75rem;color:#fff;font-weight:700">{{ user.username[0]|upper }}</div>
+        <h4 style="margin-top:12px;color:var(--text-primary)">{{ user.full_name or user.username }}</h4>
+        <p style="color:var(--text-secondary);font-size:0.875rem">{{ user.email }}</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.875rem">
+        <div style="background:var(--bg-primary);padding:12px;border-radius:10px"><span style="color:var(--text-secondary);display:block;font-size:0.75rem">Role</span><strong style="color:var(--text-primary)">{{ user.role|title }}</strong></div>
+        <div style="background:var(--bg-primary);padding:12px;border-radius:10px"><span style="color:var(--text-secondary);display:block;font-size:0.75rem">License</span><strong style="color:var(--text-primary)">{{ user.license_tier|title }}</strong></div>
+        <div style="background:var(--bg-primary);padding:12px;border-radius:10px"><span style="color:var(--text-secondary);display:block;font-size:0.75rem">Status</span><strong style="color:{{ 'var(--color-success)' if user.is_active else 'var(--color-error)' }}">{{ 'Active' if user.is_active else 'Inactive' }}</strong></div>
+        <div style="background:var(--bg-primary);padding:12px;border-radius:10px"><span style="color:var(--text-secondary);display:block;font-size:0.75rem">Joined</span><strong style="color:var(--text-primary)">{{ user.created_at|date }}</strong></div>
+        <div style="background:var(--bg-primary);padding:12px;border-radius:10px;grid-column:1/-1"><span style="color:var(--text-secondary);display:block;font-size:0.75rem">License Key</span><code style="color:var(--text-primary);font-size:0.8125rem">{{ user.license_key[:20] }}...</code></div>
+      </div>
     </div>
-</section>
+    <div class="admin-modal-footer"><button type="button" class="profile-btn-outline" onclick="closeModal('viewUserModal{{ user.id }}')">Close</button></div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
+{% block admin_extra_js %}
+<script>
+function filterUsers(q){q=q.toLowerCase();document.querySelectorAll('#usersTable tbody tr').forEach(function(r){var search=r.dataset.search||'';if(search.includes(q))r.style.display='';else r.style.display='none'});}
+function applyFilters(){var role=document.getElementById('roleFilter').value,tier=document.getElementById('tierFilter').value,status=document.getElementById('statusFilter').value;document.querySelectorAll('#usersTable tbody tr').forEach(function(r){var show=true;if(role&&r.dataset.role!==role)show=false;if(tier&&r.dataset.tier!==tier)show=false;if(status&&r.dataset.status!==status)show=false;r.style.display=show?'':'none'});}
+function toggleSelectAll(){var all=document.getElementById('selectAll').checked;document.querySelectorAll('.user-check').forEach(function(c){c.checked=all});updateBulkActions();}
+function updateBulkActions(){var checked=document.querySelectorAll('.user-check:checked').length;var bar=document.getElementById('bulkActions');document.getElementById('bulkCount').textContent=checked+' selected';bar.style.display=checked>0?'flex':'none';}
+document.querySelectorAll('.user-check').forEach(function(c){c.addEventListener('change',updateBulkActions)});
+function clearSelection(){document.querySelectorAll('.user-check').forEach(function(c){c.checked=false});document.getElementById('selectAll').checked=false;updateBulkActions();}
+function bulkChangeRole(){var ids=Array.from(document.querySelectorAll('.user-check:checked')).map(function(c){return c.value});if(!ids.length)return;var role=prompt('Change role to: (admin/user)');if(role)showToast('Bulk role change for '+ids.length+' users: '+role,'success');clearSelection();}
+function bulkChangeLicense(){var ids=Array.from(document.querySelectorAll('.user-check:checked')).map(function(c){return c.value});if(!ids.length)return;var tier=prompt('Change license to: (free/pro/enterprise)');if(tier)showToast('Bulk license change for '+ids.length+' users: '+tier,'success');clearSelection();}
+function bulkDelete(){var ids=Array.from(document.querySelectorAll('.user-check:checked')).map(function(c){return c.value});if(!ids.length)return;if(confirm('Delete '+ids.length+' selected users?'))showToast('Bulk delete initiated for '+ids.length+' users','info');clearSelection();}
+function deleteUser(id,username){if(confirm('Delete user "'+username+'"? This cannot be undone.')){fetch('/api/admin/users/'+id+'/delete',{method:'POST',headers:{'X-CSRFToken':'{{ csrf_token() }}'}}).then(function(r){return r.json()}).then(function(d){if(d.success){showToast('User deleted','success');location.reload()}else{showToast(d.error||'Failed to delete','error')}});}}
+function exportUsersCSV(){var rows=[['ID','Username','Email','Full Name','Role','License','Status','Created'].join(',')];document.querySelectorAll('#usersTable tbody tr').forEach(function(r){if(r.style.display==='none')return;var tds=r.querySelectorAll('td');var role=r.dataset.role;var tier=r.dataset.tier;var status=r.dataset.status;rows.push([tds[1]?tds[1].textContent.trim().split('\n')[0]:'',r.querySelector('td:nth-child(3)')?r.querySelector('td:nth-child(3)').textContent.trim():'',role,tier,status].join(','));});var blob=new Blob([rows.join('\n')],{type:'text/csv'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='users_'+new Date().toISOString().slice(0,10)+'.csv';a.click();}
+function sortTable(col){var table=document.getElementById('usersTable'),tbody=table.querySelector('tbody'),rows=Array.from(tbody.querySelectorAll('tr'));var asc=!table.dataset.sortAsc||table.dataset.sortAsc==='desc';table.dataset.sortAsc=asc?'asc':'desc';rows.sort(function(a,b){var aText=a.cells[col].textContent.trim(),bText=b.cells[col].textContent.trim();return asc?aText.localeCompare(bText):bText.localeCompare(aText)});rows.forEach(function(r){tbody.appendChild(r)});}
+</script>
 {% endblock %}

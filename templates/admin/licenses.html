@@ -1,36 +1,138 @@
-{% extends "base.html" %}
-{% block title %}Licenses - Admin - JALAGEL OS Pro{% endblock %}
-{% block content %}
-<section class="section">
-    <div class="container">
-        <div class="section-header">
-            <div class="section-label"><i class="fa-solid fa-id-card"></i> Admin</div>
-            <h1 class="gradient-text">Manage Licenses</h1>
+{% extends "admin/layout.html" %}
+{% block title %}Manage Licenses - Admin - JALAGEL OS Pro{% endblock %}
+{% block breadcrumb %}<a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-house"></i> Dashboard</a> <i class="fa-solid fa-chevron-right" style="font-size:0.625rem;margin:0 8px;color:var(--text-secondary)"></i> Licenses{% endblock %}
+{% block admin_content %}
+<!-- License Tier Cards -->
+<div class="admin-stats-row">
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon" style="background:rgba(148,163,184,0.15);color:#94A3B8"><i class="fa-solid fa-cube"></i></div>
+    <div class="admin-stat-info"><span class="admin-stat-value" style="color:#94A3B8">{{ free_count|default(0) }}</span><span class="admin-stat-label">Free Users</span></div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon" style="background:rgba(6,182,212,0.15);color:#06B6D4"><i class="fa-solid fa-gem"></i></div>
+    <div class="admin-stat-info"><span class="admin-stat-value" style="color:#06B6D4">{{ pro_count|default(0) }}</span><span class="admin-stat-label">Pro Users</span></div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon" style="background:rgba(124,58,237,0.15);color:#7C3AED"><i class="fa-solid fa-crown"></i></div>
+    <div class="admin-stat-info"><span class="admin-stat-value" style="color:#7C3AED">{{ enterprise_count|default(0) }}</span><span class="admin-stat-label">Enterprise Users</span></div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-icon" style="background:rgba(239,68,68,0.15);color:#EF4444"><i class="fa-solid fa-clock"></i></div>
+    <div class="admin-stat-info"><span class="admin-stat-value" style="color:#EF4444">{{ expiring_count|default(0) }}</span><span class="admin-stat-label">Expiring in 7 Days</span></div>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="admin-toolbar">
+  <div class="admin-search"><i class="fa-solid fa-search"></i><input type="text" placeholder="Search licenses..." oninput="filterTable(this.value,'licensesTable')"></div>
+  <div class="admin-filters">
+    <select id="licenseTierFilter" onchange="applyLicenseFilters()">
+      <option value="">All Tiers</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option>
+    </select>
+    <select id="licenseStatusFilter" onchange="applyLicenseFilters()">
+      <option value="">All Status</option><option value="active">Active</option><option value="expired">Expired</option>
+    </select>
+    <button class="profile-btn" onclick="openModal('genLicenseModal')"><i class="fa-solid fa-key"></i> Generate Key</button>
+  </div>
+</div>
+
+<!-- Licenses Table -->
+<div class="admin-table-card">
+  <div class="admin-table-wrap">
+    <table class="admin-table" id="licensesTable">
+      <thead>
+        <tr><th>User</th><th>Tier</th><th>License Key</th><th>Expires</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr data-tier="{{ user.license_tier }}" data-status="{{ 'active' if user.license_is_valid() else 'expired' }}" data-search="{{ user.username|lower }} {{ user.email|lower }}">
+          <td>
+            <div class="admin-user-cell">
+              <div class="admin-user-avatar-sm">{{ user.username[0]|upper }}</div>
+              <div><strong>{{ user.username }}</strong><span>{{ user.email }}</span></div>
+            </div>
+          </td>
+          <td><span class="admin-badge tier-{{ user.license_tier }}">{{ user.license_tier|title }}</span></td>
+          <td><code style="font-size:0.75rem;color:var(--text-secondary);background:var(--bg-primary);padding:4px 8px;border-radius:6px">{{ user.license_key[:16] }}...</code></td>
+          <td>{{ user.license_expires|date if user.license_expires else 'Never' }}</td>
+          <td><span class="admin-badge status-{{ 'active' if user.license_is_valid() else 'expired' }}">{{ 'Active' if user.license_is_valid() else 'Expired' }}</span></td>
+          <td>
+            <div class="admin-row-actions">
+              <button class="admin-action-icon" onclick="openModal('extendModal{{ user.id }}')" title="Extend"><i class="fa-solid fa-calendar-plus"></i></button>
+              <button class="admin-action-icon" onclick="openModal('changeTierModal{{ user.id }}')" title="Change Tier"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
+              <button class="admin-action-icon danger" onclick="revokeLicense({{ user.id }},'{{ user.username }}')" title="Revoke"><i class="fa-solid fa-ban"></i></button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Generate License Modal -->
+<div class="admin-modal" id="genLicenseModal">
+  <div class="admin-modal-content">
+    <div class="admin-modal-header"><h3><i class="fa-solid fa-key"></i> Generate License Key</h3><button class="admin-modal-close" onclick="closeModal('genLicenseModal')"><i class="fa-solid fa-xmark"></i></button></div>
+    <form method="POST" action="{{ url_for('api_admin_generate_license') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="admin-modal-body">
+        <div class="profile-form-group"><label class="profile-form-label">User</label><select name="user_id" class="profile-form-input">{% for u in all_users|default(users) %}<option value="{{ u.id }}">{{ u.username }} ({{ u.email }})</option>{% endfor %}</select></div>
+        <div class="profile-grid" style="grid-template-columns:1fr 1fr;gap:16px">
+          <div class="profile-form-group"><label class="profile-form-label">Tier</label><select name="tier" class="profile-form-input"><option value="pro">Pro</option><option value="enterprise">Enterprise</option></select></div>
+          <div class="profile-form-group"><label class="profile-form-label">Duration</label><select name="duration" class="profile-form-input"><option value="30">30 Days</option><option value="90">90 Days</option><option value="365" selected>1 Year</option></select></div>
         </div>
-        <div class="card" style="overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;">
-                <thead>
-                    <tr style="border-bottom:2px solid var(--border-color);">
-                        <th style="text-align:left;padding:12px;">User</th>
-                        <th style="text-align:left;padding:12px;">Tier</th>
-                        <th style="text-align:left;padding:12px;">License Key</th>
-                        <th style="text-align:left;padding:12px;">Expires</th>
-                        <th style="text-align:left;padding:12px;">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr style="border-bottom:1px solid var(--border-color);">
-                        <td style="padding:12px;"><strong>{{ user.username }}</strong><br><span style="font-size:0.75rem;color:var(--text-muted);">{{ user.email }}</span></td>
-                        <td style="padding:12px;"><span class="badge badge-{{ 'primary' if user.license_tier == 'enterprise' else 'accent' }}">{{ user.license_tier|title }}</span></td>
-                        <td style="padding:12px;font-family:var(--font-mono);font-size:0.75rem;color:var(--text-secondary);">{{ user.license_key[:16] }}...</td>
-                        <td style="padding:12px;font-size:0.8125rem;">{{ user.license_expires|date }}</td>
-                        <td style="padding:12px;"><span class="badge badge-{{ 'success' if user.license_is_valid() else 'error' }}">{{ 'Active' if user.license_is_valid() else 'Expired' }}</span></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</section>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="profile-btn-outline" onclick="closeModal('genLicenseModal')">Cancel</button>
+        <button type="submit" class="profile-btn"><i class="fa-solid fa-key"></i> Generate</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% for user in users %}
+<!-- Extend Modal -->
+<div class="admin-modal" id="extendModal{{ user.id }}">
+  <div class="admin-modal-content">
+    <div class="admin-modal-header"><h3><i class="fa-solid fa-calendar-plus"></i> Extend License</h3><button class="admin-modal-close" onclick="closeModal('extendModal{{ user.id }}')"><i class="fa-solid fa-xmark"></i></button></div>
+    <form method="POST" action="{{ url_for('api_admin_extend_license', user_id=user.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="admin-modal-body">
+        <div class="profile-form-group"><label class="profile-form-label">User</label><input type="text" class="profile-form-input" value="{{ user.username }}" disabled></div>
+        <div class="profile-form-group"><label class="profile-form-label">Current Expiry</label><input type="text" class="profile-form-input" value="{{ user.license_expires|date if user.license_expires else 'Never' }}" disabled></div>
+        <div class="profile-form-group"><label class="profile-form-label">Extend by (days)</label><input type="number" name="days" class="profile-form-input" value="30" min="1"></div>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="profile-btn-outline" onclick="closeModal('extendModal{{ user.id }}')">Cancel</button>
+        <button type="submit" class="profile-btn"><i class="fa-solid fa-save"></i> Extend</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Change Tier Modal -->
+<div class="admin-modal" id="changeTierModal{{ user.id }}">
+  <div class="admin-modal-content">
+    <div class="admin-modal-header"><h3><i class="fa-solid fa-arrow-right-arrow-left"></i> Change Tier</h3><button class="admin-modal-close" onclick="closeModal('changeTierModal{{ user.id }}')"><i class="fa-solid fa-xmark"></i></button></div>
+    <form method="POST" action="{{ url_for('api_admin_update_license', user_id=user.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="admin-modal-body">
+        <div class="profile-form-group"><label class="profile-form-label">Current</label><input type="text" class="profile-form-input" value="{{ user.license_tier|title }}" disabled></div>
+        <div class="profile-form-group"><label class="profile-form-label">New Tier</label><select name="tier" class="profile-form-input"><option value="free">Free</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option></select></div>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="profile-btn-outline" onclick="closeModal('changeTierModal{{ user.id }}')">Cancel</button>
+        <button type="submit" class="profile-btn"><i class="fa-solid fa-save"></i> Update</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
+{% block admin_extra_js %}
+<script>
+function filterTable(q,tableId){q=q.toLowerCase();document.querySelectorAll('#'+tableId+' tbody tr').forEach(function(r){var search=r.dataset.search||'';if(search.includes(q))r.style.display='';else r.style.display='none'});}
+function applyLicenseFilters(){var tier=document.getElementById('licenseTierFilter').value,status=document.getElementById('licenseStatusFilter').value;document.querySelectorAll('#licensesTable tbody tr').forEach(function(r){var show=true;if(tier&&r.dataset.tier!==tier)show=false;if(status&&r.dataset.status!==status)show=false;r.style.display=show?'':'none'});}
+function revokeLicense(id,username){if(confirm('Revoke license for "'+username+'"? They will revert to Free tier.')){fetch('/api/admin/users/'+id+'/revoke-license',{method:'POST',headers:{'X-CSRFToken':'{{ csrf_token() }}'}}).then(function(r){return r.json()}).then(function(d){if(d.success){showToast('License revoked','success');location.reload()}else{showToast(d.error||'Failed','error')}});}}
+</script>
 {% endblock %}
