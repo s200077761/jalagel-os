@@ -19,6 +19,7 @@
         initPricingToggle();
         initHeroParticles();
         initFlashMessages();
+        initDocsScrollSpy();
         console.log('[JALAGEL Marketing] Initialized');
     }
 
@@ -237,7 +238,7 @@
             updatePricing(toggle.checked);
         });
 
-        // Initialize as yearly (checked)
+        // Initialize based on toggle state (checked = yearly)
         updatePricing(toggle.checked);
     }
 
@@ -384,6 +385,43 @@
     }
 
     // ============================================================
+    // Docs Scroll Spy
+    // ============================================================
+
+    function initDocsScrollSpy() {
+        const sidebar = document.querySelector('.docs-sidebar');
+        if (!sidebar) return;
+
+        const sections = document.querySelectorAll('.docs-card[id], .docs-section-group[id]');
+        const navLinks = sidebar.querySelectorAll('.docs-nav-link');
+
+        if (!sections.length || !navLinks.length) return;
+
+        function onScroll() {
+            const scrollPos = window.scrollY + 150;
+            let activeFound = false;
+
+            sections.forEach(section => {
+                const top = section.offsetTop;
+                const height = section.offsetHeight;
+                if (scrollPos >= top && scrollPos < top + height && !activeFound) {
+                    const id = section.getAttribute('id');
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === '#' + id) {
+                            link.classList.add('active');
+                            activeFound = true;
+                        }
+                    });
+                }
+            });
+        }
+
+        window.addEventListener('scroll', onScroll);
+        onScroll(); // Initial check
+    }
+
+    // ============================================================
     // Flash Messages Auto-dismiss
     // ============================================================
 
@@ -400,6 +438,34 @@
             }
         });
     }
+
+    // ============================================================
+    // Feature Category Tabs (Global handler)
+    // ============================================================
+
+    document.addEventListener('click', function(e) {
+        const tab = e.target.closest('.app-tab[data-category]');
+        if (!tab) return;
+
+        const category = tab.dataset.category;
+        const container = tab.closest('.section, .container');
+        if (!container) return;
+
+        // Deactivate all tabs in this group
+        container.querySelectorAll('.app-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // Show/hide category grids
+        container.querySelectorAll('.feature-category-grid').forEach(grid => {
+            if (grid.id === category) {
+                grid.style.display = 'grid';
+                grid.classList.remove('hidden');
+            } else {
+                grid.style.display = 'none';
+                grid.classList.add('hidden');
+            }
+        });
+    });
 
     // ============================================================
     // Boot

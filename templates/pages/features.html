@@ -2,49 +2,410 @@
 {% block title %}Features - JALAGEL OS Pro{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/marketing.css') }}">{% endblock %}
 {% block content %}
-<section class="hero" style="min-height:40vh;padding-top:120px;">
-    <div class="container">
+
+<!-- ===== HERO SECTION ===== -->
+<section class="hero" style="min-height:55vh;padding-top:120px;">
+    <div class="hero-bg">
+        <div class="hero-orb orb-1"></div>
+        <div class="hero-orb orb-2"></div>
+        <div class="hero-orb orb-3"></div>
+        <div class="hero-grid-overlay"></div>
+        <canvas class="hero-particles" id="heroParticles"></canvas>
+    </div>
+    <div class="hero-content">
         <div class="section-header">
             <div class="section-label"><i class="fa-solid fa-star"></i> Features</div>
-            <h1 class="hero-title gradient-text">Powerful Features</h1>
-            <p class="hero-tagline">Everything you need in a modern web-based operating system.</p>
+            <h1 class="hero-title">
+                <span class="gradient-text-primary">Everything You Need</span><br>
+                <span class="gradient-text-secondary">in One OS</span>
+            </h1>
+            <p class="hero-tagline">50+ professional applications, enterprise-grade security, and a stunning desktop environment — all running in your browser.</p>
+        </div>
+        <div class="hero-cta">
+            <a href="{{ url_for('auth_register') }}" class="btn btn-primary btn-lg">
+                <i class="fa-solid fa-rocket"></i> Get Started Free
+            </a>
+            <a href="#feature-categories" class="btn btn-outline btn-lg">
+                <i class="fa-solid fa-compass"></i> Explore Features
+            </a>
+        </div>
+        <!-- Animated Stats -->
+        <div class="hero-stats" style="margin-top:40px;">
+            <div class="hero-stat">
+                <div class="hero-stat-number" data-count="50">50+</div>
+                <div class="hero-stat-label">Apps</div>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <div class="hero-stat-number" data-count="99">99.9%</div>
+                <div class="hero-stat-label">Uptime</div>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <div class="hero-stat-number" data-count="8">8</div>
+                <div class="hero-stat-label">SSL Types</div>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+                <div class="hero-stat-number" data-count="24">24/7</div>
+                <div class="hero-stat-label">Support</div>
+            </div>
         </div>
     </div>
+    <div class="hero-scroll-indicator">
+        <div class="scroll-mouse"><div class="scroll-wheel"></div></div>
+        <span>Scroll to explore</span>
+    </div>
 </section>
-<section class="section section-features">
+
+<!-- ===== FEATURE CATEGORIES ===== -->
+<section class="section section-features" id="feature-categories">
     <div class="container">
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon primary"><i class="fa-solid fa-grid-2"></i></div>
-                <h3>50+ Professional Apps</h3>
-                <p>Code editor, file manager, terminal, notes, calendar, calculator, and many more.</p>
+        <div class="section-header text-center reveal-on-scroll">
+            <div class="section-label"><i class="fa-solid fa-layer-group"></i> App Suite</div>
+            <h2 class="section-title">6 Categories. <span class="gradient-text">50+ Apps.</span></h2>
+            <p class="section-subtitle">From productivity to security, every tool you need is built right in.</p>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="apps-category-tabs reveal-on-scroll" id="featureTabs">
+            <button class="app-tab active" data-category="productivity"><i class="fa-solid fa-briefcase"></i> Productivity</button>
+            <button class="app-tab" data-category="creativity"><i class="fa-solid fa-palette"></i> Creativity</button>
+            <button class="app-tab" data-category="development"><i class="fa-solid fa-code"></i> Development</button>
+            <button class="app-tab" data-category="utilities"><i class="fa-solid fa-screwdriver-wrench"></i> Utilities</button>
+            <button class="app-tab" data-category="communication"><i class="fa-solid fa-comments"></i> Communication</button>
+            <button class="app-tab" data-category="security"><i class="fa-solid fa-shield-halved"></i> Security</button>
+        </div>
+
+        <!-- Productivity -->
+        <div class="feature-category-grid" id="productivity" style="display:grid;">
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon primary"><i class="fa-solid fa-sticky-note"></i></div>
+                <h3>Notes</h3>
+                <p>Create, organize, and search rich text notes with color coding, tags, and pinning.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Notes App</div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon accent"><i class="fa-solid fa-shield-halved"></i></div>
-                <h3>SSL Certificate Store</h3>
-                <p>8 certificate types from DV to Enterprise CA with full lifecycle management.</p>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon accent"><i class="fa-solid fa-calendar-alt"></i></div>
+                <h3>Calendar</h3>
+                <p>Full-featured calendar with events, reminders, drag-and-drop scheduling, and multiple views.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Calendar App</div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon secondary"><i class="fa-solid fa-moon"></i></div>
-                <h3>Dark Theme UI</h3>
-                <p>Beautiful dark interface with glassmorphism effects and gradient accents.</p>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon secondary"><i class="fa-solid fa-check-circle"></i></div>
+                <h3>Todo List</h3>
+                <p>Task management with priorities, due dates, categories, and completion tracking.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Todo App</div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon success"><i class="fa-solid fa-window-restore"></i></div>
-                <h3>Window System</h3>
-                <p>Draggable, resizable windows with snap-to-grid and taskbar integration.</p>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon success"><i class="fa-solid fa-envelope"></i></div>
+                <h3>Email Client</h3>
+                <p>Send, receive, and organize emails with folders, filters, and compose rich HTML messages.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Email App</div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon warning"><i class="fa-solid fa-id-card"></i></div>
-                <h3>License Tiers</h3>
-                <p>Free, Pro, and Enterprise plans with feature-based access control.</p>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon warning"><i class="fa-solid fa-address-book"></i></div>
+                <h3>Contacts</h3>
+                <p>Manage your contacts with groups, search, import/export, and detailed contact cards.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Contacts App</div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon primary"><i class="fa-solid fa-bolt"></i></div>
-                <h3>Lightning Fast</h3>
-                <p>Python Flask backend with optimized frontend for snappy performance.</p>
+        </div>
+
+        <!-- Creativity -->
+        <div class="feature-category-grid hidden" id="creativity" style="display:none;">
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon primary"><i class="fa-solid fa-paint-brush"></i></div>
+                <h3>Paint Studio</h3>
+                <p>Canvas-based drawing tool with brushes, shapes, layers, and export to PNG/JPG.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Paint App</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon accent"><i class="fa-solid fa-vector-square"></i></div>
+                <h3>Canvas Editor</h3>
+                <p>Advanced vector canvas with Bezier curves, gradients, and SVG export capabilities.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Canvas App</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon secondary"><i class="fa-solid fa-images"></i></div>
+                <h3>Photos Viewer</h3>
+                <p>Browse, organize, and edit photos with filters, cropping, and slideshow mode.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Photos App</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon success"><i class="fa-solid fa-music"></i></div>
+                <h3>Music Player</h3>
+                <p>Play audio files with playlists, equalizer, visualizer, and repeat/shuffle modes.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Music App</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon warning"><i class="fa-solid fa-video"></i></div>
+                <h3>Video Editor</h3>
+                <p>Trim, merge, and add transitions to video clips with timeline-based editing.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Video Editor</div>
+            </div>
+        </div>
+
+        <!-- Development -->
+        <div class="feature-category-grid hidden" id="development" style="display:none;">
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon primary"><i class="fa-solid fa-code"></i></div>
+                <h3>Code Editor</h3>
+                <p>Syntax highlighting for 50+ languages, auto-indentation, search/replace, and themes.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Code Editor</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon accent"><i class="fa-solid fa-terminal"></i></div>
+                <h3>Terminal</h3>
+                <p>Web-based terminal with command history, file operations, and custom aliases.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Terminal App</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon secondary"><i class="fa-brands fa-git-alt"></i></div>
+                <h3>Git Manager</h3>
+                <p>Visual Git client with commit history, branching, merging, and diff viewer.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Git Manager</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon success"><i class="fa-solid fa-database"></i></div>
+                <h3>Database Manager</h3>
+                <p>Connect to SQLite, MySQL, PostgreSQL databases. Run queries and browse tables.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> DB Manager</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon warning"><i class="fa-solid fa-network-wired"></i></div>
+                <h3>API Tester</h3>
+                <p>Test REST APIs with GET, POST, PUT, DELETE. Headers, auth, and JSON body support.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> API Tester</div>
+            </div>
+        </div>
+
+        <!-- Utilities -->
+        <div class="feature-category-grid hidden" id="utilities" style="display:none;">
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon primary"><i class="fa-solid fa-calculator"></i></div>
+                <h3>Calculator</h3>
+                <p>Standard and scientific calculator with history, unit conversion, and expression evaluation.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Calculator</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon accent"><i class="fa-solid fa-exchange-alt"></i></div>
+                <h3>Unit Converter</h3>
+                <p>Convert between 200+ units across length, weight, temperature, currency, and more.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Converter</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon secondary"><i class="fa-solid fa-key"></i></div>
+                <h3>Password Manager</h3>
+                <p>Generate strong passwords, store securely, and autofill with encrypted vault.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Password Manager</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon success"><i class="fa-solid fa-tachometer-alt"></i></div>
+                <h3>System Monitor</h3>
+                <p>Real-time CPU, memory, disk, and network usage with beautiful charts and alerts.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> System Monitor</div>
+            </div>
+        </div>
+
+        <!-- Communication -->
+        <div class="feature-category-grid hidden" id="communication" style="display:none;">
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon primary"><i class="fa-solid fa-comment-dots"></i></div>
+                <h3>Chat Messenger</h3>
+                <p>Real-time messaging with channels, file sharing, emoji reactions, and read receipts.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Chat App</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon accent"><i class="fa-solid fa-video"></i></div>
+                <h3>Video Calls</h3>
+                <p>HD video conferencing with screen sharing, recording, and virtual backgrounds.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Video Calls</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon secondary"><i class="fa-solid fa-share-nodes"></i></div>
+                <h3>Social Hub</h3>
+                <p>Aggregate your social feeds in one place with scheduling and analytics.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Social Hub</div>
+            </div>
+        </div>
+
+        <!-- Security -->
+        <div class="feature-category-grid hidden" id="security" style="display:none;">
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon primary"><i class="fa-solid fa-certificate"></i></div>
+                <h3>Certificate Manager</h3>
+                <p>Full lifecycle SSL certificate management — purchase, generate, renew, and revoke.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> Cert Manager</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon accent"><i class="fa-solid fa-lock"></i></div>
+                <h3>VPN Client</h3>
+                <p>Secure VPN connections with multiple protocols and server locations worldwide.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> VPN Client</div>
+            </div>
+            <div class="feature-detail-card reveal-on-scroll">
+                <div class="feature-icon secondary"><i class="fa-solid fa-file-shield"></i></div>
+                <h3>File Encryption</h3>
+                <p>AES-256 encryption for your sensitive files with secure key management.</p>
+                <div class="feature-screenshot-placeholder"><i class="fa-solid fa-image"></i> File Encryption</div>
             </div>
         </div>
     </div>
 </section>
+
+<!-- ===== WHY CHOOSE JALAGEL OS ===== -->
+<section class="section section-comparison">
+    <div class="container">
+        <div class="section-header text-center reveal-on-scroll">
+            <div class="section-label"><i class="fa-solid fa-trophy"></i> Comparison</div>
+            <h2 class="section-title">Why Choose <span class="gradient-text">JALAGEL OS?</span></h2>
+            <p class="section-subtitle">See how we stack up against traditional desktop operating systems.</p>
+        </div>
+        <div class="comparison-table-wrapper reveal-on-scroll">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th class="jalagel-col">JALAGEL OS</th>
+                        <th>Traditional OS</th>
+                        <th>Web Apps</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><i class="fa-solid fa-globe"></i> Runs in Browser</td>
+                        <td class="jalagel-col"><i class="fa-solid fa-check check-yes"></i> Yes</td>
+                        <td><i class="fa-solid fa-xmark check-no"></i> No</td>
+                        <td><i class="fa-solid fa-check check-yes"></i> Yes</td>
+                    </tr>
+                    <tr>
+                        <td><i class="fa-solid fa-layer-group"></i> 50+ Apps Included</td>
+                        <td class="jalagel-col"><i class="fa-solid fa-check check-yes"></i> Yes</td>
+                        <td><i class="fa-solid fa-minus check-partial"></i> Install separately</td>
+                        <td><i class="fa-solid fa-minus check-partial"></i> Scattered</td>
+                    </tr>
+                    <tr>
+                        <td><i class="fa-solid fa-shield-halved"></i> Built-in SSL Store</td>
+                        <td class="jalagel-col"><i class="fa-solid fa-check check-yes"></i> Yes</td>
+                        <td><i class="fa-solid fa-xmark check-no"></i> No</td>
+                        <td><i class="fa-solid fa-xmark check-no"></i> No</td>
+                    </tr>
+                    <tr>
+                        <td><i class="fa-solid fa-window-restore"></i> Desktop Environment</td>
+                        <td class="jalagel-col"><i class="fa-solid fa-check check-yes"></i> Full DE</td>
+                        <td><i class="fa-solid fa-check check-yes"></i> Yes</td>
+                        <td><i class="fa-solid fa-xmark check-no"></i> None</td>
+                    </tr>
+                    <tr>
+                        <td><i class="fa-solid fa-dollar-sign"></i> Free Tier</td>
+                        <td class="jalagel-col"><i class="fa-solid fa-check check-yes"></i> Generous</td>
+                        <td><i class="fa-solid fa-minus check-partial"></i> Paid license</td>
+                        <td><i class="fa-solid fa-minus check-partial"></i> Freemium</td>
+                    </tr>
+                    <tr>
+                        <td><i class="fa-solid fa-sync"></i> Cloud Sync</td>
+                        <td class="jalagel-col"><i class="fa-solid fa-check check-yes"></i> Built-in</td>
+                        <td><i class="fa-solid fa-minus check-partial"></i> Extra setup</td>
+                        <td><i class="fa-solid fa-check check-yes"></i> Varies</td>
+                    </tr>
+                    <tr>
+                        <td><i class="fa-solid fa-code"></i> Developer Tools</td>
+                        <td class="jalagel-col"><i class="fa-solid fa-check check-yes"></i> 5+ Tools</td>
+                        <td><i class="fa-solid fa-minus check-partial"></i> Install</td>
+                        <td><i class="fa-solid fa-minus check-partial"></i> Partial</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- ===== ALL APPS SHOWCASE ===== -->
+<section class="section section-apps">
+    <div class="container">
+        <div class="section-header text-center reveal-on-scroll">
+            <div class="section-label"><i class="fa-solid fa-th"></i> All Apps</div>
+            <h2 class="section-title">The Complete <span class="gradient-text">App Directory</span></h2>
+            <p class="section-subtitle">Every app is crafted with attention to detail and a unified design language.</p>
+        </div>
+        <div class="apps-showcase-grid">
+            {% for category, apps in apps_by_category.items() %}
+            <div class="apps-showcase-category reveal-on-scroll">
+                <h3 class="apps-showcase-title">
+                    {% if category == 'productivity' %}<i class="fa-solid fa-briefcase"></i>{% endif %}
+                    {% if category == 'creativity' %}<i class="fa-solid fa-palette"></i>{% endif %}
+                    {% if category == 'development' %}<i class="fa-solid fa-code"></i>{% endif %}
+                    {% if category == 'utilities' %}<i class="fa-solid fa-screwdriver-wrench"></i>{% endif %}
+                    {% if category == 'communication' %}<i class="fa-solid fa-comments"></i>{% endif %}
+                    {% if category == 'security' %}<i class="fa-solid fa-shield-halved"></i>{% endif %}
+                    {% if category == 'media' %}<i class="fa-solid fa-photo-film"></i>{% endif %}
+                    {% if category == 'system' %}<i class="fa-solid fa-microchip"></i>{% endif %}
+                    {{ category|title }}
+                </h3>
+                <div class="apps-showcase-list">
+                    {% for app_item in apps %}
+                    <div class="apps-showcase-item">
+                        <div class="apps-showcase-icon">
+                            <i class="fa-solid {{ app_item.icon }}"></i>
+                        </div>
+                        <span class="apps-showcase-name">{{ app_item.name }}</span>
+                        {% if app_item.is_premium %}<span class="apps-showcase-badge">PRO</span>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ===== CTA SECTION ===== -->
+<section class="section section-cta">
+    <div class="container">
+        <div class="cta-box reveal-on-scroll">
+            <div class="cta-orb"></div>
+            <div class="cta-content">
+                <h2>Ready to Experience the Future?</h2>
+                <p>Join thousands of users who have already made the switch to JALAGEL OS Pro. Start free and upgrade anytime.</p>
+                <div class="cta-buttons">
+                    <a href="{{ url_for('auth_register') }}" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-rocket"></i> Get Started for Free
+                    </a>
+                    <a href="{{ url_for('pricing') }}" class="btn btn-outline btn-lg">
+                        <i class="fa-solid fa-tag"></i> View Pricing
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+// Feature category tab switching
+(function() {
+    const tabs = document.querySelectorAll('.app-tab');
+    const categories = document.querySelectorAll('.feature-category-grid');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.category;
+
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            categories.forEach(cat => {
+                if (cat.id === target) {
+                    cat.style.display = 'grid';
+                    cat.classList.remove('hidden');
+                } else {
+                    cat.style.display = 'none';
+                    cat.classList.add('hidden');
+                }
+            });
+        });
+    });
+})();
+</script>
 {% endblock %}

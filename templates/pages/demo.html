@@ -2,18 +2,566 @@
 {% block title %}Demo - JALAGEL OS Pro{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/marketing.css') }}">{% endblock %}
 {% block content %}
-<section class="hero" style="min-height:40vh;padding-top:120px;">
-    <div class="container">
+
+<!-- ===== HERO SECTION ===== -->
+<section class="hero" style="min-height:45vh;padding-top:120px;">
+    <div class="hero-bg">
+        <div class="hero-orb orb-1" style="background:rgba(6,182,212,0.2);"></div>
+        <div class="hero-orb orb-2" style="background:rgba(124,58,237,0.2);"></div>
+        <div class="hero-orb orb-3" style="background:rgba(236,72,153,0.15);"></div>
+        <div class="hero-grid-overlay"></div>
+        <canvas class="hero-particles" id="heroParticles"></canvas>
+    </div>
+    <div class="hero-content">
         <div class="section-header">
             <div class="section-label"><i class="fa-solid fa-play"></i> Demo</div>
-            <h1 class="hero-title gradient-text">Try the Demo</h1>
-            <p class="hero-tagline">Experience JALAGEL OS Pro with limited functionality.</p>
+            <h1 class="hero-title gradient-text">Try JALAGEL OS Now</h1>
+            <p class="hero-tagline">Experience the look and feel of our web-based operating system right in your browser. Click the icons below to open mini app previews.</p>
         </div>
         <div class="hero-cta">
             <a href="{{ url_for('auth_register') }}" class="btn btn-primary btn-lg">
                 <i class="fa-solid fa-rocket"></i> Get Full Access
             </a>
+            <a href="#os-preview" class="btn btn-outline btn-lg">
+                <i class="fa-solid fa-desktop"></i> Try Preview
+            </a>
         </div>
     </div>
 </section>
+
+<!-- ===== INTERACTIVE OS PREVIEW ===== -->
+<section class="section section-preview" id="os-preview">
+    <div class="container">
+        <div class="section-header text-center reveal-on-scroll">
+            <h2 class="section-title">Interactive <span class="gradient-text">Desktop Preview</span></h2>
+            <p class="section-subtitle">Click on the desktop icons to open mini app previews.</p>
+        </div>
+        <div class="os-preview-container reveal-on-scroll">
+            <div class="os-preview-frame" id="demoDesktop">
+                <!-- Window Title Bar -->
+                <div class="os-preview-header">
+                    <div class="preview-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="preview-title">
+                        <i class="fa-solid fa-desktop"></i> JALAGEL OS Pro Desktop
+                    </div>
+                </div>
+                <!-- Desktop Body -->
+                <div class="os-preview-body">
+                    <div class="preview-desktop" id="previewDesktop">
+                        <!-- Desktop Icons -->
+                        <div class="preview-icons">
+                            <div class="preview-icon" onclick="openDemoWindow('notes')">
+                                <i class="fa-solid fa-sticky-note"></i><span>Notes</span>
+                            </div>
+                            <div class="preview-icon" onclick="openDemoWindow('calendar')">
+                                <i class="fa-solid fa-calendar"></i><span>Calendar</span>
+                            </div>
+                            <div class="preview-icon" onclick="openDemoWindow('terminal')">
+                                <i class="fa-solid fa-terminal"></i><span>Terminal</span>
+                            </div>
+                            <div class="preview-icon" onclick="openDemoWindow('code')">
+                                <i class="fa-solid fa-code"></i><span>Code</span>
+                            </div>
+                            <div class="preview-icon" onclick="openDemoWindow('calculator')">
+                                <i class="fa-solid fa-calculator"></i><span>Calc</span>
+                            </div>
+                            <div class="preview-icon" onclick="openDemoWindow('paint')">
+                                <i class="fa-solid fa-paint-brush"></i><span>Paint</span>
+                            </div>
+                            <div class="preview-icon" onclick="openDemoWindow('music')">
+                                <i class="fa-solid fa-music"></i><span>Music</span>
+                            </div>
+                            <div class="preview-icon" onclick="openDemoWindow('browser')">
+                                <i class="fa-solid fa-globe"></i><span>Browser</span>
+                            </div>
+                            <div class="preview-icon" onclick="openDemoWindow('files')">
+                                <i class="fa-solid fa-folder"></i><span>Files</span>
+                            </div>
+                            <div class="preview-icon" onclick="openDemoWindow('settings')">
+                                <i class="fa-solid fa-cog"></i><span>Settings</span>
+                            </div>
+                        </div>
+                        <!-- Demo Windows Container -->
+                        <div class="preview-windows" id="demoWindows"></div>
+                        <!-- Taskbar -->
+                        <div class="preview-taskbar">
+                            <div class="preview-taskbar-start"><i class="fa-solid fa-layer-group"></i></div>
+                            <div class="preview-taskbar-apps">
+                                <i class="fa-solid fa-sticky-note active" id="taskbar-notes" style="display:none;"></i>
+                                <i class="fa-solid fa-calendar" id="taskbar-calendar" style="display:none;"></i>
+                                <i class="fa-solid fa-terminal" id="taskbar-terminal" style="display:none;"></i>
+                                <i class="fa-solid fa-code" id="taskbar-code" style="display:none;"></i>
+                                <i class="fa-solid fa-calculator" id="taskbar-calculator" style="display:none;"></i>
+                                <i class="fa-solid fa-paint-brush" id="taskbar-paint" style="display:none;"></i>
+                                <i class="fa-solid fa-music" id="taskbar-music" style="display:none;"></i>
+                                <i class="fa-solid fa-globe" id="taskbar-browser" style="display:none;"></i>
+                                <i class="fa-solid fa-folder" id="taskbar-files" style="display:none;"></i>
+                                <i class="fa-solid fa-cog" id="taskbar-settings" style="display:none;"></i>
+                            </div>
+                            <div class="preview-taskbar-tray">
+                                <i class="fa-solid fa-wifi"></i>
+                                <i class="fa-solid fa-volume-high"></i>
+                                <span>10:42 AM</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="section section-steps">
+    <div class="container">
+        <div class="section-header text-center reveal-on-scroll">
+            <div class="section-label"><i class="fa-solid fa-shoe-prints"></i> How It Works</div>
+            <h2 class="section-title">Get Started in <span class="gradient-text">3 Simple Steps</span></h2>
+            <p class="section-subtitle">From signup to full desktop in under a minute.</p>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card reveal-on-scroll">
+                <div class="step-number">1</div>
+                <div class="step-icon"><i class="fa-solid fa-user-plus"></i></div>
+                <h3>Create Account</h3>
+                <p>Sign up with your email in seconds. No credit card required for the free tier.</p>
+            </div>
+            <div class="step-connector"><i class="fa-solid fa-arrow-right"></i></div>
+            <div class="step-card reveal-on-scroll">
+                <div class="step-number">2</div>
+                <div class="step-icon"><i class="fa-solid fa-desktop"></i></div>
+                <h3>Launch OS</h3>
+                <p>Click "Launch OS" to open your personal desktop environment in the browser.</p>
+            </div>
+            <div class="step-connector"><i class="fa-solid fa-arrow-right"></i></div>
+            <div class="step-card reveal-on-scroll">
+                <div class="step-number">3</div>
+                <div class="step-icon"><i class="fa-solid fa-rocket"></i></div>
+                <h3>Use Apps</h3>
+                <p>Open apps from the Start Menu, create files, and boost your productivity.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FEATURE HIGHLIGHTS ===== -->
+<section class="section section-features">
+    <div class="container">
+        <div class="section-header text-center reveal-on-scroll">
+            <div class="section-label"><i class="fa-solid fa-bolt"></i> Highlights</div>
+            <h2 class="section-title">What Makes Us <span class="gradient-text">Different</span></h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon primary"><i class="fa-solid fa-bolt"></i></div>
+                <h3>Instant Access</h3>
+                <p>No downloads, no installations. Your OS loads in seconds from any modern browser.</p>
+            </div>
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon accent"><i class="fa-solid fa-sync"></i></div>
+                <h3>Cloud Sync</h3>
+                <p>Your files, notes, and settings sync across all devices automatically.</p>
+            </div>
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon secondary"><i class="fa-solid fa-shield-halved"></i></div>
+                <h3>Enterprise Security</h3>
+                <p>bcrypt password hashing, CSRF protection, rate limiting, and SSL certificates.</p>
+            </div>
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon success"><i class="fa-solid fa-puzzle-piece"></i></div>
+                <h3>Modular Apps</h3>
+                <p>Each app is self-contained and communicates through a unified API layer.</p>
+            </div>
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon warning"><i class="fa-solid fa-palette"></i></div>
+                <h3>Beautiful UI</h3>
+                <p>Dark theme with glassmorphism effects, gradient accents, and smooth animations.</p>
+            </div>
+            <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon primary"><i class="fa-solid fa-code"></i></div>
+                <h3>Developer First</h3>
+                <p>Built with Python & Flask. Extensible architecture for custom app development.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== VIDEO WALKTHROUGH PLACEHOLDER ===== -->
+<section class="section section-video">
+    <div class="container">
+        <div class="section-header text-center reveal-on-scroll">
+            <div class="section-label"><i class="fa-solid fa-film"></i> Walkthrough</div>
+            <h2 class="section-title">See It in <span class="gradient-text">Action</span></h2>
+            <p class="section-subtitle">Watch the full walkthrough of JALAGEL OS Pro's key features.</p>
+        </div>
+        <div class="video-container reveal-on-scroll">
+            <div class="video-placeholder" id="videoPlaceholder">
+                <div class="video-play-btn" onclick="playVideoDemo()">
+                    <i class="fa-solid fa-play"></i>
+                </div>
+                <div class="video-label">
+                    <i class="fa-solid fa-film"></i>
+                    <span>Video Walkthrough</span>
+                    <small>Click to play demo video</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CTA SECTION ===== -->
+<section class="section section-cta">
+    <div class="container">
+        <div class="cta-box reveal-on-scroll">
+            <div class="cta-orb"></div>
+            <div class="cta-content">
+                <h2>Ready to Get Started?</h2>
+                <p>Create your free account and start using JALAGEL OS Pro in under a minute. No credit card required.</p>
+                <div class="cta-buttons">
+                    <a href="{{ url_for('auth_register') }}" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-rocket"></i> Create Free Account
+                    </a>
+                    <a href="{{ url_for('pricing') }}" class="btn btn-outline btn-lg">
+                        <i class="fa-solid fa-tag"></i> Compare Plans
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+// ===== DEMO OS WINDOW SYSTEM =====
+const demoWindows = document.getElementById('demoWindows');
+const windowConfigs = {
+    notes: {
+        title: 'Notes',
+        icon: 'fa-sticky-note',
+        w: 320, h: 220,
+        x: 140, y: 20,
+        content: `<div style="padding:12px;">
+            <div style="display:flex;gap:6px;margin-bottom:8px;">
+                <div style="width:60px;height:50px;background:linear-gradient(135deg,#7C3AED,#EC4899);border-radius:6px;padding:4px;font-size:0.4375rem;color:white;"><strong>Project</strong><br>Ideas...</div>
+                <div style="width:60px;height:50px;background:linear-gradient(135deg,#06B6D4,#7C3AED);border-radius:6px;padding:4px;font-size:0.4375rem;color:white;"><strong>Grocery</strong><br>Milk, Egg...</div>
+                <div style="width:60px;height:50px;background:linear-gradient(135deg,#10B981,#06B6D4);border-radius:6px;padding:4px;font-size:0.4375rem;color:white;"><strong>Meeting</strong><br>Discuss...</div>
+            </div>
+            <div style="font-size:0.5rem;color:var(--text-secondary);"><i class="fa-solid fa-plus"></i> New Note</div>
+        </div>`
+    },
+    calendar: {
+        title: 'Calendar',
+        icon: 'fa-calendar',
+        w: 300, h: 240,
+        x: 180, y: 30,
+        content: `<div style="padding:10px;font-size:0.5rem;">
+            <div style="text-align:center;margin-bottom:8px;font-weight:600;color:var(--text-primary);">May 2025</div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;color:var(--text-muted);font-size:0.4375rem;margin-bottom:4px;">
+                <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:0.4375rem;">
+                <span style="color:var(--text-muted);">28</span><span style="color:var(--text-muted);">29</span><span style="color:var(--text-muted);">30</span>
+                <span>1</span><span>2</span><span>3</span><span>4</span>
+                <span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span>
+                <span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span>
+                <span>19</span><span>20</span><span>21</span><span style="background:var(--color-primary);border-radius:50%;color:white;width:16px;height:16px;display:flex;align-items:center;justify-content:center;margin:0 auto;">22</span><span>23</span><span>24</span><span>25</span>
+                <span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span style="color:var(--text-muted);">1</span>
+            </div>
+        </div>`
+    },
+    terminal: {
+        title: 'Terminal',
+        icon: 'fa-terminal',
+        w: 340, h: 200,
+        x: 160, y: 40,
+        content: `<div class="preview-code" style="padding:8px;line-height:1.9;">
+            <div><span style="color:var(--color-success);">user@jalagel-os</span>:<span style="color:var(--color-accent);">~</span>$ ls -la</div>
+            <div>drwxr-xr-x  4 user user 4096 May 22 Documents/</div>
+            <div>drwxr-xr-x  2 user user 4096 May 21 Downloads/</div>
+            <div>-rw-r--r--  1 user user  220 May 20 notes.txt</div>
+            <div><span style="color:var(--color-success);">user@jalagel-os</span>:<span style="color:var(--color-accent);">~</span>$ <span class="terminal-cursor" style="display:inline-block;width:6px;height:10px;background:var(--color-primary);animation:blink 1s infinite;">&nbsp;</span></div>
+        </div>`
+    },
+    code: {
+        title: 'Code Editor',
+        icon: 'fa-code',
+        w: 360, h: 240,
+        x: 120, y: 15,
+        content: `<div class="preview-code" style="padding:8px;line-height:1.9;">
+            <div><span class="code-kw">from</span> flask <span class="code-kw">import</span> <span class="code-var">Flask</span>, <span class="code-var">render_template</span></div>
+            <div></div>
+            <div><span class="code-var">app</span> = <span class="code-class">Flask</span>(<span class="code-str">__name__</span>)</div>
+            <div></div>
+            <div><span class="code-kw">@app</span>.<span class="code-func">route</span>(<span class="code-str">'/'</span>)</div>
+            <div><span class="code-kw">def</span> <span class="code-func">home</span>():</div>
+            <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-kw">return</span> <span class="code-func">render_template</span>(<span class="code-str">'index.html'</span>)</div>
+            <div></div>
+            <div><span class="code-kw">if</span> __name__ == <span class="code-str">'__main__'</span>:</div>
+            <div>&nbsp;&nbsp;&nbsp;&nbsp;app.<span class="code-func">run</span>(debug=<span class="code-kw">True</span>)</div>
+        </div>`
+    },
+    calculator: {
+        title: 'Calculator',
+        icon: 'fa-calculator',
+        w: 220, h: 280,
+        x: 200, y: 25,
+        content: `<div style="padding:8px;">
+            <div style="background:var(--bg-primary);border-radius:6px;padding:8px;text-align:right;font-size:1rem;font-family:var(--font-mono);margin-bottom:6px;color:var(--text-primary);">42</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3px;font-size:0.5625rem;">
+                <div style="padding:6px;text-align:center;background:var(--bg-surface-light);border-radius:4px;color:var(--color-secondary);">C</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-surface-light);border-radius:4px;color:var(--color-secondary);">/</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-surface-light);border-radius:4px;color:var(--color-secondary);">*</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-surface-light);border-radius:4px;color:var(--color-secondary);">-</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-primary);border-radius:4px;">7</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-primary);border-radius:4px;">8</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-primary);border-radius:4px;">9</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-surface-light);border-radius:4px;color:var(--color-secondary);">+</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-primary);border-radius:4px;">4</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-primary);border-radius:4px;">5</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-primary);border-radius:4px;">6</div>
+                <div style="padding:6px;text-align:center;background:var(--color-primary);border-radius:4px;color:white;grid-row:span 2;display:flex;align-items:center;justify-content:center;">=</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-primary);border-radius:4px;">1</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-primary);border-radius:4px;">2</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-primary);border-radius:4px;">3</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-primary);border-radius:4px;grid-column:span 2;">0</div>
+                <div style="padding:6px;text-align:center;background:var(--bg-primary);border-radius:4px;">.</div>
+            </div>
+        </div>`
+    },
+    paint: {
+        title: 'Paint Studio',
+        icon: 'fa-paint-brush',
+        w: 320, h: 230,
+        x: 150, y: 20,
+        content: `<div style="display:flex;height:100%;">
+            <div style="width:32px;background:var(--bg-surface-light);border-right:1px solid var(--border-color);padding:4px;display:flex;flex-direction:column;gap:3px;align-items:center;">
+                <div style="width:18px;height:18px;background:var(--color-primary);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:0.4375rem;"><i class="fa-solid fa-paint-brush" style="color:white;"></i></div>
+                <div style="width:18px;height:18px;background:var(--bg-primary);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:0.4375rem;"><i class="fa-solid fa-square" style="color:var(--text-muted);"></i></div>
+                <div style="width:18px;height:18px;background:var(--bg-primary);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:0.4375rem;"><i class="fa-solid fa-circle" style="color:var(--text-muted);"></i></div>
+                <div style="width:18px;height:18px;background:var(--bg-primary);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:0.4375rem;"><i class="fa-solid fa-eraser" style="color:var(--text-muted);"></i></div>
+                <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:2px;justify-content:center;">
+                    <div style="width:8px;height:8px;background:#EF4444;border-radius:2px;"></div>
+                    <div style="width:8px;height:8px;background:#10B981;border-radius:2px;"></div>
+                    <div style="width:8px;height:8px;background:#3B82F6;border-radius:2px;"></div>
+                    <div style="width:8px;height:8px;background:#F59E0B;border-radius:2px;"></div>
+                    <div style="width:8px;height:8px;background:#7C3AED;border-radius:2px;"></div>
+                    <div style="width:8px;height:8px;background:#EC4899;border-radius:2px;"></div>
+                </div>
+            </div>
+            <div style="flex:1;background:white;position:relative;">
+                <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 280 200">
+                    <circle cx="140" cy="100" r="40" fill="none" stroke="#7C3AED" stroke-width="2" opacity="0.5"/>
+                    <rect x="100" y="70" width="80" height="60" fill="none" stroke="#06B6D4" stroke-width="2" opacity="0.5"/>
+                    <line x1="80" y1="140" x2="200" y2="60" stroke="#EC4899" stroke-width="2" opacity="0.4"/>
+                </svg>
+            </div>
+        </div>`
+    },
+    music: {
+        title: 'Music Player',
+        icon: 'fa-music',
+        w: 280, h: 200,
+        x: 170, y: 35,
+        content: `<div style="padding:12px;text-align:center;">
+            <div style="width:60px;height:60px;background:linear-gradient(135deg,#7C3AED,#EC4899);border-radius:12px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;color:white;"><i class="fa-solid fa-music"></i></div>
+            <div style="font-size:0.5625rem;color:var(--text-primary);font-weight:600;margin-bottom:2px;">Lo-Fi Beats</div>
+            <div style="font-size:0.4375rem;color:var(--text-muted);margin-bottom:8px;">Chillhop Music</div>
+            <div style="width:100%;height:3px;background:var(--bg-surface-light);border-radius:2px;margin-bottom:8px;position:relative;">
+                <div style="width:35%;height:100%;background:linear-gradient(90deg,#7C3AED,#EC4899);border-radius:2px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:12px;font-size:0.75rem;color:var(--text-primary);">
+                <i class="fa-solid fa-backward-step"></i>
+                <div style="width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:0.625rem;"><i class="fa-solid fa-pause"></i></div>
+                <i class="fa-solid fa-forward-step"></i>
+            </div>
+        </div>`
+    },
+    browser: {
+        title: 'Web Browser',
+        icon: 'fa-globe',
+        w: 380, h: 260,
+        x: 100, y: 10,
+        content: `<div style="display:flex;flex-direction:column;height:100%;">
+            <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:var(--bg-surface-light);border-bottom:1px solid var(--border-color);">
+                <div style="flex:1;background:var(--bg-primary);border-radius:4px;padding:3px 6px;font-size:0.4375rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;">
+                    <i class="fa-solid fa-lock" style="font-size:0.375rem;color:var(--color-success);"></i> https://jalagel-os.pro
+                </div>
+            </div>
+            <div style="flex:1;padding:8px;font-size:0.4375rem;color:var(--text-secondary);overflow:hidden;">
+                <div style="font-size:0.75rem;font-weight:700;color:var(--text-primary);margin-bottom:6px;">JALAGEL OS Pro</div>
+                <div style="width:80%;height:4px;background:var(--bg-surface-light);border-radius:2px;margin-bottom:3px;"></div>
+                <div style="width:60%;height:4px;background:var(--bg-surface-light);border-radius:2px;margin-bottom:8px;"></div>
+                <div style="display:flex;gap:4px;">
+                    <div style="flex:1;height:40px;background:var(--bg-surface-light);border-radius:4px;"></div>
+                    <div style="flex:1;height:40px;background:var(--bg-surface-light);border-radius:4px;"></div>
+                    <div style="flex:1;height:40px;background:var(--bg-surface-light);border-radius:4px;"></div>
+                </div>
+            </div>
+        </div>`
+    },
+    files: {
+        title: 'File Manager',
+        icon: 'fa-folder',
+        w: 340, h: 230,
+        x: 140, y: 25,
+        content: `<div style="display:flex;height:100%;flex-direction:column;">
+            <div style="padding:4px 8px;background:var(--bg-surface-light);border-bottom:1px solid var(--border-color);font-size:0.4375rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;">
+                <i class="fa-solid fa-home"></i> / <i class="fa-solid fa-folder"></i> Documents
+            </div>
+            <div style="padding:8px;display:flex;gap:8px;">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                    <div style="font-size:1.25rem;color:var(--color-warning);"><i class="fa-solid fa-folder"></i></div>
+                    <span style="font-size:0.4375rem;color:var(--text-secondary);">Work</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                    <div style="font-size:1.25rem;color:var(--color-warning);"><i class="fa-solid fa-folder"></i></div>
+                    <span style="font-size:0.4375rem;color:var(--text-secondary);">Photos</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                    <div style="font-size:1.25rem;color:var(--color-primary);"><i class="fa-solid fa-file-code"></i></div>
+                    <span style="font-size:0.4375rem;color:var(--text-secondary);">app.py</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                    <div style="font-size:1.25rem;color:var(--color-accent);"><i class="fa-solid fa-file-image"></i></div>
+                    <span style="font-size:0.4375rem;color:var(--text-secondary);">logo.png</span>
+                </div>
+            </div>
+        </div>`
+    },
+    settings: {
+        title: 'Settings',
+        icon: 'fa-cog',
+        w: 300, h: 240,
+        x: 160, y: 20,
+        content: `<div style="display:flex;height:100%;">
+            <div style="width:80px;background:var(--bg-surface-light);border-right:1px solid var(--border-color);padding:6px;font-size:0.4375rem;">
+                <div style="padding:3px 4px;background:rgba(124,58,237,0.2);border-radius:3px;color:var(--color-primary-light);margin-bottom:2px;"><i class="fa-solid fa-user"></i> Account</div>
+                <div style="padding:3px 4px;color:var(--text-muted);margin-bottom:2px;"><i class="fa-solid fa-palette"></i> Theme</div>
+                <div style="padding:3px 4px;color:var(--text-muted);margin-bottom:2px;"><i class="fa-solid fa-bell"></i> Notifications</div>
+                <div style="padding:3px 4px;color:var(--text-muted);margin-bottom:2px;"><i class="fa-solid fa-shield-halved"></i> Security</div>
+                <div style="padding:3px 4px;color:var(--text-muted);"><i class="fa-solid fa-database"></i> Storage</div>
+            </div>
+            <div style="flex:1;padding:8px;font-size:0.4375rem;color:var(--text-secondary);">
+                <div style="font-size:0.5625rem;color:var(--text-primary);font-weight:600;margin-bottom:6px;">Account Settings</div>
+                <div style="margin-bottom:4px;">Username: <span style="color:var(--text-primary);">admin</span></div>
+                <div style="margin-bottom:4px;">Email: <span style="color:var(--text-primary);">admin@jalagel.com</span></div>
+                <div style="margin-bottom:4px;">Tier: <span style="color:var(--color-primary);font-weight:600;">Enterprise</span></div>
+                <div style="margin-top:6px;padding:4px;background:var(--bg-primary);border-radius:4px;border:1px solid var(--border-color);">
+                    <i class="fa-solid fa-circle" style="color:var(--color-success);font-size:0.25rem;"></i> Active
+                </div>
+            </div>
+        </div>`
+    }
+};
+
+let activeWindows = {};
+let zIndexCounter = 10;
+
+function openDemoWindow(appId) {
+    if (activeWindows[appId]) {
+        // Bring to front
+        activeWindows[appId].style.zIndex = ++zIndexCounter;
+        return;
+    }
+
+    const config = windowConfigs[appId];
+    if (!config) return;
+
+    const win = document.createElement('div');
+    win.className = 'preview-window demo-window-open';
+    win.id = 'demo-win-' + appId;
+    win.style.width = config.w + 'px';
+    win.style.height = config.h + 'px';
+    win.style.left = config.x + 'px';
+    win.style.top = config.y + 'px';
+    win.style.zIndex = ++zIndexCounter;
+
+    win.innerHTML = `
+        <div class="preview-win-titlebar" onmousedown="focusWindow('${appId}')">
+            <i class="fa-solid ${config.icon}"></i>
+            <span>${config.title}</span>
+            <div class="preview-win-controls">
+                <i class="fa-solid fa-minus" onclick="minimizeWindow('${appId}')" style="cursor:pointer;"></i>
+                <i class="fa-solid fa-xmark" onclick="closeWindow('${appId}')" style="cursor:pointer;"></i>
+            </div>
+        </div>
+        <div class="preview-win-content" onmousedown="focusWindow('${appId}')">
+            ${config.content}
+        </div>
+    `;
+
+    demoWindows.appendChild(win);
+    activeWindows[appId] = win;
+
+    // Show in taskbar
+    const taskbarIcon = document.getElementById('taskbar-' + appId);
+    if (taskbarIcon) taskbarIcon.style.display = 'block';
+}
+
+function closeWindow(appId) {
+    const win = activeWindows[appId];
+    if (win) {
+        win.remove();
+        delete activeWindows[appId];
+        const taskbarIcon = document.getElementById('taskbar-' + appId);
+        if (taskbarIcon) taskbarIcon.style.display = 'none';
+    }
+}
+
+function focusWindow(appId) {
+    const win = activeWindows[appId];
+    if (win) {
+        win.style.zIndex = ++zIndexCounter;
+    }
+}
+
+function minimizeWindow(appId) {
+    const win = activeWindows[appId];
+    if (win) {
+        win.style.display = win.style.display === 'none' ? 'block' : 'none';
+        const taskbarIcon = document.getElementById('taskbar-' + appId);
+        if (taskbarIcon) taskbarIcon.classList.toggle('active');
+    }
+}
+
+function playVideoDemo() {
+    const placeholder = document.getElementById('videoPlaceholder');
+    placeholder.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--text-secondary);">
+            <i class="fa-solid fa-film" style="font-size:3rem;color:var(--color-primary);opacity:0.5;"></i>
+            <span style="font-size:1rem;color:var(--text-primary);">Video Walkthrough</span>
+            <span>Video content will be available soon.</span>
+            <button onclick="resetVideoPlaceholder()" class="btn btn-outline btn-sm" style="margin-top:8px;">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </button>
+        </div>
+    `;
+}
+
+function resetVideoPlaceholder() {
+    const placeholder = document.getElementById('videoPlaceholder');
+    placeholder.innerHTML = `
+        <div class="video-play-btn" onclick="playVideoDemo()">
+            <i class="fa-solid fa-play"></i>
+        </div>
+        <div class="video-label">
+            <i class="fa-solid fa-film"></i>
+            <span>Video Walkthrough</span>
+            <small>Click to play demo video</small>
+        </div>
+    `;
+}
+
+// Auto-open terminal on load for effect
+setTimeout(() => {
+    openDemoWindow('terminal');
+}, 800);
+
+setTimeout(() => {
+    openDemoWindow('notes');
+}, 1600);
+</script>
 {% endblock %}
