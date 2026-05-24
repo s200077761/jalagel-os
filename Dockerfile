@@ -1,21 +1,12 @@
 # JALAGEL OS Pro - Python Flask Edition
 # Docker Image for GitHub Container Registry
 
-FROM python:3.11-slim
+FROM python:3.11
 
 LABEL org.opencontainers.image.title="JALAGEL OS Pro"
 LABEL org.opencontainers.image.description="Web-based Operating System with 50+ Apps & SSL Certificate Store"
 LABEL org.opencontainers.image.source="https://github.com/s200077761/jalagel-os"
 LABEL org.opencontainers.image.author="MOHAMMED SAAD MOHAMMED ALOHAYDIB"
-
-# Install system dependencies for Python packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    libffi-dev \
-    libssl-dev \
-    libjpeg-dev \
-    zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
