@@ -24,8 +24,12 @@ def create_app(config_class=None):
     config = config_class or get_config()
     app.config.from_object(config)
     
-    # Ensure instance directory exists
-    os.makedirs(app.instance_path, exist_ok=True)
+    # Ensure instance directory exists (fallback for Docker/Render)
+    try:
+        os.makedirs(app.instance_path, exist_ok=True)
+    except Exception:
+        app.instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
+        os.makedirs(app.instance_path, exist_ok=True)
     
     # Initialize extensions
     db.init_app(app)
